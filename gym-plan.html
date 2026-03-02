@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Peter's Gym Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0f;
+    --surface: #1a1a1c;
+    --surface2: #242426;
+    --accent: #e8ff47;
+    --accent2: #ff6b35;
+    --text: #f0efe8;
+    --muted: #888884;
+    --border: #2e2e30;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    max-width: 480px;
+    margin: 0 auto;
+    padding-bottom: 60px;
+  }
+
+  header {
+    padding: 28px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.8rem;
+    letter-spacing: 2px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  header p {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+
+  /* Day nav tabs */
+  .day-nav {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 14px 20px;
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--border);
+    scrollbar-width: none;
+  }
+  .day-nav::-webkit-scrollbar { display: none; }
+  .day-btn {
+    flex-shrink: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .day-btn.active {
+    background: var(--accent);
+    color: #0e0e0f;
+    border-color: var(--accent);
+  }
+  .day-btn.optional {
+    border-style: dashed;
+  }
+
+  /* Day panels */
+  .day-panel { display: none; padding: 20px; }
+  .day-panel.active { display: block; }
+
+  .day-header {
+    margin-bottom: 18px;
+  }
+  .day-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 1.5px;
+    line-height: 1;
+  }
+  .day-subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 3px;
+  }
+  .skip-note {
+    background: var(--surface2);
+    border-left: 3px solid var(--accent2);
+    padding: 8px 12px;
+    border-radius: 0 6px 6px 0;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 10px;
+  }
+
+  /* Section labels */
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 20px 0 8px;
+  }
+
+  /* Exercise cards */
+  .exercise {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .exercise-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    cursor: pointer;
+    gap: 10px;
+  }
+  .exercise-name {
+    font-weight: 500;
+    font-size: 14px;
+    flex: 1;
+  }
+  .exercise-sets {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: var(--accent);
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+  .info-btn {
+    background: var(--surface2);
+    border: none;
+    color: var(--muted);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 11px;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    transition: background 0.2s;
+  }
+  .info-btn.open {
+    background: var(--accent);
+    color: #0e0e0f;
+  }
+  .exercise-detail {
+    display: none;
+    padding: 0 14px 14px;
+    border-top: 1px solid var(--border);
+    margin-top: 0;
+  }
+  .exercise-detail.open { display: block; }
+  .tip-text {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 10px;
+    line-height: 1.6;
+  }
+  .tip-text strong {
+    color: var(--text);
+  }
+  .ref-link {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .ref-link:hover { border-color: var(--accent); }
+
+  /* Activation / warm-up block */
+  .warmup-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+  .warmup-block .w-title {
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 6px;
+    color: var(--accent2);
+  }
+  .warmup-item {
+    font-size: 13px;
+    color: var(--muted);
+    padding: 2px 0;
+  }
+
+  /* Finisher block */
+  .finisher {
+    background: linear-gradient(135deg, #1e2200, #1a1a1c);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 14px;
+    margin-top: 16px;
+  }
+  .finisher-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    color: var(--accent);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .finisher-detail {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .finisher-detail strong { color: var(--text); }
+
+  /* HR Guide */
+  .hr-zone {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .hr-zone:last-child { border-bottom: none; }
+  .zone-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .z1 { background: #4fc3f7; }
+  .z2 { background: #81c784; }
+  .z3 { background: #ffb74d; }
+  .z4 { background: #e57373; }
+
+  /* Macros */
+  .macro-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+  .macro-name {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .macro-amount {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .macro-note {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .callout {
+    background: var(--surface2);
+    border-left: 3px solid var(--accent2);
+    padding: 12px 14px;
+    border-radius: 0 8px 8px 0;
+    font-size: 13px;
+    color: var(--muted);
+    margin: 10px 0;
+    line-height: 1.6;
+  }
+  .callout strong { color: var(--text); }
+
+  /* Cardio alternatives */
+  .alt-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 14px;
+    margin-bottom: 7px;
+    font-size: 13px;
+  }
+  .alt-name { font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .alt-note { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>PETER'S GYM PLAN</h1>
+  <p>4-day split · Southrac · Updated March 2026</p>
+</header>
+
+<div class="day-nav">
+  <button class="day-btn active" onclick="showDay('d1')">Day 1</button>
+  <button class="day-btn" onclick="showDay('d2')">Day 2</button>
+  <button class="day-btn" onclick="showDay('d3')">Day 3</button>
+  <button class="day-btn" onclick="showDay('d4')">Day 4</button>
+  <button class="day-btn optional" onclick="showDay('d5')">Day 5 ✦</button>
+  <button class="day-btn" onclick="showDay('cardio')">Cardio</button>
+  <button class="day-btn" onclick="showDay('macros')">Macros</button>
+</div>
+
+<!-- DAY 1 -->
+<div class="day-panel active" id="d1">
+  <div class="day-header">
+    <div class="day-label">DAY 1 — PUSH</div>
+    <div class="day-subtitle">Chest · Shoulders · Triceps · Core</div>
+    <div class="skip-note">⚠️ Only 3 days this week? Drop Day 4, keep Days 1–3.</div>
+  </div>
+
+  <div class="section-label">Warm-Up</div>
+  <div class="warmup-block">
+    <div class="w-title">5 min Incline Ramp (or substitute)</div>
+    <div class="warmup-item">Zone 1 · HR 100–120 · Easy conversational pace</div>
+  </div>
+
+  <div class="section-label">Main Work</div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Incline Dumbbell Press</span>
+      <span class="exercise-sets">3×10</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> Try 25–35 lb dumbbells. Last 2 reps should feel genuinely hard without losing form.<br><strong>Form tip:</strong> Keep shoulder blades pinched back into the bench. Don't let elbows flare past 45°.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=8iPEnn-ltC8" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Seated DB Shoulder Press</span>
+      <span class="exercise-sets">3×10</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> 20–30 lb dumbbells.<br><strong>Form tip:</strong> Press in a slight forward arc, not straight up. Stop just before lockout to keep tension on the muscle.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=qEwKCR5JCog" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Cable Lateral Raise</span>
+      <span class="exercise-sets">3×12</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> 5–10 lbs on the cable stack.<br><strong>Form tip:</strong> Stand sideways to the cable. Lead with your elbow, not your wrist. Don't shrug at the top.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=the1-lateral" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Chest Fly Machine</span>
+      <span class="exercise-sets">3×12</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> 40–60 lbs on the stack.<br><strong>Form tip:</strong> Think about hugging a tree, not pushing. Full stretch at the open position, controlled close.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=Z57CtFmRMxA" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Tricep Rope Pushdown</span>
+      <span class="exercise-sets">3×12</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> 30–40 lbs.<br><strong>Form tip:</strong> At the bottom, spread the rope handles apart to fully contract the tricep. Keep elbows pinned to your sides.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=vB5OHsJ3EME" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Overhead Tricep Extension (cable)</span>
+      <span class="exercise-sets">2×12</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> 20–30 lbs.<br><strong>Form tip:</strong> Face away from the cable, rope attachment at the top. Keep elbows close to your head. Full stretch down, squeeze up.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=_gsUck-7M74" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="section-label">Core</div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Plank</span>
+      <span class="exercise-sets">3×40 sec</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Form tip:</strong> Squeeze glutes and abs simultaneously. Don't let hips sag or pike. Breathe steadily. If 40 sec is too easy, move to RKC plank variation.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=ASdvN_XEl_c" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Dead Bug</span>
+      <span class="exercise-sets">3×10 each side</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Form tip:</strong> Press your lower back into the floor throughout — this is the whole point. Lower opposite arm and leg simultaneously, slow and controlled. Don't rush.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=4XLEnwUr1d8" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="finisher">
+    <div class="finisher-title">🔥 CARDIO FINISHER</div>
+    <div class="finisher-detail"><strong>10–15 min · Incline Ramp (or substitute)</strong><br>Zone 3 · HR 135–155 · Push the pace — you should be breathing hard but not sprinting. This is where endorphins kick in.</div>
+  </div>
+</div>
+
+<!-- DAY 2 -->
+<div class="day-panel" id="d2">
+  <div class="day-header">
+    <div class="day-label">DAY 2 — PULL</div>
+    <div class="day-subtitle">Back · Biceps · Rear Delts · Core</div>
+  </div>
+
+  <div class="section-label">Warm-Up</div>
+  <div class="warmup-block">
+    <div class="w-title">5 min Incline Ramp (or substitute)</div>
+    <div class="warmup-item">Zone 1 · HR 100–120</div>
+  </div>
+
+  <div class="section-label">Main Work</div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Seated Cable Row (V-bar, narrow)</span>
+      <span class="exercise-sets">3×10</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Grip:</strong> Use the V-bar (neutral/narrow grip). This gives fuller range of motion and is easier on the shoulders.<br><strong>Start weight:</strong> 50–70 lbs.<br><strong>Form tip:</strong> Sit tall, pull the handle to your lower sternum, squeeze shoulder blades together at the end. Don't lean back excessively — slight lean only.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=GZbfZ033f74" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Lat Pulldown (wide grip)</span>
+      <span class="exercise-sets">3×10</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> 60–80 lbs.<br><strong>Form tip:</strong> Lean back slightly, pull bar to upper chest, lead with your elbows. Don't jerk or use momentum.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=CAwf7n6Luuc" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Single-Arm Dumbbell Row</span>
+      <span class="exercise-sets">3×10 each</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> 30–40 lbs.<br><strong>Form tip:</strong> Brace with your opposite hand on the bench. Pull the elbow straight back past your hip. Think "elbow to ceiling," not "hand to hip."</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=pYcpY20QaE8" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Face Pulls (cable)</span>
+      <span class="exercise-sets">3×15</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Don't skip this one.</strong> It's the best shoulder health exercise available.<br><strong>Start weight:</strong> 20–30 lbs. Keep it light — this is not a strength exercise.<br><strong>Form tip:</strong> Set cable at face height, rope attachment. Pull to your ears, end position has elbows high and wrists behind elbows. Slow and controlled.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=eIq5CB9JfKE" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">EZ Bar Curl</span>
+      <span class="exercise-sets">3×12</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> 40–55 lbs on the EZ bar.<br><strong>Form tip:</strong> Keep elbows pinned at your sides. Full stretch at the bottom, squeeze at the top. The angled grip is easier on wrists than a straight bar.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=zG2i9--g8NA" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Hammer Curl</span>
+      <span class="exercise-sets">2×12</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> 20–30 lbs.<br><strong>Form tip:</strong> Palms facing each other, curl straight up. Hits the brachialis (under the bicep) and forearm — adds thickness and grip strength.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=TwD-YGVP4Bk" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="section-label">Core</div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Bird Dog</span>
+      <span class="exercise-sets">3×10 each side</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Form tip:</strong> On all fours, extend opposite arm and leg simultaneously. Keep hips level — no rotation. Pause 1 second at full extension. This is a back rehab staple.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=wiFNA3sqjCA" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="finisher">
+    <div class="finisher-title">🔥 CARDIO FINISHER</div>
+    <div class="finisher-detail"><strong>10–15 min · Zone 3 · HR 135–155</strong><br>Push the incline or pace. You want to be breathing hard. This is where the endorphins are.</div>
+  </div>
+</div>
+
+<!-- DAY 3 -->
+<div class="day-panel" id="d3">
+  <div class="day-header">
+    <div class="day-label">DAY 3 — LEGS + GLUTES</div>
+    <div class="day-subtitle">Most important day for back health &amp; testosterone</div>
+  </div>
+
+  <div class="section-label">Glute Activation (band)</div>
+  <div class="warmup-block">
+    <div class="w-title">Do these BEFORE loading weight</div>
+    <div class="warmup-item">Clamshells — 2×15 each side</div>
+    <div class="warmup-item">Glute Bridge with band — 2×15</div>
+    <div class="warmup-item" style="margin-top:6px; font-size:12px;">This fires up the glutes so they actually do the work during the heavy lifts instead of your lower back compensating.</div>
+  </div>
+
+  <div class="section-label">Warm-Up</div>
+  <div class="warmup-block">
+    <div class="w-title">5 min Incline Ramp</div>
+    <div class="warmup-item">Zone 1–2 · HR 115–135 · Moderate pace</div>
+  </div>
+
+  <div class="section-label">Main Work</div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Goblet Squat</span>
+      <span class="exercise-sets">3×12</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> 25–35 lb dumbbell.<br><strong>Form tip:</strong> Hold dumbbell vertically at your chest. Squat deep, elbows inside knees at the bottom. Great for reinforcing good squat mechanics with lower back stress.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=MxsFDhcyFyE" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Single-Leg RDL (kettlebell)</span>
+      <span class="exercise-sets">3×10 each</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> 20–30 lb kettlebell (contralateral hand — opposite to planted foot).<br><strong>Form tip:</strong> Hinge at the hip, flat back, free leg extends behind as counterbalance. Your goal of touching near the ankle is a good depth reference, but <strong>stop short if your lower back rounds</strong> — flat back is more important than depth. Slow and controlled beats fast every time.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=RekEFHrCZAA" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Hip Thrust (barbell or machine)</span>
+      <span class="exercise-sets">3×12</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> Bodyweight or 45 lb bar to start.<br><strong>Form tip:</strong> Upper back on the bench, feet flat and close to glutes. Drive through your heels, squeeze glutes hard at the top. Don't hyperextend the low back at the top — ribs down, chin tucked.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=SEdqd9COlOk" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Leg Press</span>
+      <span class="exercise-sets">3×12</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> 90–135 lbs on the sled.<br><strong>Foot placement:</strong> Lower and wider on the platform = more glute and hamstring. Higher = more quad.<br><strong>Form tip:</strong> Don't lock out knees at the top. Lower the weight until hips start to tuck off the pad — stop there.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=IZxyjW7MPJQ" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Walking Lunges</span>
+      <span class="exercise-sets">3×10 each leg</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> Bodyweight or 15–20 lb dumbbells.<br><strong>Form tip:</strong> Big step forward, back knee drops toward (not to) the floor. Keep torso upright. Use the turf area at Southrac if available.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=L8fvypPrzzs" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Leg Curl Machine</span>
+      <span class="exercise-sets">3×12</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> 40–60 lbs.<br><strong>Form tip:</strong> Slow on the way down (eccentric). Don't let hips lift off the pad when curling. Full range of motion.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=1Tq3QdYUuHs" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="section-label">Core</div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Ab Wheel</span>
+      <span class="exercise-sets">3×10</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Form tip:</strong> Start from kneeling. Keep core tight and don't let your lower back sag as you roll out. Only go as far as you can control. This is harder than it looks.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=kdja3-rB2_c" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Side Plank</span>
+      <span class="exercise-sets">2×30 sec each side</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Form tip:</strong> Stack feet or stagger them. Drive your hip up — don't let it sag. This trains lateral core stability, critical for back health.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=K2iEqATs4LQ" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="finisher">
+    <div class="finisher-title">🔥 CARDIO FINISHER</div>
+    <div class="finisher-detail"><strong>10–15 min · Zone 3 · HR 135–155</strong><br>Your legs will be cooked — the ramp at a moderate incline at a strong pace works great here. Stair climber is also a good option after leg day.</div>
+  </div>
+</div>
+
+<!-- DAY 4 -->
+<div class="day-panel" id="d4">
+  <div class="day-header">
+    <div class="day-label">DAY 4 — UPPER + CONDITIONING</div>
+    <div class="day-subtitle">No legs today — they need the recovery after Day 3</div>
+    <div class="skip-note">⚠️ Only 3 days this week? This is the day to drop. Days 1–3 cover everything.</div>
+  </div>
+
+  <div class="section-label">Warm-Up</div>
+  <div class="warmup-block">
+    <div class="w-title">5 min Incline Ramp</div>
+    <div class="warmup-item">Zone 1 · HR 100–120</div>
+  </div>
+
+  <div class="section-label">Main Work</div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Dumbbell Bench Press</span>
+      <span class="exercise-sets">3×10</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> 30–40 lbs each dumbbell.<br><strong>Form tip:</strong> Flat bench. This is horizontal pressing to balance Day 1's incline work. Lower the dumbbells until they're at chest level, press straight up. Keep shoulder blades retracted.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=VmB1G1K7v94" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Cable Pull-Through</span>
+      <span class="exercise-sets">3×15</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Replaces kettlebell swing — same pattern, much easier to learn.</strong><br><strong>Start weight:</strong> 30–40 lbs.<br><strong>Form tip:</strong> Low cable, rope attachment, face away from the machine. Hinge at the hips (not the waist), let the rope swing between your legs, drive hips forward to stand. All the power comes from the glute squeeze at the top. Back stays flat throughout.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=SAVAMDEyhL8" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Standard Push-Up</span>
+      <span class="exercise-sets">3×12</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Form tip:</strong> Body in a straight line, core tight. Lower until chest nearly touches the floor. If 12 reps is too easy, elevate feet on a bench for more challenge.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=IODxDxX7oi4" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Seated Cable Row (V-bar, narrow)</span>
+      <span class="exercise-sets">3×10</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text">Same as Day 2. See notes there for form cues.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=GZbfZ033f74" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Arnold Press</span>
+      <span class="exercise-sets">3×10</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> 20–25 lbs each dumbbell.<br><strong>Form tip:</strong> Start with palms facing you (like a curl finish), rotate palms outward as you press up. Hits all three heads of the shoulder. Named after Arnold Schwarzenegger.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=6Z15_WdXmVw" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Face Pulls</span>
+      <span class="exercise-sets">2×15</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text">Repeated from Day 2 intentionally — shoulder health investment. See Day 2 for form cues.</p>
+    </div>
+  </div>
+
+  <div class="section-label">Core Circuit — 2 Rounds</div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Plank → Dead Bug → Bird Dog</span>
+      <span class="exercise-sets">2 rounds</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text">Plank: 40 sec<br>Dead Bug: 10 each side<br>Bird Dog: 10 each side<br><br>Rest 30–45 sec between rounds. Full form cues on each exercise in Day 1 (Plank, Dead Bug) and Day 2 (Bird Dog).</p>
+    </div>
+  </div>
+
+  <div class="finisher">
+    <div class="finisher-title">🔥 CARDIO FINISHER</div>
+    <div class="finisher-detail"><strong>10–15 min · Zone 3 · HR 135–155</strong><br>Push it. This is your conditioning day — the finisher matters more here than any other day.</div>
+  </div>
+</div>
+
+<!-- DAY 5 -->
+<div class="day-panel" id="d5">
+  <div class="day-header">
+    <div class="day-label">DAY 5 — ARMS + SHOULDERS</div>
+    <div class="day-subtitle">Optional · Light on the body · Real workout ✦</div>
+    <div class="skip-note">✦ This day exists if you have a 5th gym trip. No leg overlap. Feel-good session.</div>
+  </div>
+
+  <div class="section-label">Warm-Up</div>
+  <div class="warmup-block">
+    <div class="w-title">5 min Incline Ramp</div>
+    <div class="warmup-item">Zone 1 · HR 100–120</div>
+  </div>
+
+  <div class="section-label">Shoulders</div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Cable Lateral Raise</span>
+      <span class="exercise-sets">3×15</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text">Higher rep range today — lighter weight, more pump. See Day 1 for form cues.</p>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Face Pulls</span>
+      <span class="exercise-sets">3×15</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text">Third time this week intentionally. Cheap investment in shoulder longevity. See Day 2 for form cues.</p>
+    </div>
+  </div>
+
+  <div class="section-label">Biceps</div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">EZ Bar Curl</span>
+      <span class="exercise-sets">3×12</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text">See Day 2 for form cues. Same exercise, same weight range.</p>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Cable Curl (straight bar or rope)</span>
+      <span class="exercise-sets">3×12</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> 25–35 lbs.<br><strong>Why this instead of concentration curl:</strong> Cable keeps constant tension through the whole movement, which is more effective for bicep growth. Also much easier to execute.<br><strong>Form tip:</strong> Stand at low pulley, elbows stay at sides, curl all the way up, slow on the way down.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=NFzTWp2qpiE" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="section-label">Triceps</div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Tricep Rope Pushdown</span>
+      <span class="exercise-sets">3×12</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text">See Day 1 for form cues.</p>
+    </div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Skull Crushers (light EZ bar)</span>
+      <span class="exercise-sets">2×12</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text"><strong>Start weight:</strong> 30–40 lbs on EZ bar. Keep it light — form matters here.<br><strong>Form tip:</strong> Lie flat on bench, lower the bar toward your forehead by bending only at the elbows. Elbows stay pointing at the ceiling. Press back up. Don't let elbows flare wide.</p>
+      <a class="ref-link" href="https://www.youtube.com/watch?v=d_KZxkY_0cM" target="_blank">▶ Watch demo</a>
+    </div>
+  </div>
+
+  <div class="section-label">Core</div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Plank</span>
+      <span class="exercise-sets">3×45 sec</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail"><p class="tip-text">See Day 1 for form cues. Slightly longer hold today.</p></div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Ab Wheel</span>
+      <span class="exercise-sets">3×10</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail"><p class="tip-text">See Day 3 for form cues.</p></div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-main">
+      <span class="exercise-name">Single-Leg RDL (bodyweight)</span>
+      <span class="exercise-sets">2×10 each</span>
+      <button class="info-btn" onclick="toggleTip(this)">i</button>
+    </div>
+    <div class="exercise-detail">
+      <p class="tip-text">No weight today — just balance and glute activation. Same form as Day 3, just using your bodyweight. Good for staying loose without fatiguing legs further.</p>
+    </div>
+  </div>
+
+  <div class="finisher">
+    <div class="finisher-title">🔥 CARDIO FINISHER</div>
+    <div class="finisher-detail"><strong>10–15 min · Zone 2–3 · HR 125–150</strong><br>Slightly easier today than other days. This is a bonus session — push it but don't bury yourself.</div>
+  </div>
+
+  <div class="callout" style="margin-top:20px;">
+    <strong>At-home recovery (whenever you have a few minutes):</strong> Hip flexor stretch, thoracic rotation, pigeon pose for glutes. Even 5 min before bed counts. See the stretching links below.
+    <br><br>
+    <a class="ref-link" href="https://www.youtube.com/watch?v=PB0IfqcCRBo" target="_blank">▶ Hip Flexor Stretch</a><br>
+    <a class="ref-link" href="https://www.youtube.com/watch?v=LQn2MiTEVH0" target="_blank">▶ Thoracic Rotation</a><br>
+    <a class="ref-link" href="https://www.youtube.com/watch?v=s9UgHjP14sI" target="_blank">▶ Pigeon Pose (Glutes)</a><br>
+    <a class="ref-link" href="https://www.youtube.com/watch?v=sTxC3J3gQEU" target="_blank">▶ Lower Back Decompression</a>
+  </div>
+</div>
+
+<!-- CARDIO ALTERNATIVES -->
+<div class="day-panel" id="cardio">
+  <div class="day-header">
+    <div class="day-label">CARDIO OPTIONS</div>
+    <div class="day-subtitle">When you don't want the incline ramp</div>
+  </div>
+
+  <div class="section-label">Heart Rate Zones</div>
+  <div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:16px;">
+    <div class="hr-zone"><div class="zone-dot z1"></div><div><strong>Zone 1</strong> · 95–115 BPM · Warm-up / Day 5 cardio</div></div>
+    <div class="hr-zone"><div class="zone-dot z2"></div><div><strong>Zone 2</strong> · 115–135 BPM · Fat burn / aerobic base</div></div>
+    <div class="hr-zone"><div class="zone-dot z3"></div><div><strong>Zone 3</strong> · 135–155 BPM · <strong>Target for finishers</strong> · Endorphin zone</div></div>
+    <div class="hr-zone"><div class="zone-dot z4"></div><div><strong>Zone 4</strong> · 155–170 BPM · Occasional use only for now</div></div>
+  </div>
+
+  <div class="section-label">Incline Ramp Alternatives</div>
+
+  <div class="alt-item">
+    <div class="alt-name">🏃 Indoor Track (jog)</div>
+    <div class="alt-note">Southrac has a 1/8-mile indoor track. Easy to hit Zone 3 with a moderate jog. Low impact, no learning curve.</div>
+  </div>
+  <div class="alt-item">
+    <div class="alt-name">🚴 Stationary Bike</div>
+    <div class="alt-note">Very back-friendly. Reliable Zone 3 at moderate resistance and cadence. Best option if your back is flaring.</div>
+  </div>
+  <div class="alt-item">
+    <div class="alt-name">🪜 Stair Climber</div>
+    <div class="alt-note">High endorphin output. Glute-heavy — great after leg days. Hits Zone 3 fast.</div>
+  </div>
+  <div class="alt-item">
+    <div class="alt-name">🚣 Rowing Machine</div>
+    <div class="alt-note">Full body, excellent conditioning. Learn the form before going hard — poor rowing form can stress your lower back. Strong option once comfortable.</div>
+  </div>
+</div>
+
+<!-- MACROS -->
+<div class="day-panel" id="macros">
+  <div class="day-header">
+    <div class="day-label">MACROS</div>
+    <div class="day-subtitle">~165 lbs · Recomp goal · 4 training days</div>
+  </div>
+
+  <div class="macro-card">
+    <div class="macro-name">Daily Calories</div>
+    <div class="macro-amount">2,700–2,900</div>
+    <div class="macro-note">kcal · Supports training volume without gaining weight</div>
+  </div>
+
+  <div class="macro-card">
+    <div class="macro-name">Protein · Priority #1</div>
+    <div class="macro-amount">165–180g</div>
+    <div class="macro-note">~1g per lb bodyweight · Non-negotiable for muscle building and recovery</div>
+  </div>
+
+  <div class="macro-card">
+    <div class="macro-name">Carbohydrates</div>
+    <div class="macro-amount">300–340g</div>
+    <div class="macro-note">Energy for training, mood, and endorphin release · Don't go too low or workouts will feel flat</div>
+  </div>
+
+  <div class="macro-card">
+    <div class="macro-name">Fat</div>
+    <div class="macro-amount">70–85g</div>
+    <div class="macro-note">Testosterone production requires dietary fat · Don't go very low-fat</div>
+  </div>
+
+  <div class="section-label">Priority Order</div>
+  <div class="callout">
+    1. <strong>Hit protein first</strong> — if you miss one macro, don't let it be this one<br>
+    2. <strong>Hit total calories</strong> — being significantly under will slow recovery<br>
+    3. <strong>Fill in carbs</strong> — especially pre-workout<br>
+    4. <strong>Let fat flex</strong> — you're already fat-heavy by habit, so this can adjust
+  </div>
+
+  <div class="section-label">Protein Strategy</div>
+  <div class="callout">
+    <strong>Whey protein:</strong> 2 scoops/day = ~40–50g with zero meal planning.<br>
+    1 scoop post-workout · 1 scoop at another meal or in a smoothie.<br><br>
+    Add a protein source to every meal rather than removing fat.
+  </div>
+
+  <div class="section-label">Drinking Days (3x/week)</div>
+  <div class="callout">
+    ~3 drinks ≈ 300–400 kcal. On those days:<br>
+    <strong>Drop 100–150g of carbs, not fat.</strong><br>
+    Keep protein high regardless. Your body burns alcohol first, so lower carbs = less fat storage risk.
+  </div>
+
+  <div class="section-label">Quick References</div>
+  <div class="callout">
+    1 cup cooked rice ≈ 45g carbs<br>
+    1 banana ≈ 27g carbs<br>
+    2 slices bread ≈ 30g carbs<br>
+    1 scoop whey ≈ 24–25g protein<br>
+    6oz chicken breast ≈ 52g protein<br>
+    2 eggs ≈ 12g protein<br>
+    1 cup Greek yogurt ≈ 17–20g protein
+  </div>
+
+  <div class="callout">
+    <strong>Hydration:</strong> Aim for 100+ oz water/day. Matters for back pain and energy levels.
+  </div>
+</div>
+
+<script>
+function showDay(id) {
+  document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const idx = ['d1','d2','d3','d4','d5','cardio','macros'].indexOf(id);
+  document.querySelectorAll('.day-btn')[idx].classList.add('active');
+}
+
+function toggleTip(btn) {
+  const detail = btn.closest('.exercise').querySelector('.exercise-detail');
+  const isOpen = detail.classList.contains('open');
+  detail.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+  btn.textContent = isOpen ? 'i' : '×';
+}
+</script>
+</body>
+</html>

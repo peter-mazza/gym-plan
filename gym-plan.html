@@ -7,101 +7,111 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0e0e0f; --surface: #1a1a1c; --surface2: #242426;
-    --accent: #e8ff47; --accent2: #ff6b35; --text: #f0efe8;
-    --muted: #888884; --border: #2e2e30; --green: #4caf50;
+    --bg:#0e0e0f;--surface:#1a1a1c;--surface2:#242426;
+    --accent:#e8ff47;--accent2:#ff6b35;--text:#f0efe8;
+    --muted:#888884;--border:#2e2e30;--green:#4caf50;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.5; max-width: 480px; margin: 0 auto; padding-bottom: 80px; }
-
-  header { padding: 22px 20px 12px; border-bottom: 1px solid var(--border); }
-  header h1 { font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; letter-spacing: 2px; color: var(--accent); line-height: 1; }
-  header p { color: var(--muted); font-size: 11px; margin-top: 3px; }
-
-  .day-nav { display: flex; overflow-x: auto; gap: 8px; padding: 11px 20px; background: var(--bg); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); scrollbar-width: none; }
-  .day-nav::-webkit-scrollbar { display: none; }
-  .day-btn { flex-shrink: 0; background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; padding: 7px 14px; border-radius: 20px; cursor: pointer; white-space: nowrap; }
-  .day-btn.active { background: var(--accent); color: #0e0e0f; border-color: var(--accent); }
-  .day-btn.optional { border-style: dashed; }
-
-  .day-panel { display: none; padding: 20px; }
-  .day-panel.active { display: block; }
-
-  .day-label { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 1.5px; line-height: 1; }
-  .day-subtitle { color: var(--muted); font-size: 13px; margin-top: 3px; }
-  .skip-note { background: var(--surface2); border-left: 3px solid var(--accent2); padding: 8px 12px; border-radius: 0 6px 6px 0; font-size: 12px; color: var(--muted); margin-top: 10px; }
-  .section-label { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin: 20px 0 8px; }
-
-  .exercise { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; overflow: hidden; transition: border-color 0.2s, opacity 0.2s; }
-  .exercise.done { border-color: var(--green); opacity: 0.65; }
-  .exercise-main { display: flex; align-items: center; padding: 11px 12px; gap: 8px; }
-  .check-btn { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--border); background: transparent; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.15s; color: transparent; }
-  .check-btn.done { background: var(--green); border-color: var(--green); color: white; }
-  .exercise-info { flex: 1; min-width: 0; }
-  .exercise-name { font-weight: 500; font-size: 14px; }
-  .exercise-meta { display: flex; align-items: center; gap: 8px; margin-top: 2px; flex-wrap: wrap; }
-  .exercise-sets { font-weight: 700; color: var(--accent); font-size: 12px; }
-  .prev-weight { font-size: 11px; color: var(--muted); }
-  .prev-weight span { color: var(--accent2); font-weight: 600; }
-  .info-btn { background: var(--surface2); border: none; color: var(--muted); width: 26px; height: 26px; border-radius: 50%; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
-  .info-btn.open { background: var(--accent); color: #0e0e0f; }
-
-  .exercise-detail { display: none; padding: 0 12px 14px; border-top: 1px solid var(--border); }
-  .exercise-detail.open { display: block; }
-  .tip-text { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.6; }
-  .tip-text strong { color: var(--text); }
-
-  .weight-section { margin-top: 14px; }
-  .weight-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
-  .weight-row { display: flex; align-items: center; gap: 8px; }
-  .weight-input { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 8px 10px; width: 120px; outline: none; transition: border-color 0.15s; }
-  .weight-input:focus { border-color: var(--accent); }
-  .weight-input::placeholder { color: var(--muted); font-weight: 400; font-size: 13px; }
-  .save-btn { background: var(--accent); border: none; color: #0e0e0f; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; padding: 8px 16px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
-  .save-btn:active { opacity: 0.75; }
-  .saved-msg { font-size: 12px; color: var(--green); margin-top: 6px; display: none; }
-
-  .history-toggle { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; padding: 8px 0 0; display: block; font-family: 'DM Sans', sans-serif; text-decoration: underline; }
-  .history-list { display: none; margin-top: 8px; background: var(--surface2); border-radius: 8px; overflow: hidden; }
-  .history-list.open { display: block; }
-  .history-entry { display: grid; grid-template-columns: 1fr 1fr auto; align-items: center; font-size: 12px; padding: 7px 10px; border-bottom: 1px solid var(--border); gap: 6px; }
-  .history-entry:last-child { border-bottom: none; }
-  .h-date { color: var(--muted); }
-  .h-day { color: var(--muted); font-size: 11px; }
-  .h-weight { color: var(--accent); font-weight: 700; font-size: 14px; text-align: right; }
-  .history-empty { font-size: 12px; color: var(--muted); padding: 10px; text-align: center; }
-
-  .warmup-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; }
-  .warmup-block .w-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; color: var(--accent2); }
-  .warmup-item { font-size: 13px; color: var(--muted); padding: 2px 0; }
-
-  .finisher { background: linear-gradient(135deg, #1e2200, #1a1a1c); border: 1px solid var(--accent); border-radius: 10px; padding: 14px; margin-top: 16px; }
-  .finisher-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--accent); letter-spacing: 1px; margin-bottom: 4px; }
-  .finisher-detail { font-size: 13px; color: var(--muted); }
-  .finisher-detail strong { color: var(--text); }
-
-  .reset-btn { background: none; border: 1px solid var(--border); color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 12px; padding: 7px 16px; border-radius: 20px; cursor: pointer; margin-top: 20px; display: block; width: 100%; text-align: center; }
-
-  .config-banner { background: var(--surface2); border: 1px solid var(--accent2); border-radius: 10px; padding: 14px 16px; margin: 16px 20px 0; font-size: 13px; color: var(--muted); line-height: 1.7; }
-  .config-banner strong { color: var(--text); display: block; margin-bottom: 4px; }
-
-  .hr-zone { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-  .hr-zone:last-child { border-bottom: none; }
-  .zone-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-
-  .macro-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 10px; }
-  .macro-name { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
-  .macro-amount { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--accent); line-height: 1; }
-  .macro-note { font-size: 12px; color: var(--muted); margin-top: 4px; }
-  .callout { background: var(--surface2); border-left: 3px solid var(--accent2); padding: 12px 14px; border-radius: 0 8px 8px 0; font-size: 13px; color: var(--muted); margin: 10px 0; line-height: 1.8; }
-  .callout strong { color: var(--text); }
-  .alt-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 11px 14px; margin-bottom: 7px; }
-  .alt-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
-  .alt-note { font-size: 13px; color: var(--muted); }
-  .ref-link { display: inline-block; margin-top: 6px; font-size: 12px; color: var(--accent); text-decoration: none; }
-
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--green); color: white; font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 20px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; white-space: nowrap; }
-  .toast.show { opacity: 1; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.5;max-width:480px;margin:0 auto;padding-bottom:80px;}
+  header{padding:22px 20px 12px;border-bottom:1px solid var(--border);}
+  header h1{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;letter-spacing:2px;color:var(--accent);line-height:1;}
+  header p{color:var(--muted);font-size:11px;margin-top:3px;}
+  .day-nav{display:flex;overflow-x:auto;gap:8px;padding:11px 20px;background:var(--bg);position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border);scrollbar-width:none;}
+  .day-nav::-webkit-scrollbar{display:none;}
+  .day-btn{flex-shrink:0;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:7px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;}
+  .day-btn.active{background:var(--accent);color:#0e0e0f;border-color:var(--accent);}
+  .day-btn.optional{border-style:dashed;}
+  .day-panel{display:none;padding:20px;}
+  .day-panel.active{display:block;}
+  .day-label{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:1.5px;line-height:1;}
+  .day-subtitle{color:var(--muted);font-size:13px;margin-top:3px;}
+  .skip-note{background:var(--surface2);border-left:3px solid var(--accent2);padding:8px 12px;border-radius:0 6px 6px 0;font-size:12px;color:var(--muted);margin-top:10px;}
+  .section-label{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:20px 0 8px;}
+  /* Exercise cards */
+  .exercise{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;transition:border-color .2s,opacity .2s;}
+  .exercise.done{border-color:var(--green);opacity:.65;}
+  .exercise-main{display:flex;align-items:center;padding:11px 12px;gap:8px;}
+  .check-btn{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;color:transparent;}
+  .check-btn.done{background:var(--green);border-color:var(--green);color:white;}
+  .exercise-info{flex:1;min-width:0;}
+  .exercise-name{font-weight:500;font-size:14px;}
+  .exercise-meta{display:flex;align-items:center;gap:8px;margin-top:2px;flex-wrap:wrap;}
+  .exercise-sets{font-weight:700;color:var(--accent);font-size:12px;}
+  .prev-weight{font-size:11px;color:var(--accent2);font-weight:600;}
+  .info-btn{background:var(--surface2);border:none;color:var(--muted);width:26px;height:26px;border-radius:50%;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;}
+  .info-btn.open{background:var(--accent);color:#0e0e0f;}
+  .exercise-detail{display:none;padding:0 12px 14px;border-top:1px solid var(--border);}
+  .exercise-detail.open{display:block;}
+  .tip-text{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.6;}
+  .tip-text strong{color:var(--text);}
+  /* Weight logging */
+  .weight-section{margin-top:14px;}
+  .weight-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+  .sets-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;}
+  .set-col{display:flex;flex-direction:column;gap:4px;}
+  .set-col-label{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:1px;text-align:center;}
+  .weight-input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:8px 6px;width:100%;outline:none;transition:border-color .15s;text-align:center;}
+  .weight-input:focus{border-color:var(--accent);}
+  .weight-input::placeholder{color:var(--muted);font-weight:400;font-size:12px;}
+  .save-btn{background:var(--accent);border:none;color:#0e0e0f;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;width:100%;margin-top:4px;}
+  .save-btn:active{opacity:.75;}
+  .saved-msg{font-size:12px;color:var(--green);margin-top:6px;display:none;text-align:center;}
+  /* History */
+  .history-toggle{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:8px 0 0;display:block;font-family:'DM Sans',sans-serif;text-decoration:underline;}
+  .history-list{display:none;margin-top:8px;background:var(--surface2);border-radius:8px;overflow:hidden;}
+  .history-list.open{display:block;}
+  .history-entry{font-size:12px;padding:7px 10px;border-bottom:1px solid var(--border);}
+  .history-entry:last-child{border-bottom:none;}
+  .h-row{display:flex;justify-content:space-between;align-items:center;}
+  .h-date{color:var(--muted);}
+  .h-sets{color:var(--accent);font-weight:700;}
+  /* Warmup */
+  .warmup-block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;}
+  .warmup-block .w-title{font-weight:600;font-size:13px;margin-bottom:4px;color:var(--accent2);}
+  .warmup-item{font-size:13px;color:var(--muted);padding:2px 0;}
+  /* Finisher */
+  .finisher{background:linear-gradient(135deg,#1e2200,#1a1a1c);border:1px solid var(--accent);border-radius:10px;padding:14px;margin-top:16px;}
+  .finisher-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--accent);letter-spacing:1px;margin-bottom:4px;}
+  .finisher-detail{font-size:13px;color:var(--muted);}
+  .finisher-detail strong{color:var(--text);}
+  /* Stats block */
+  .stats-block{margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;}
+  .stats-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--accent);letter-spacing:1px;margin-bottom:12px;}
+  .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+  .stat-col{display:flex;flex-direction:column;gap:4px;}
+  .stat-col-label{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:1px;text-align:center;text-transform:uppercase;}
+  .stat-input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:8px 6px;width:100%;outline:none;transition:border-color .15s;text-align:center;}
+  .stat-input:focus{border-color:var(--accent);}
+  .stat-input::placeholder{color:var(--muted);font-weight:400;font-size:12px;}
+  .stats-save-btn{background:var(--accent);border:none;color:#0e0e0f;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;width:100%;}
+  .stats-save-btn:active{opacity:.75;}
+  /* Notes block */
+  .notes-block{margin-top:14px;}
+  .notes-label{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+  .notes-textarea{background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:12px;width:100%;outline:none;resize:none;min-height:80px;line-height:1.5;transition:border-color .15s;}
+  .notes-textarea:focus{border-color:var(--accent);}
+  .notes-textarea::placeholder{color:var(--muted);}
+  .notes-save-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:7px 16px;border-radius:8px;cursor:pointer;margin-top:8px;}
+  /* Reset */
+  .reset-btn{background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;padding:7px 16px;border-radius:20px;cursor:pointer;margin-top:14px;display:block;width:100%;text-align:center;}
+  /* HR zones */
+  .hr-zone{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+  .hr-zone:last-child{border-bottom:none;}
+  .zone-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  /* Macros */
+  .macro-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px;}
+  .macro-name{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+  .macro-amount{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--accent);line-height:1;}
+  .macro-note{font-size:12px;color:var(--muted);margin-top:4px;}
+  .callout{background:var(--surface2);border-left:3px solid var(--accent2);padding:12px 14px;border-radius:0 8px 8px 0;font-size:13px;color:var(--muted);margin:10px 0;line-height:1.8;}
+  .callout strong{color:var(--text);}
+  .alt-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 14px;margin-bottom:7px;}
+  .alt-name{font-weight:600;font-size:14px;margin-bottom:2px;}
+  .alt-note{font-size:13px;color:var(--muted);}
+  .ref-link{display:inline-block;margin-top:6px;font-size:12px;color:var(--accent);text-decoration:none;}
+  /* Toast */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:white;font-size:13px;font-weight:600;padding:10px 20px;border-radius:20px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap;}
+  .toast.show{opacity:1;}
 </style>
 </head>
 <body>
@@ -110,11 +120,6 @@
   <h1>PETER'S GYM PLAN</h1>
   <p>4-day split · Southrac · March 2026</p>
 </header>
-
-<div class="config-banner" id="configBanner" style="display:none;">
-  <strong>⚙️ Google Sheets not connected yet</strong>
-  Weights save locally on this device. To sync to Google Sheets, paste your Apps Script URL into the SHEETS_URL variable at the top of the script. See setup instructions below.
-</div>
 
 <div class="day-nav">
   <button class="day-btn active" onclick="showDay('d1')">Day 1</button>
@@ -145,6 +150,23 @@
   <div class="finisher">
     <div class="finisher-title">🔥 CARDIO FINISHER</div>
     <div class="finisher-detail"><strong>10–15 min · Zone 3 · HR 135–155</strong><br>Push the pace — breathing hard but not sprinting. This is where the endorphins kick in.</div>
+    <div style="margin-top:10px;">
+      <div class="stat-col-label" style="text-align:left;margin-bottom:5px;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--muted);">WHAT DID YOU DO?</div>
+      <input class="stat-input" type="text" placeholder="e.g. Ramp, Treadmill, Track, Bike..." id="cardio-d1" style="width:100%;text-align:left;">
+    </div>
+  </div>
+  <div class="stats-block">
+    <div class="stats-title">📊 WRAP UP WORKOUT</div>
+    <div class="stats-grid">
+      <div class="stat-col"><div class="stat-col-label">Duration (min)</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 55" id="stat-dur-d1"></div>
+      <div class="stat-col"><div class="stat-col-label">Calories</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 420" id="stat-cal-d1"></div>
+      <div class="stat-col"><div class="stat-col-label">Avg HR</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 142" id="stat-hr-d1"></div>
+    </div>
+    <div class="notes-block" style="margin-top:10px;">
+      <div class="notes-label">Notes (optional)</div>
+      <textarea class="notes-textarea" id="notes-d1" placeholder="How did it feel? Energy level, PRs, anything notable..."></textarea>
+    </div>
+    <button class="stats-save-btn" style="margin-top:10px;" onclick="saveWorkout('d1')">Save Workout</button>
   </div>
   <button class="reset-btn" onclick="resetDay('d1')">↺ Reset checkmarks for today</button>
 </div>
@@ -167,6 +189,23 @@
   <div class="finisher">
     <div class="finisher-title">🔥 CARDIO FINISHER</div>
     <div class="finisher-detail"><strong>10–15 min · Zone 3 · HR 135–155</strong><br>Push the incline or pace. You want to be breathing hard.</div>
+    <div style="margin-top:10px;">
+      <div class="stat-col-label" style="text-align:left;margin-bottom:5px;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--muted);">WHAT DID YOU DO?</div>
+      <input class="stat-input" type="text" placeholder="e.g. Ramp, Treadmill, Track, Bike..." id="cardio-d2" style="width:100%;text-align:left;">
+    </div>
+  </div>
+  <div class="stats-block">
+    <div class="stats-title">📊 WRAP UP WORKOUT</div>
+    <div class="stats-grid">
+      <div class="stat-col"><div class="stat-col-label">Duration (min)</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 55" id="stat-dur-d2"></div>
+      <div class="stat-col"><div class="stat-col-label">Calories</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 420" id="stat-cal-d2"></div>
+      <div class="stat-col"><div class="stat-col-label">Avg HR</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 142" id="stat-hr-d2"></div>
+    </div>
+    <div class="notes-block" style="margin-top:10px;">
+      <div class="notes-label">Notes (optional)</div>
+      <textarea class="notes-textarea" id="notes-d2" placeholder="How did it feel? Energy level, PRs, anything notable..."></textarea>
+    </div>
+    <button class="stats-save-btn" style="margin-top:10px;" onclick="saveWorkout('d2')">Save Workout</button>
   </div>
   <button class="reset-btn" onclick="resetDay('d2')">↺ Reset checkmarks for today</button>
 </div>
@@ -196,6 +235,23 @@
   <div class="finisher">
     <div class="finisher-title">🔥 CARDIO FINISHER</div>
     <div class="finisher-detail"><strong>10–15 min · Zone 3 · HR 135–155</strong><br>Legs will be cooked — moderate incline at strong pace works great. Stair climber is also solid after leg day.</div>
+    <div style="margin-top:10px;">
+      <div class="stat-col-label" style="text-align:left;margin-bottom:5px;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--muted);">WHAT DID YOU DO?</div>
+      <input class="stat-input" type="text" placeholder="e.g. Ramp, Treadmill, Track, Bike..." id="cardio-d3" style="width:100%;text-align:left;">
+    </div>
+  </div>
+  <div class="stats-block">
+    <div class="stats-title">📊 WRAP UP WORKOUT</div>
+    <div class="stats-grid">
+      <div class="stat-col"><div class="stat-col-label">Duration (min)</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 55" id="stat-dur-d3"></div>
+      <div class="stat-col"><div class="stat-col-label">Calories</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 420" id="stat-cal-d3"></div>
+      <div class="stat-col"><div class="stat-col-label">Avg HR</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 142" id="stat-hr-d3"></div>
+    </div>
+    <div class="notes-block" style="margin-top:10px;">
+      <div class="notes-label">Notes (optional)</div>
+      <textarea class="notes-textarea" id="notes-d3" placeholder="How did it feel? Energy level, PRs, anything notable..."></textarea>
+    </div>
+    <button class="stats-save-btn" style="margin-top:10px;" onclick="saveWorkout('d3')">Save Workout</button>
   </div>
   <button class="reset-btn" onclick="resetDay('d3')">↺ Reset checkmarks for today</button>
 </div>
@@ -219,6 +275,23 @@
   <div class="finisher">
     <div class="finisher-title">🔥 CARDIO FINISHER</div>
     <div class="finisher-detail"><strong>10–15 min · Zone 3 · HR 135–155</strong><br>Push it. This is your conditioning day — the finisher matters more here than any other day.</div>
+    <div style="margin-top:10px;">
+      <div class="stat-col-label" style="text-align:left;margin-bottom:5px;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--muted);">WHAT DID YOU DO?</div>
+      <input class="stat-input" type="text" placeholder="e.g. Ramp, Treadmill, Track, Bike..." id="cardio-d4" style="width:100%;text-align:left;">
+    </div>
+  </div>
+  <div class="stats-block">
+    <div class="stats-title">📊 WRAP UP WORKOUT</div>
+    <div class="stats-grid">
+      <div class="stat-col"><div class="stat-col-label">Duration (min)</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 55" id="stat-dur-d4"></div>
+      <div class="stat-col"><div class="stat-col-label">Calories</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 420" id="stat-cal-d4"></div>
+      <div class="stat-col"><div class="stat-col-label">Avg HR</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 142" id="stat-hr-d4"></div>
+    </div>
+    <div class="notes-block" style="margin-top:10px;">
+      <div class="notes-label">Notes (optional)</div>
+      <textarea class="notes-textarea" id="notes-d4" placeholder="How did it feel? Energy level, PRs, anything notable..."></textarea>
+    </div>
+    <button class="stats-save-btn" style="margin-top:10px;" onclick="saveWorkout('d4')">Save Workout</button>
   </div>
   <button class="reset-btn" onclick="resetDay('d4')">↺ Reset checkmarks for today</button>
 </div>
@@ -245,6 +318,10 @@
   <div class="finisher">
     <div class="finisher-title">🔥 CARDIO FINISHER</div>
     <div class="finisher-detail"><strong>10–15 min · Zone 2–3 · HR 125–150</strong><br>Slightly easier today. Bonus session — push it but don't bury yourself.</div>
+    <div style="margin-top:10px;">
+      <div class="stat-col-label" style="text-align:left;margin-bottom:5px;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--muted);">WHAT DID YOU DO?</div>
+      <input class="stat-input" type="text" placeholder="e.g. Ramp, Treadmill, Track, Bike..." id="cardio-d5" style="width:100%;text-align:left;">
+    </div>
   </div>
   <div class="callout" style="margin-top:16px;">
     <strong>At-home recovery (a few minutes anytime)</strong>
@@ -252,6 +329,19 @@
     <a class="ref-link" href="https://www.youtube.com/watch?v=LQn2MiTEVH0" target="_blank">▶ Thoracic Rotation</a><br>
     <a class="ref-link" href="https://www.youtube.com/watch?v=s9UgHjP14sI" target="_blank">▶ Pigeon Pose (Glutes)</a><br>
     <a class="ref-link" href="https://www.youtube.com/watch?v=sTxC3J3gQEU" target="_blank">▶ Lower Back Decompression</a>
+  </div>
+  <div class="stats-block">
+    <div class="stats-title">📊 WRAP UP WORKOUT</div>
+    <div class="stats-grid">
+      <div class="stat-col"><div class="stat-col-label">Duration (min)</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 55" id="stat-dur-d5"></div>
+      <div class="stat-col"><div class="stat-col-label">Calories</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 420" id="stat-cal-d5"></div>
+      <div class="stat-col"><div class="stat-col-label">Avg HR</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 142" id="stat-hr-d5"></div>
+    </div>
+    <div class="notes-block" style="margin-top:10px;">
+      <div class="notes-label">Notes (optional)</div>
+      <textarea class="notes-textarea" id="notes-d5" placeholder="How did it feel? Energy level, PRs, anything notable..."></textarea>
+    </div>
+    <button class="stats-save-btn" style="margin-top:10px;" onclick="saveWorkout('d5')">Save Workout</button>
   </div>
   <button class="reset-btn" onclick="resetDay('d5')">↺ Reset checkmarks for today</button>
 </div>
@@ -286,298 +376,344 @@
   <div class="section-label">Protein Strategy</div>
   <div class="callout"><strong>Whey protein:</strong> 2 scoops/day = ~40–50g with zero meal planning.<br>1 scoop post-workout · 1 scoop at another meal or in a smoothie.</div>
   <div class="section-label">Drinking Days (3x/week)</div>
-  <div class="callout">~3 drinks ≈ 300–400 kcal. On those days:<br><strong>Drop 100–150g of carbs, not fat.</strong><br>Keep protein high regardless.</div>
+  <div class="callout">~3 drinks = 300–400 kcal. On those days:<br><strong>Drop 100–150g of carbs, not fat.</strong><br>Keep protein high regardless.</div>
   <div class="section-label">Quick References</div>
-  <div class="callout">1 cup cooked rice ≈ 45g carbs<br>1 banana ≈ 27g carbs<br>2 slices bread ≈ 30g carbs<br>1 scoop whey ≈ 24–25g protein<br>6oz chicken breast ≈ 52g protein<br>2 eggs ≈ 12g protein<br>1 cup Greek yogurt ≈ 17–20g protein</div>
+  <div class="callout">1 cup cooked rice = 45g carbs<br>1 banana = 27g carbs<br>2 slices bread = 30g carbs<br>1 scoop whey = 24–25g protein<br>6oz chicken breast = 52g protein<br>2 eggs = 12g protein<br>1 cup Greek yogurt = 17–20g protein</div>
   <div class="callout"><strong>Hydration:</strong> Aim for 100+ oz water/day. Matters for back pain and energy.</div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ─── PASTE YOUR APPS SCRIPT URL HERE AFTER SETUP ─────────────
-const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyuctXgFiXvXE8Zo9KDN0k8tixt0jFvdcK2cmngcPfK5wU1WzA-rHeHtWZ-ugKZSoDRKg/exec';
-// ─────────────────────────────────────────────────────────────
+var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyuctXgFiXvXE8Zo9KDN0k8tixt0jFvdcK2cmngcPfK5wU1WzA-rHeHtWZ-ugKZSoDRKg/exec';
 
-const DAY_LABELS = {
-  d1: 'Day 1 — Push', d2: 'Day 2 — Pull',
-  d3: 'Day 3 — Legs + Glutes', d4: 'Day 4 — Upper + Conditioning',
-  d5: 'Day 5 — Arms + Shoulders'
+var DAY_LABELS = {
+  d1:'Day 1 — Push', d2:'Day 2 — Pull',
+  d3:'Day 3 — Legs + Glutes', d4:'Day 4 — Upper + Conditioning',
+  d5:'Day 5 — Arms + Shoulders'
 };
 
-const EXERCISES = {
-  'd1': {
-    'exercises-d1': [
-      { id: 'd1_incline_db_press', name: 'Incline Dumbbell Press', sets: '3×10', tip: 'Start weight: 25–35 lb dumbbells. Last 2 reps should feel genuinely hard without losing form.', form: 'Keep shoulder blades pinched back into the bench. Don\'t let elbows flare past 45°.' },
-      { id: 'd1_seated_db_press', name: 'Seated DB Shoulder Press', sets: '3×10', tip: 'Start weight: 20–30 lb dumbbells.', form: 'Press in a slight forward arc, not straight up. Stop just before lockout to keep tension.' },
-      { id: 'd1_cable_lateral', name: 'Cable Lateral Raise', sets: '3×12', tip: 'Start weight: 5–10 lbs on cable stack.', form: 'Stand sideways to cable. Lead with elbow, not wrist. Don\'t shrug at the top.' },
-      { id: 'd1_chest_fly', name: 'Chest Fly Machine', sets: '3×12', tip: 'Start weight: 40–60 lbs on the stack.', form: 'Think hugging a tree, not pushing. Full stretch at open position, controlled close.' },
-      { id: 'd1_rope_pushdown', name: 'Tricep Rope Pushdown', sets: '3×12', tip: 'Start weight: 30–40 lbs.', form: 'At the bottom, spread rope handles apart to fully contract. Keep elbows pinned to sides.' },
-      { id: 'd1_oh_tricep', name: 'Overhead Tricep Extension (cable)', sets: '2×12', tip: 'Start weight: 20–30 lbs.', form: 'Face away from cable, rope at top. Keep elbows close to head. Full stretch down, squeeze up.' },
+var EXERCISES = {
+  d1:{
+    'exercises-d1':[
+      {id:'d1_incline_db_press',name:'Incline Dumbbell Press',sets:'3x10',tip:'Start weight: 25-35 lb dumbbells. Last 2 reps should feel hard without losing form.',form:'Keep shoulder blades pinched back. Don\'t let elbows flare past 45 degrees.'},
+      {id:'d1_seated_db_press',name:'Seated DB Shoulder Press',sets:'3x10',tip:'Start weight: 20-30 lb dumbbells.',form:'Press in a slight forward arc. Stop just before lockout to keep tension.'},
+      {id:'d1_cable_lateral',name:'Cable Lateral Raise',sets:'3x12',tip:'Start weight: 5-10 lbs on cable stack.',form:'Stand sideways to cable. Lead with elbow, not wrist. Don\'t shrug at the top.'},
+      {id:'d1_chest_fly',name:'Chest Fly Machine',sets:'3x12',tip:'Start weight: 40-60 lbs on the stack.',form:'Think hugging a tree, not pushing. Full stretch at open position, controlled close.'},
+      {id:'d1_rope_pushdown',name:'Tricep Rope Pushdown',sets:'3x12',tip:'Start weight: 30-40 lbs.',form:'At the bottom, spread rope handles apart to fully contract. Keep elbows pinned to sides.'},
+      {id:'d1_oh_tricep',name:'Overhead Tricep Extension (cable)',sets:'3x12',tip:'Start weight: 20-30 lbs.',form:'Face away from cable, rope at top. Keep elbows close to head. Full stretch down, squeeze up.'}
     ],
-    'core-d1': [
-      { id: 'd1_plank', name: 'Plank', sets: '3×40 sec', tip: null, form: 'Squeeze glutes and abs simultaneously. Don\'t let hips sag or pike. Breathe steadily.' },
-      { id: 'd1_dead_bug', name: 'Dead Bug', sets: '3×10 each side', tip: null, form: 'Press lower back into floor throughout. Lower opposite arm and leg simultaneously, slow and controlled.' },
+    'core-d1':[
+      {id:'d1_plank',name:'Plank',sets:'3x40 sec',noWeight:true,form:'Squeeze glutes and abs simultaneously. Don\'t let hips sag or pike.'},
+      {id:'d1_dead_bug',name:'Dead Bug',sets:'3x10 each side',noWeight:true,form:'Press lower back into floor. Lower opposite arm and leg simultaneously, slow and controlled.'}
     ]
   },
-  'd2': {
-    'exercises-d2': [
-      { id: 'd2_cable_row', name: 'Seated Cable Row (V-bar, narrow)', sets: '3×10', tip: 'Use the V-bar (neutral/narrow grip). Start weight: 50–70 lbs.', form: 'Sit tall, pull handle to lower sternum, squeeze shoulder blades together. Don\'t lean back excessively.' },
-      { id: 'd2_lat_pulldown', name: 'Lat Pulldown (wide grip)', sets: '3×10', tip: 'Start weight: 60–80 lbs.', form: 'Lean back slightly, pull bar to upper chest, lead with elbows. Don\'t jerk or use momentum.' },
-      { id: 'd2_db_row', name: 'Single-Arm Dumbbell Row', sets: '3×10 each', tip: 'Start weight: 30–40 lbs.', form: 'Brace with opposite hand on bench. Pull elbow straight back past hip. Think "elbow to ceiling."' },
-      { id: 'd2_face_pull', name: 'Face Pulls (cable)', sets: '3×15', tip: 'Don\'t skip this — best shoulder health exercise available. Start weight: 20–30 lbs. Keep it light.', form: 'Cable at face height, rope attachment. Pull to ears, elbows high, wrists behind elbows. Slow and controlled.' },
-      { id: 'd2_ez_curl', name: 'EZ Bar Curl', sets: '3×12', tip: 'Start weight: 40–55 lbs on EZ bar. Angled grip is easier on wrists than a straight bar.', form: 'Keep elbows pinned at sides. Full stretch at bottom, squeeze at top.' },
-      { id: 'd2_hammer_curl', name: 'Hammer Curl', sets: '2×12', tip: 'Start weight: 20–30 lbs.', form: 'Palms facing each other, curl straight up. Hits brachialis and forearm — adds thickness and grip.' },
+  d2:{
+    'exercises-d2':[
+      {id:'d2_cable_row',name:'Seated Cable Row (V-bar, narrow)',sets:'3x10',tip:'Use the V-bar narrow grip. Start weight: 50-70 lbs.',form:'Sit tall, pull handle to lower sternum, squeeze shoulder blades. Don\'t lean back excessively.'},
+      {id:'d2_lat_pulldown',name:'Lat Pulldown (wide grip)',sets:'3x10',tip:'Start weight: 60-80 lbs.',form:'Lean back slightly, pull bar to upper chest, lead with elbows. Don\'t jerk or use momentum.'},
+      {id:'d2_db_row',name:'Single-Arm Dumbbell Row',sets:'3x10 each',tip:'Start weight: 30-40 lbs.',form:'Brace with opposite hand on bench. Pull elbow straight back past hip. Elbow to ceiling, not hand to hip.'},
+      {id:'d2_face_pull',name:'Face Pulls (cable)',sets:'3x15',tip:'Don\'t skip this — best shoulder health exercise. Start weight: 20-30 lbs. Keep it light.',form:'Cable at face height, rope attachment. Pull to ears, elbows high, wrists behind elbows. Slow and controlled.'},
+      {id:'d2_ez_curl',name:'EZ Bar Curl',sets:'3x12',tip:'Start weight: 40-55 lbs. Angled grip is easier on wrists than a straight bar.',form:'Keep elbows pinned at sides. Full stretch at bottom, squeeze at top.'},
+      {id:'d2_hammer_curl',name:'Hammer Curl',sets:'3x12',tip:'Start weight: 20-30 lbs.',form:'Palms facing each other, curl straight up. Hits brachialis and forearm — adds thickness and grip.'}
     ],
-    'core-d2': [
-      { id: 'd2_bird_dog', name: 'Bird Dog', sets: '3×10 each side', tip: null, form: 'On all fours, extend opposite arm and leg simultaneously. Keep hips level — no rotation. Pause 1 sec at full extension.' },
+    'core-d2':[
+      {id:'d2_bird_dog',name:'Bird Dog',sets:'3x10 each side',noWeight:true,form:'Extend opposite arm and leg simultaneously. Keep hips level. Pause 1 sec at full extension.'}
     ]
   },
-  'd3': {
-    'exercises-d3': [
-      { id: 'd3_goblet_squat', name: 'Goblet Squat', sets: '3×12', tip: 'Start weight: 25–35 lb dumbbell.', form: 'Hold dumbbell vertically at chest. Squat deep, elbows inside knees at bottom.' },
-      { id: 'd3_sl_rdl', name: 'Single-Leg RDL (kettlebell)', sets: '3×10 each', tip: 'Start weight: 20–30 lb kettlebell in contralateral hand (opposite to planted foot).', form: 'Hinge at hip, flat back, free leg extends behind. Stop short if lower back rounds — flat back beats depth every time.' },
-      { id: 'd3_hip_thrust', name: 'Hip Thrust (barbell or machine)', sets: '3×12', tip: 'Start weight: Bodyweight or 45 lb bar.', form: 'Upper back on bench, feet flat and close to glutes. Drive through heels, squeeze glutes at top. Don\'t hyperextend low back.' },
-      { id: 'd3_leg_press', name: 'Leg Press', sets: '3×12', tip: 'Start weight: 90–135 lbs on sled. Lower/wider foot placement = more glute and hamstring.', form: 'Don\'t lock out knees at top. Lower until hips start to tuck — stop there.' },
-      { id: 'd3_lunges', name: 'Walking Lunges', sets: '3×10 each leg', tip: 'Start weight: Bodyweight or 15–20 lb dumbbells. Use the turf area at Southrac.', form: 'Big step forward, back knee drops toward (not to) floor. Keep torso upright.' },
-      { id: 'd3_leg_curl', name: 'Leg Curl Machine', sets: '3×12', tip: 'Start weight: 40–60 lbs.', form: 'Slow on the way down (eccentric). Don\'t let hips lift off pad. Full range of motion.' },
+  d3:{
+    'exercises-d3':[
+      {id:'d3_goblet_squat',name:'Goblet Squat',sets:'3x12',tip:'Start weight: 25-35 lb dumbbell.',form:'Hold dumbbell vertically at chest. Squat deep, elbows inside knees at bottom.'},
+      {id:'d3_sl_rdl',name:'Single-Leg RDL (kettlebell)',sets:'3x10 each',tip:'Start weight: 20-30 lb kettlebell in contralateral hand (opposite to planted foot).',form:'Hinge at hip, flat back, free leg extends behind. Stop short if lower back rounds — flat back beats depth.'},
+      {id:'d3_hip_thrust',name:'Hip Thrust (barbell or machine)',sets:'3x12',tip:'Start weight: Bodyweight or 45 lb bar.',form:'Upper back on bench, feet flat and close to glutes. Drive through heels, squeeze glutes at top. Don\'t hyperextend low back.'},
+      {id:'d3_leg_press',name:'Leg Press',sets:'3x12',tip:'Start weight: 90-135 lbs. Lower/wider foot placement = more glute and hamstring.',form:'Don\'t lock out knees at top. Lower until hips start to tuck — stop there.'},
+      {id:'d3_lunges',name:'Walking Lunges',sets:'3x10 each leg',tip:'Start weight: Bodyweight or 15-20 lb dumbbells. Use the turf area at Southrac.',form:'Big step forward, back knee drops toward (not to) floor. Keep torso upright.'},
+      {id:'d3_leg_curl',name:'Leg Curl Machine',sets:'3x12',tip:'Start weight: 40-60 lbs.',form:'Slow on the way down (eccentric). Don\'t let hips lift off pad. Full range of motion.'}
     ],
-    'core-d3': [
-      { id: 'd3_ab_wheel', name: 'Ab Wheel', sets: '3×10', tip: null, form: 'Start kneeling. Keep core tight, don\'t let lower back sag as you roll out. Only go as far as you can control.' },
-      { id: 'd3_side_plank', name: 'Side Plank', sets: '2×30 sec each side', tip: null, form: 'Stack or stagger feet. Drive hip up — don\'t let it sag. Trains lateral core stability, critical for back health.' },
+    'core-d3':[
+      {id:'d3_ab_wheel',name:'Ab Wheel',sets:'3x10',noWeight:true,form:'Start kneeling. Keep core tight, don\'t let lower back sag. Only go as far as you can control.'},
+      {id:'d3_side_plank',name:'Side Plank',sets:'3x30 sec each side',noWeight:true,form:'Stack or stagger feet. Drive hip up — don\'t let it sag. Trains lateral core stability.'}
     ]
   },
-  'd4': {
-    'exercises-d4': [
-      { id: 'd4_db_bench', name: 'Dumbbell Bench Press', sets: '3×10', tip: 'Start weight: 30–40 lbs each dumbbell.', form: 'Flat bench. Horizontal press to balance Day 1 incline work. Lower to chest, press up. Shoulder blades retracted.' },
-      { id: 'd4_pull_through', name: 'Cable Pull-Through', sets: '3×15', tip: 'Replaces kettlebell swing — same pattern, easier to learn. Start weight: 30–40 lbs.', form: 'Low cable, rope, face away from machine. Hinge at hips, rope between legs, drive hips forward to stand. Power from glute squeeze at top.' },
-      { id: 'd4_pushup', name: 'Standard Push-Up', sets: '3×12', tip: null, form: 'Body in straight line, core tight. Lower until chest nearly touches floor. Elevate feet on bench to increase difficulty.' },
-      { id: 'd4_cable_row', name: 'Seated Cable Row (V-bar, narrow)', sets: '3×10', tip: 'Same as Day 2.', form: 'See Day 2 for full form cues.' },
-      { id: 'd4_arnold_press', name: 'Arnold Press', sets: '3×10', tip: 'Start weight: 20–25 lbs each dumbbell.', form: 'Start with palms facing you, rotate outward as you press up. Hits all three heads of the shoulder.' },
-      { id: 'd4_face_pull', name: 'Face Pulls', sets: '2×15', tip: 'Repeated from Day 2 intentionally — shoulder health investment.', form: 'See Day 2 for form cues.' },
+  d4:{
+    'exercises-d4':[
+      {id:'d4_db_bench',name:'Dumbbell Bench Press',sets:'3x10',tip:'Start weight: 30-40 lbs each dumbbell.',form:'Flat bench. Horizontal press to balance Day 1 incline work. Lower to chest, press up. Shoulder blades retracted.'},
+      {id:'d4_pull_through',name:'Cable Pull-Through',sets:'3x15',tip:'Replaces kettlebell swing — same pattern, easier to learn. Start weight: 30-40 lbs.',form:'Low cable, rope, face away from machine. Hinge at hips, rope between legs, drive hips forward. Power from glute squeeze at top.'},
+      {id:'d4_pushup',name:'Standard Push-Up',sets:'3x12',noWeight:true,form:'Body in straight line, core tight. Lower until chest nearly touches floor. Elevate feet to increase difficulty.'},
+      {id:'d4_cable_row',name:'Seated Cable Row (V-bar, narrow)',sets:'3x10',tip:'Same as Day 2.',form:'See Day 2 for full form cues.'},
+      {id:'d4_arnold_press',name:'Arnold Press',sets:'3x10',tip:'Start weight: 20-25 lbs each dumbbell.',form:'Start with palms facing you, rotate outward as you press up. Hits all three heads of the shoulder.'},
+      {id:'d4_face_pull',name:'Face Pulls',sets:'3x15',tip:'Repeated from Day 2 intentionally — shoulder health investment.',form:'See Day 2 for form cues.'}
     ],
-    'core-d4': [
-      { id: 'd4_core_circuit', name: 'Plank → Dead Bug → Bird Dog', sets: '2 rounds', tip: null, form: 'Plank: 40 sec · Dead Bug: 10 each side · Bird Dog: 10 each side · Rest 30–45 sec between rounds.' },
+    'core-d4':[
+      {id:'d4_core_circuit',name:'Plank / Dead Bug / Bird Dog',sets:'3 rounds',noWeight:true,form:'Plank: 40 sec. Dead Bug: 10 each side. Bird Dog: 10 each side. Rest 30-45 sec between rounds.'}
     ]
   },
-  'd5': {
-    'shoulders-d5': [
-      { id: 'd5_cable_lateral', name: 'Cable Lateral Raise', sets: '3×15', tip: 'Higher rep range today — lighter weight, more pump.', form: 'See Day 1 for form cues.' },
-      { id: 'd5_face_pull', name: 'Face Pulls', sets: '3×15', tip: 'Third time this week intentionally. Cheap investment in shoulder longevity.', form: 'See Day 2 for form cues.' },
+  d5:{
+    'shoulders-d5':[
+      {id:'d5_cable_lateral',name:'Cable Lateral Raise',sets:'3x15',tip:'Higher rep range today — lighter weight, more pump.',form:'See Day 1 for form cues.'},
+      {id:'d5_face_pull',name:'Face Pulls',sets:'3x15',tip:'Third time this week intentionally. Shoulder longevity investment.',form:'See Day 2 for form cues.'}
     ],
-    'biceps-d5': [
-      { id: 'd5_ez_curl', name: 'EZ Bar Curl', sets: '3×12', tip: null, form: 'See Day 2 for form cues.' },
-      { id: 'd5_cable_curl', name: 'Cable Curl (straight bar or rope)', sets: '3×12', tip: 'Start weight: 25–35 lbs. Cable keeps constant tension — more effective than concentration curls.', form: 'Stand at low pulley, elbows stay at sides, curl all the way up, slow on the way down.' },
+    'biceps-d5':[
+      {id:'d5_ez_curl',name:'EZ Bar Curl',sets:'3x12',tip:null,form:'See Day 2 for form cues.'},
+      {id:'d5_cable_curl',name:'Cable Curl (straight bar or rope)',sets:'3x12',tip:'Start weight: 25-35 lbs. Cable keeps constant tension throughout the movement.',form:'Stand at low pulley, elbows stay at sides, curl all the way up, slow on the way down.'}
     ],
-    'triceps-d5': [
-      { id: 'd5_rope_pushdown', name: 'Tricep Rope Pushdown', sets: '3×12', tip: null, form: 'See Day 1 for form cues.' },
-      { id: 'd5_skull_crushers', name: 'Skull Crushers (light EZ bar)', sets: '2×12', tip: 'Start weight: 30–40 lbs. Keep it light — form matters here.', form: 'Lie flat on bench, lower bar toward forehead bending only at elbows. Elbows point at ceiling. Don\'t let elbows flare wide.' },
+    'triceps-d5':[
+      {id:'d5_rope_pushdown',name:'Tricep Rope Pushdown',sets:'3x12',tip:null,form:'See Day 1 for form cues.'},
+      {id:'d5_skull_crushers',name:'Skull Crushers (light EZ bar)',sets:'3x12',tip:'Start weight: 30-40 lbs. Keep it light.',form:'Lie flat, lower bar toward forehead bending only at elbows. Elbows point at ceiling. Don\'t let elbows flare wide.'}
     ],
-    'core-d5': [
-      { id: 'd5_plank', name: 'Plank', sets: '3×45 sec', tip: null, form: 'See Day 1. Slightly longer hold today.' },
-      { id: 'd5_ab_wheel', name: 'Ab Wheel', sets: '3×10', tip: null, form: 'See Day 3 for form cues.' },
-      { id: 'd5_sl_rdl_bw', name: 'Single-Leg RDL (bodyweight)', sets: '2×10 each', tip: null, form: 'No weight today — balance and glute activation only. Same form as Day 3.' },
+    'core-d5':[
+      {id:'d5_plank',name:'Plank',sets:'3x45 sec',noWeight:true,form:'See Day 1. Slightly longer hold today.'},
+      {id:'d5_ab_wheel',name:'Ab Wheel',sets:'3x10',noWeight:true,form:'See Day 3 for form cues.'},
+      {id:'d5_sl_rdl_bw',name:'Single-Leg RDL (bodyweight)',sets:'3x10 each',noWeight:true,form:'No weight — balance and glute activation only. Same form as Day 3.'}
     ]
   }
 };
 
-// ─── LOCAL STORAGE ───────────────────────────────────────────
-const LS_KEY = 'pgymplan_v2';
-function loadData() { try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch { return {}; } }
-function saveData(d) { localStorage.setItem(LS_KEY, JSON.stringify(d)); }
+// Storage
+var LS_KEY = 'pgymplan_v3';
+function loadData(){try{return JSON.parse(localStorage.getItem(LS_KEY))||{};}catch(e){return {};}}
+function saveData(d){localStorage.setItem(LS_KEY,JSON.stringify(d));}
 
-// ─── TOAST ───────────────────────────────────────────────────
-let toastTimer;
-function showToast(msg, color) {
+// Toast
+var toastTimer;
+function showToast(msg,color){
   clearTimeout(toastTimer);
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.background = color || 'var(--green)';
+  var t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=color||'var(--green)';
   t.classList.add('show');
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+  toastTimer=setTimeout(function(){t.classList.remove('show');},2500);
 }
 
-// ─── RENDER ALL EXERCISES ────────────────────────────────────
-function renderAll() {
-  const data = loadData();
-  Object.entries(EXERCISES).forEach(([dayId, sections]) => {
-    Object.entries(sections).forEach(([containerId, exercises]) => {
-      const container = document.getElementById(containerId);
-      if (!container) return;
-      container.innerHTML = '';
-      exercises.forEach(ex => buildCard(container, ex, dayId, data));
+// Render all exercise cards
+function renderAll(){
+  var data=loadData();
+  Object.keys(EXERCISES).forEach(function(dayId){
+    var sections=EXERCISES[dayId];
+    Object.keys(sections).forEach(function(containerId){
+      var container=document.getElementById(containerId);
+      if(!container)return;
+      container.innerHTML='';
+      sections[containerId].forEach(function(ex){
+        buildCard(container,ex,dayId,data);
+      });
     });
   });
 }
 
-function buildCard(container, ex, dayId, data) {
-  const isDone = !!(data.checks && data.checks[ex.id]);
-  const history = (data.history && data.history[ex.id]) || [];
-  const lastEntry = history.length ? history[history.length - 1] : null;
+function buildCard(container,ex,dayId,data){
+  var isDone=!!(data.checks&&data.checks[ex.id]);
+  var history=(data.history&&data.history[ex.id])||[];
+  var lastEntry=history.length?history[history.length-1]:null;
 
-  const card = document.createElement('div');
-  card.className = 'exercise' + (isDone ? ' done' : '');
-  card.id = 'card-' + ex.id;
+  var card=document.createElement('div');
+  card.className='exercise'+(isDone?' done':'');
+  card.id='card-'+ex.id;
 
-  const historyHTML = history.length ? `
-    <button class="history-toggle" onclick="toggleHistory('${ex.id}')">▸ History (${Math.min(history.length, 5)} entries)</button>
-    <div class="history-list" id="hist-${ex.id}">
-      ${[...history].reverse().slice(0, 5).map(e => `
-        <div class="history-entry">
-          <span class="h-date">${e.date}</span>
-          <span class="h-day">${e.dayLabel || ''}</span>
-          <span class="h-weight">${e.weight}</span>
-        </div>
-      `).join('')}
-    </div>
-  ` : '';
+  // Build last sets summary string
+  var lastSummary='';
+  if(lastEntry){
+    var parts=[];
+    if(lastEntry.s1)parts.push('S1:'+lastEntry.s1);
+    if(lastEntry.s2)parts.push('S2:'+lastEntry.s2);
+    if(lastEntry.s3)parts.push('S3:'+lastEntry.s3);
+    lastSummary=parts.join(' ');
+  }
 
-  card.innerHTML = `
-    <div class="exercise-main">
-      <button class="check-btn ${isDone ? 'done' : ''}" onclick="toggleCheck('${ex.id}')">${isDone ? '✓' : ''}</button>
-      <div class="exercise-info">
-        <div class="exercise-name">${ex.name}</div>
-        <div class="exercise-meta">
-          <span class="exercise-sets">${ex.sets}</span>
-          ${lastEntry ? `<span class="prev-weight">Last: <span>${lastEntry.weight}</span></span>` : ''}
-        </div>
-      </div>
-      <button class="info-btn" onclick="toggleTip(this)">i</button>
-    </div>
-    <div class="exercise-detail">
-      ${ex.tip ? `<p class="tip-text"><strong>💡 </strong>${ex.tip}</p>` : ''}
-      ${ex.form ? `<p class="tip-text"><strong>Form: </strong>${ex.form}</p>` : ''}
-      <div class="weight-section">
-        <div class="weight-label">Log Weight</div>
-        <div class="weight-row">
-          <input class="weight-input" type="text" inputmode="decimal" placeholder="${lastEntry ? lastEntry.weight : 'e.g. 35 lbs'}" id="input-${ex.id}">
-          <button class="save-btn" onclick="saveWeight('${ex.id}', '${dayId}')">Save</button>
-        </div>
-        <div class="saved-msg" id="saved-${ex.id}">✓ Saved!</div>
-      </div>
-      ${historyHTML}
-    </div>
-  `;
+  // History HTML - no nested backticks, use string concat
+  var histHTML='';
+  if(history.length){
+    var rows='';
+    var recent=[].concat(history).reverse().slice(0,5);
+    recent.forEach(function(e){
+      var sets='';
+      if(e.s1)sets+='<span class="h-sets">S1:'+e.s1+'</span> ';
+      if(e.s2)sets+='<span class="h-sets">S2:'+e.s2+'</span> ';
+      if(e.s3)sets+='<span class="h-sets">S3:'+e.s3+'</span>';
+      rows+='<div class="history-entry"><div class="h-row"><span class="h-date">'+e.date+'</span>'+sets+'</div></div>';
+    });
+    histHTML='<button class="history-toggle" onclick="toggleHistory(\''+ex.id+'\')">History ('+Math.min(history.length,5)+' entries)</button>'
+      +'<div class="history-list" id="hist-'+ex.id+'">'+rows+'</div>';
+  }
+
+  // Weight section HTML
+  var weightHTML='';
+  if(!ex.noWeight){
+    var ph1=lastEntry&&lastEntry.s1?lastEntry.s1:'—';
+    var ph2=lastEntry&&lastEntry.s2?lastEntry.s2:'—';
+    var ph3=lastEntry&&lastEntry.s3?lastEntry.s3:'—';
+    var lastLine=lastSummary?'<span style="color:var(--accent2);font-size:11px;font-weight:600;margin-left:6px;">'+lastSummary+'</span>':'';
+    weightHTML='<div class="weight-section">'
+      +'<div class="weight-label">Log Weight'+lastLine+'</div>'
+      +'<div class="sets-grid">'
+      +'<div class="set-col"><div class="set-col-label">SET 1</div><input class="weight-input" type="text" inputmode="decimal" placeholder="'+ph1+'" id="input-'+ex.id+'-s1"></div>'
+      +'<div class="set-col"><div class="set-col-label">SET 2</div><input class="weight-input" type="text" inputmode="decimal" placeholder="'+ph2+'" id="input-'+ex.id+'-s2"></div>'
+      +'<div class="set-col"><div class="set-col-label">SET 3</div><input class="weight-input" type="text" inputmode="decimal" placeholder="'+ph3+'" id="input-'+ex.id+'-s3"></div>'
+      +'</div>'
+      +'<button class="save-btn" onclick="saveWeight(\''+ex.id+'\',\''+dayId+'\')">Save Sets</button>'
+      +'<div class="saved-msg" id="saved-'+ex.id+'">Saved!</div>'
+      +'</div>'
+      +histHTML;
+  }
+
+  var tipHTML=ex.tip?'<p class="tip-text"><strong>Tip: </strong>'+ex.tip+'</p>':'';
+  var formHTML=ex.form?'<p class="tip-text"><strong>Form: </strong>'+ex.form+'</p>':'';
+
+  var prevHTML=lastSummary?'<span class="prev-weight">'+lastSummary+'</span>':'';
+
+  card.innerHTML=
+    '<div class="exercise-main">'
+    +'<button class="check-btn'+(isDone?' done':'')+'" onclick="toggleCheck(\''+ex.id+'\')">'+(isDone?'&#10003;':'')+'</button>'
+    +'<div class="exercise-info">'
+    +'<div class="exercise-name">'+ex.name+'</div>'
+    +'<div class="exercise-meta"><span class="exercise-sets">'+ex.sets+'</span>'+prevHTML+'</div>'
+    +'</div>'
+    +'<button class="info-btn" onclick="toggleTip(this)">i</button>'
+    +'</div>'
+    +'<div class="exercise-detail">'
+    +tipHTML+formHTML+weightHTML
+    +'</div>';
+
   container.appendChild(card);
 }
 
-// ─── TOGGLE TIP ──────────────────────────────────────────────
-function toggleTip(btn) {
-  const detail = btn.closest('.exercise').querySelector('.exercise-detail');
-  const open = detail.classList.toggle('open');
-  btn.classList.toggle('open', open);
-  btn.textContent = open ? '×' : 'i';
+function toggleTip(btn){
+  var detail=btn.closest('.exercise').querySelector('.exercise-detail');
+  var open=detail.classList.toggle('open');
+  btn.classList.toggle('open',open);
+  btn.textContent=open?'x':'i';
 }
 
-// ─── TOGGLE HISTORY ──────────────────────────────────────────
-function toggleHistory(exId) {
-  const list = document.getElementById('hist-' + exId);
-  if (list) list.classList.toggle('open');
+function toggleHistory(exId){
+  var list=document.getElementById('hist-'+exId);
+  if(list)list.classList.toggle('open');
 }
 
-// ─── TOGGLE CHECK ────────────────────────────────────────────
-function toggleCheck(exId) {
-  const data = loadData();
-  if (!data.checks) data.checks = {};
-  data.checks[exId] = !data.checks[exId];
+function toggleCheck(exId){
+  var data=loadData();
+  if(!data.checks)data.checks={};
+  data.checks[exId]=!data.checks[exId];
   saveData(data);
-  // Update just this card without full re-render
-  const card = document.getElementById('card-' + exId);
-  if (card) {
-    card.classList.toggle('done', data.checks[exId]);
-    const btn = card.querySelector('.check-btn');
-    btn.classList.toggle('done', data.checks[exId]);
-    btn.textContent = data.checks[exId] ? '✓' : '';
+  var card=document.getElementById('card-'+exId);
+  if(card){
+    card.classList.toggle('done',data.checks[exId]);
+    var btn=card.querySelector('.check-btn');
+    btn.classList.toggle('done',data.checks[exId]);
+    btn.innerHTML=data.checks[exId]?'&#10003;':'';
   }
 }
 
-// ─── RESET DAY ───────────────────────────────────────────────
-function resetDay(dayId) {
-  const data = loadData();
-  if (!data.checks) return;
-  const sections = EXERCISES[dayId];
-  if (!sections) return;
-  Object.values(sections).forEach(exs => exs.forEach(ex => delete data.checks[ex.id]));
+function resetDay(dayId){
+  var data=loadData();
+  if(!data.checks)return;
+  var sections=EXERCISES[dayId];
+  if(!sections)return;
+  Object.keys(sections).forEach(function(k){
+    sections[k].forEach(function(ex){delete data.checks[ex.id];});
+  });
   saveData(data);
   renderAll();
-  showToast('Checkmarks reset', '#555');
+  showToast('Checkmarks reset','#555');
 }
 
-// ─── SAVE WEIGHT ─────────────────────────────────────────────
-async function saveWeight(exId, dayId) {
-  const input = document.getElementById('input-' + exId);
-  const val = input.value.trim();
-  if (!val) { showToast('Enter a weight first', 'var(--accent2)'); return; }
+function getExName(exId){
+  var found=exId;
+  Object.keys(EXERCISES).forEach(function(d){
+    Object.keys(EXERCISES[d]).forEach(function(s){
+      EXERCISES[d][s].forEach(function(ex){
+        if(ex.id===exId)found=ex.name;
+      });
+    });
+  });
+  return found;
+}
 
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  const dayLabel = DAY_LABELS[dayId] || dayId;
-  const entry = { date: dateStr, weight: val, dayLabel };
+async function saveWeight(exId,dayId){
+  var s1el=document.getElementById('input-'+exId+'-s1');
+  var s2el=document.getElementById('input-'+exId+'-s2');
+  var s3el=document.getElementById('input-'+exId+'-s3');
+  var s1=s1el?s1el.value.trim():'';
+  var s2=s2el?s2el.value.trim():'';
+  var s3=s3el?s3el.value.trim():'';
+  if(!s1&&!s2&&!s3){showToast('Enter at least one set','var(--accent2)');return;}
 
-  // Save locally
-  const data = loadData();
-  if (!data.history) data.history = {};
-  if (!data.history[exId]) data.history[exId] = [];
+  var now=new Date();
+  var dateStr=now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  var dayLabel=DAY_LABELS[dayId]||dayId;
+  var entry={date:dateStr,dayLabel:dayLabel,s1:s1,s2:s2,s3:s3};
+
+  var data=loadData();
+  if(!data.history)data.history={};
+  if(!data.history[exId])data.history[exId]=[];
   data.history[exId].push(entry);
   saveData(data);
 
-  // Flash saved message
-  const msg = document.getElementById('saved-' + exId);
-  if (msg) { msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 2000); }
-  input.value = '';
+  var msg=document.getElementById('saved-'+exId);
+  if(msg){msg.style.display='block';setTimeout(function(){msg.style.display='none';},2000);}
+
   renderAll();
-
-  // Re-open panel after re-render
-  setTimeout(() => {
-    const card = document.getElementById('card-' + exId);
-    if (card) {
-      const detail = card.querySelector('.exercise-detail');
-      const btn = card.querySelector('.info-btn');
-      if (detail && btn) { detail.classList.add('open'); btn.classList.add('open'); btn.textContent = '×'; }
+  setTimeout(function(){
+    var card=document.getElementById('card-'+exId);
+    if(card){
+      var detail=card.querySelector('.exercise-detail');
+      var btn=card.querySelector('.info-btn');
+      if(detail&&btn){detail.classList.add('open');btn.classList.add('open');btn.textContent='x';}
     }
-  }, 30);
+  },30);
 
-  // Sync to Google Sheets
-  if (SHEETS_URL && SHEETS_URL !== 'YOUR_APPS_SCRIPT_URL_HERE') {
-    try {
-      const exName = getExName(exId);
-      await fetch(SHEETS_URL, {
-        method: 'POST', mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: dateStr, day: dayLabel, exercise: exName, weight: val })
-      });
-      showToast('✓ Saved to Google Sheets');
-    } catch {
-      showToast('Saved locally (Sheets offline)', 'var(--accent2)');
-    }
-  } else {
-    showToast('✓ Weight saved');
-  }
+  try{
+    var exName=getExName(exId);
+    await fetch(SHEETS_URL,{
+      method:'POST',mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type:'exercise',date:dateStr,day:dayLabel,exercise:exName,set1:s1,set2:s2,set3:s3})
+    });
+    showToast('Saved to Sheets');
+  }catch(e){showToast('Saved locally','var(--accent2)');}
 }
 
-function getExName(exId) {
-  for (const s of Object.values(EXERCISES)) for (const exs of Object.values(s)) {
-    const e = exs.find(x => x.id === exId); if (e) return e.name;
-  }
-  return exId;
+async function saveWorkout(dayId){
+  var dur=(document.getElementById('stat-dur-'+dayId)||{}).value||'';
+  var cal=(document.getElementById('stat-cal-'+dayId)||{}).value||'';
+  var hr=(document.getElementById('stat-hr-'+dayId)||{}).value||'';
+  var cardioEl=document.getElementById('cardio-'+dayId);
+  var cardio=cardioEl?cardioEl.value.trim():'';
+  var notesEl=document.getElementById('notes-'+dayId);
+  var notes=notesEl?notesEl.value.trim():'';
+  dur=dur.trim();cal=cal.trim();hr=hr.trim();
+
+  if(!dur&&!cal&&!hr&&!cardio&&!notes){showToast('Nothing to save','var(--accent2)');return;}
+
+  var now=new Date();
+  var dateStr=now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  var dayLabel=DAY_LABELS[dayId]||dayId;
+
+  try{
+    await fetch(SHEETS_URL,{
+      method:'POST',mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({type:'workout',date:dateStr,day:dayLabel,duration:dur,calories:cal,heartRate:hr,cardio:cardio,notes:notes})
+    });
+    ['stat-dur-','stat-cal-','stat-hr-'].forEach(function(p){
+      var el=document.getElementById(p+dayId);if(el)el.value='';
+    });
+    if(cardioEl)cardioEl.value='';
+    if(notesEl)notesEl.value='';
+    showToast('Workout saved to Sheets');
+  }catch(e){showToast('Failed to save','var(--accent2)');}
 }
 
-// ─── TAB NAV ─────────────────────────────────────────────────
-function showDay(id) {
-  document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
-  const panel = document.getElementById(id);
-  if (panel) panel.classList.add('active');
-  const tabs = ['d1','d2','d3','d4','d5','cardio','macros'];
-  const btn = document.querySelectorAll('.day-btn')[tabs.indexOf(id)];
-  if (btn) btn.classList.add('active');
+function showDay(id){
+  document.querySelectorAll('.day-panel').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.day-btn').forEach(function(b){b.classList.remove('active');});
+  var panel=document.getElementById(id);
+  if(panel)panel.classList.add('active');
+  var tabs=['d1','d2','d3','d4','d5','cardio','macros'];
+  var btn=document.querySelectorAll('.day-btn')[tabs.indexOf(id)];
+  if(btn)btn.classList.add('active');
   window.scrollTo(0,0);
 }
 
-// ─── INIT ─────────────────────────────────────────────────────
-if (SHEETS_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
-  document.getElementById('configBanner').style.display = 'block';
-}
 renderAll();
 </script>
 </body>

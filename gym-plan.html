@@ -606,7 +606,7 @@ async function fetchLiveHistory(exId,exName){
   if(loadingEl)loadingEl.textContent='Loading history...';
   try{
     var url=SHEETS_URL+'?type=history&exercise='+encodeURIComponent(exName);
-    var resp=await fetch(url,{method:'GET'});
+    var resp=await fetch(url);
     var json=await resp.json();
     if(loadingEl)loadingEl.textContent='';
     if(!json.rows||json.rows.length===0){
@@ -748,7 +748,7 @@ async function loadStats(){
 
   try{
     // Load workouts summary
-    var wResp=await fetch(SHEETS_URL+'?type=stats_workouts',{method:'GET'});
+    var wResp=await fetch(SHEETS_URL+'?type=stats_workouts');
     var wJson=await wResp.json();
     if(wJson.rows&&wJson.rows.length>0){
       var totalSessions=wJson.rows.length;
@@ -771,7 +771,7 @@ async function loadStats(){
     }
 
     // Load exercise progression
-    var eResp=await fetch(SHEETS_URL+'?type=stats_exercises',{method:'GET'});
+    var eResp=await fetch(SHEETS_URL+'?type=stats_exercises');
     var eJson=await eResp.json();
     if(eJson.rows&&eJson.rows.length>0){
       // Group by exercise name

@@ -141,8 +141,8 @@
   <button class="day-btn" onclick="showDay('d4')">Day 4</button>
   <button class="day-btn optional" onclick="showDay('d5')">Day 5 ✦</button>
   <button class="day-btn" onclick="showDay('cardio')">Cardio</button>
-  <button class="day-btn" onclick="showDay('macros')">Macros</button>
   <button class="day-btn" onclick="showDay('stats')">Stats</button>
+  <button class="day-btn" onclick="showDay('macros')">Macros</button>
 </div>
 
 <!-- DAY 1 -->
@@ -168,6 +168,33 @@
       <div class="stat-col-label" style="text-align:left;margin-bottom:5px;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--muted);">WHAT DID YOU DO?</div>
       <input class="stat-input" type="text" placeholder="e.g. Ramp, Treadmill, Track, Bike..." id="cardio-d1" style="width:100%;text-align:left;">
     </div>
+    <div id="cardio-hist-d1" style="margin-top:8px;"></div>
+    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:2px 0;font-family:DM Sans,sans-serif;" onclick="loadCardioHistory('d1')">Last 3 cardio sessions</button>
+  </div>
+  <div class="stats-block" style="background:var(--surface2);border-color:var(--border);">
+    <div class="stats-title" style="color:var(--muted);font-size:0.95rem;">LAST DAY 1 — PUSH WORKOUT</div>
+    <div id="day-hist-d1"><div style="color:var(--muted);font-size:12px;">Tap to load...</div></div>
+    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:4px 0;font-family:DM Sans,sans-serif;" onclick="loadDayHistory('d1','Day 1 — Push')">Load last Day 1 — Push workout</button>
+  </div>
+  <div class="stats-block" style="background:var(--surface2);border-color:var(--border);">
+    <div class="stats-title" style="color:var(--muted);font-size:0.95rem;">LAST DAY 2 — PULL WORKOUT</div>
+    <div id="day-hist-d2"><div style="color:var(--muted);font-size:12px;">Tap to load...</div></div>
+    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:4px 0;font-family:DM Sans,sans-serif;" onclick="loadDayHistory('d2','Day 2 — Pull')">Load last Day 2 — Pull workout</button>
+  </div>
+  <div class="stats-block" style="background:var(--surface2);border-color:var(--border);">
+    <div class="stats-title" style="color:var(--muted);font-size:0.95rem;">LAST DAY 3 — LEGS + GLUTES WORKOUT</div>
+    <div id="day-hist-d3"><div style="color:var(--muted);font-size:12px;">Tap to load...</div></div>
+    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:4px 0;font-family:DM Sans,sans-serif;" onclick="loadDayHistory('d3','Day 3 — Legs + Glutes')">Load last Day 3 — Legs + Glutes workout</button>
+  </div>
+  <div class="stats-block" style="background:var(--surface2);border-color:var(--border);">
+    <div class="stats-title" style="color:var(--muted);font-size:0.95rem;">LAST DAY 4 — UPPER + CONDITIONING WORKOUT</div>
+    <div id="day-hist-d4"><div style="color:var(--muted);font-size:12px;">Tap to load...</div></div>
+    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:4px 0;font-family:DM Sans,sans-serif;" onclick="loadDayHistory('d4','Day 4 — Upper + Conditioning')">Load last Day 4 — Upper + Conditioning workout</button>
+  </div>
+  <div class="stats-block" style="background:var(--surface2);border-color:var(--border);">
+    <div class="stats-title" style="color:var(--muted);font-size:0.95rem;">LAST DAY 5 — ARMS + SHOULDERS WORKOUT</div>
+    <div id="day-hist-d5"><div style="color:var(--muted);font-size:12px;">Tap to load...</div></div>
+    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:4px 0;font-family:DM Sans,sans-serif;" onclick="loadDayHistory('d5','Day 5 — Arms + Shoulders')">Load last Day 5 — Arms + Shoulders workout</button>
   </div>
   <div class="stats-block">
     <div class="stats-title">📊 WRAP UP WORKOUT</div>
@@ -207,6 +234,8 @@
       <div class="stat-col-label" style="text-align:left;margin-bottom:5px;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--muted);">WHAT DID YOU DO?</div>
       <input class="stat-input" type="text" placeholder="e.g. Ramp, Treadmill, Track, Bike..." id="cardio-d2" style="width:100%;text-align:left;">
     </div>
+    <div id="cardio-hist-d2" style="margin-top:8px;"></div>
+    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:2px 0;font-family:DM Sans,sans-serif;" onclick="loadCardioHistory('d2')">Last 3 cardio sessions</button>
   </div>
   <div class="stats-block">
     <div class="stats-title">📊 WRAP UP WORKOUT</div>
@@ -253,6 +282,8 @@
       <div class="stat-col-label" style="text-align:left;margin-bottom:5px;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--muted);">WHAT DID YOU DO?</div>
       <input class="stat-input" type="text" placeholder="e.g. Ramp, Treadmill, Track, Bike..." id="cardio-d3" style="width:100%;text-align:left;">
     </div>
+    <div id="cardio-hist-d3" style="margin-top:8px;"></div>
+    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:2px 0;font-family:DM Sans,sans-serif;" onclick="loadCardioHistory('d3')">Last 3 cardio sessions</button>
   </div>
   <div class="stats-block">
     <div class="stats-title">📊 WRAP UP WORKOUT</div>
@@ -293,6 +324,8 @@
       <div class="stat-col-label" style="text-align:left;margin-bottom:5px;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--muted);">WHAT DID YOU DO?</div>
       <input class="stat-input" type="text" placeholder="e.g. Ramp, Treadmill, Track, Bike..." id="cardio-d4" style="width:100%;text-align:left;">
     </div>
+    <div id="cardio-hist-d4" style="margin-top:8px;"></div>
+    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:2px 0;font-family:DM Sans,sans-serif;" onclick="loadCardioHistory('d4')">Last 3 cardio sessions</button>
   </div>
   <div class="stats-block">
     <div class="stats-title">📊 WRAP UP WORKOUT</div>
@@ -336,6 +369,8 @@
       <div class="stat-col-label" style="text-align:left;margin-bottom:5px;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--muted);">WHAT DID YOU DO?</div>
       <input class="stat-input" type="text" placeholder="e.g. Ramp, Treadmill, Track, Bike..." id="cardio-d5" style="width:100%;text-align:left;">
     </div>
+    <div id="cardio-hist-d5" style="margin-top:8px;"></div>
+    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:2px 0;font-family:DM Sans,sans-serif;" onclick="loadCardioHistory('d5')">Last 3 cardio sessions</button>
   </div>
   <div class="callout" style="margin-top:16px;">
     <strong>At-home recovery (a few minutes anytime)</strong>
@@ -425,24 +460,24 @@ var DAY_LABELS = {
 var EXERCISES = {
   d1:{
     'exercises-d1':[
-      {id:'d1_incline_db_press',name:'Incline Dumbbell Press',sets:'3x10',tip:'Start weight: 25-35 lb dumbbells. Last 2 reps should feel hard without losing form.',form:'Keep shoulder blades pinched back. Don\'t let elbows flare past 45 degrees.'},
+      {id:'d1_incline_db_press',name:'Incline Dumbbell Press',sets:'3x10',tip:'Start weight: 25-35 lb dumbbells. Last 2 reps should feel hard without losing form.',form:'Keep shoulder blades pinched back. Don't let elbows flare past 45 degrees.'},
       {id:'d1_seated_db_press',name:'Seated DB Shoulder Press',sets:'3x10',tip:'Start weight: 20-30 lb dumbbells.',form:'Press in a slight forward arc. Stop just before lockout to keep tension.'},
-      {id:'d1_cable_lateral',name:'Cable Lateral Raise',sets:'3x12',tip:'Start weight: 5-10 lbs on cable stack.',form:'Stand sideways to cable. Lead with elbow, not wrist. Don\'t shrug at the top.'},
+      {id:'d1_cable_lateral',name:'Cable Lateral Raise',sets:'3x12',tip:'Start weight: 5-10 lbs on cable stack.',form:'Stand sideways to cable. Lead with elbow, not wrist. Don't shrug at the top.'},
       {id:'d1_chest_fly',name:'Chest Fly Machine',sets:'3x12',tip:'Start weight: 40-60 lbs on the stack.',form:'Think hugging a tree, not pushing. Full stretch at open position, controlled close.'},
       {id:'d1_rope_pushdown',name:'Tricep Rope Pushdown',sets:'3x12',tip:'Start weight: 30-40 lbs.',form:'At the bottom, spread rope handles apart to fully contract. Keep elbows pinned to sides.'},
       {id:'d1_oh_tricep',name:'Overhead Tricep Extension (cable)',sets:'3x12',tip:'Start weight: 20-30 lbs.',form:'Face away from cable, rope at top. Keep elbows close to head. Full stretch down, squeeze up.'}
     ],
     'core-d1':[
-      {id:'d1_plank',name:'Plank',sets:'3x40 sec',noWeight:true,form:'Squeeze glutes and abs simultaneously. Don\'t let hips sag or pike.'},
+      {id:'d1_plank',name:'Plank',sets:'3x40 sec',noWeight:true,form:'Squeeze glutes and abs simultaneously. Don't let hips sag or pike.'},
       {id:'d1_dead_bug',name:'Dead Bug',sets:'3x10 each side',noWeight:true,form:'Press lower back into floor. Lower opposite arm and leg simultaneously, slow and controlled.'}
     ]
   },
   d2:{
     'exercises-d2':[
-      {id:'d2_cable_row',name:'Seated Cable Row (V-bar, narrow)',sets:'3x10',tip:'Use the V-bar narrow grip. Start weight: 50-70 lbs.',form:'Sit tall, pull handle to lower sternum, squeeze shoulder blades. Don\'t lean back excessively.'},
-      {id:'d2_lat_pulldown',name:'Lat Pulldown (wide grip)',sets:'3x10',tip:'Start weight: 60-80 lbs.',form:'Lean back slightly, pull bar to upper chest, lead with elbows. Don\'t jerk or use momentum.'},
+      {id:'d2_cable_row',name:'Seated Cable Row (V-bar, narrow)',sets:'3x10',tip:'Use the V-bar narrow grip. Start weight: 50-70 lbs.',form:'Sit tall, pull handle to lower sternum, squeeze shoulder blades. Don't lean back excessively.'},
+      {id:'d2_lat_pulldown',name:'Lat Pulldown (wide grip)',sets:'3x10',tip:'Start weight: 60-80 lbs.',form:'Lean back slightly, pull bar to upper chest, lead with elbows. Don't jerk or use momentum.'},
       {id:'d2_db_row',name:'Single-Arm Dumbbell Row',sets:'3x10 each',tip:'Start weight: 30-40 lbs.',form:'Brace with opposite hand on bench. Pull elbow straight back past hip. Elbow to ceiling, not hand to hip.'},
-      {id:'d2_face_pull',name:'Face Pulls (cable)',sets:'3x15',tip:'Don\'t skip this — best shoulder health exercise. Start weight: 20-30 lbs. Keep it light.',form:'Cable at face height, rope attachment. Pull to ears, elbows high, wrists behind elbows. Slow and controlled.'},
+      {id:'d2_face_pull',name:'Face Pulls (cable)',sets:'3x15',tip:'Don't skip this — best shoulder health exercise. Start weight: 20-30 lbs. Keep it light.',form:'Cable at face height, rope attachment. Pull to ears, elbows high, wrists behind elbows. Slow and controlled.'},
       {id:'d2_ez_curl',name:'EZ Bar Curl',sets:'3x12',tip:'Start weight: 40-55 lbs. Angled grip is easier on wrists than a straight bar.',form:'Keep elbows pinned at sides. Full stretch at bottom, squeeze at top.'},
       {id:'d2_hammer_curl',name:'Hammer Curl',sets:'3x12',tip:'Start weight: 20-30 lbs.',form:'Palms facing each other, curl straight up. Hits brachialis and forearm — adds thickness and grip.'}
     ],
@@ -454,14 +489,14 @@ var EXERCISES = {
     'exercises-d3':[
       {id:'d3_goblet_squat',name:'Goblet Squat',sets:'3x12',tip:'Start weight: 25-35 lb dumbbell.',form:'Hold dumbbell vertically at chest. Squat deep, elbows inside knees at bottom.'},
       {id:'d3_sl_rdl',name:'Single-Leg RDL (kettlebell)',sets:'3x10 each',tip:'Start weight: 20-30 lb kettlebell in contralateral hand (opposite to planted foot).',form:'Hinge at hip, flat back, free leg extends behind. Stop short if lower back rounds — flat back beats depth.'},
-      {id:'d3_hip_thrust',name:'Hip Thrust (barbell or machine)',sets:'3x12',tip:'Start weight: Bodyweight or 45 lb bar.',form:'Upper back on bench, feet flat and close to glutes. Drive through heels, squeeze glutes at top. Don\'t hyperextend low back.'},
-      {id:'d3_leg_press',name:'Leg Press',sets:'3x12',tip:'Start weight: 90-135 lbs. Lower/wider foot placement = more glute and hamstring.',form:'Don\'t lock out knees at top. Lower until hips start to tuck — stop there.'},
+      {id:'d3_hip_thrust',name:'Hip Thrust (barbell or machine)',sets:'3x12',tip:'Start weight: Bodyweight or 45 lb bar.',form:'Upper back on bench, feet flat and close to glutes. Drive through heels, squeeze glutes at top. Don't hyperextend low back.'},
+      {id:'d3_leg_press',name:'Leg Press',sets:'3x12',tip:'Start weight: 90-135 lbs. Lower/wider foot placement = more glute and hamstring.',form:'Don't lock out knees at top. Lower until hips start to tuck — stop there.'},
       {id:'d3_lunges',name:'Walking Lunges',sets:'3x10 each leg',tip:'Start weight: Bodyweight or 15-20 lb dumbbells. Use the turf area at Southrac.',form:'Big step forward, back knee drops toward (not to) floor. Keep torso upright.'},
-      {id:'d3_leg_curl',name:'Leg Curl Machine',sets:'3x12',tip:'Start weight: 40-60 lbs.',form:'Slow on the way down (eccentric). Don\'t let hips lift off pad. Full range of motion.'}
+      {id:'d3_leg_curl',name:'Leg Curl Machine',sets:'3x12',tip:'Start weight: 40-60 lbs.',form:'Slow on the way down (eccentric). Don't let hips lift off pad. Full range of motion.'}
     ],
     'core-d3':[
-      {id:'d3_ab_wheel',name:'Ab Wheel',sets:'3x10',noWeight:true,form:'Start kneeling. Keep core tight, don\'t let lower back sag. Only go as far as you can control.'},
-      {id:'d3_side_plank',name:'Side Plank',sets:'3x30 sec each side',noWeight:true,form:'Stack or stagger feet. Drive hip up — don\'t let it sag. Trains lateral core stability.'}
+      {id:'d3_ab_wheel',name:'Ab Wheel',sets:'3x10',noWeight:true,form:'Start kneeling. Keep core tight, don't let lower back sag. Only go as far as you can control.'},
+      {id:'d3_side_plank',name:'Side Plank',sets:'3x30 sec each side',noWeight:true,form:'Stack or stagger feet. Drive hip up — don't let it sag. Trains lateral core stability.'}
     ]
   },
   d4:{
@@ -488,7 +523,7 @@ var EXERCISES = {
     ],
     'triceps-d5':[
       {id:'d5_rope_pushdown',name:'Tricep Rope Pushdown',sets:'3x12',tip:null,form:'See Day 1 for form cues.'},
-      {id:'d5_skull_crushers',name:'Skull Crushers (light EZ bar)',sets:'3x12',tip:'Start weight: 30-40 lbs. Keep it light.',form:'Lie flat, lower bar toward forehead bending only at elbows. Elbows point at ceiling. Don\'t let elbows flare wide.'}
+      {id:'d5_skull_crushers',name:'Skull Crushers (light EZ bar)',sets:'3x12',tip:'Start weight: 30-40 lbs. Keep it light.',form:'Lie flat, lower bar toward forehead bending only at elbows. Elbows point at ceiling. Don't let elbows flare wide.'}
     ],
     'core-d5':[
       {id:'d5_plank',name:'Plank',sets:'3x45 sec',noWeight:true,form:'See Day 1. Slightly longer hold today.'},
@@ -498,12 +533,12 @@ var EXERCISES = {
   }
 };
 
-// Storage
-var LS_KEY = 'pgymplan_v3';
+// ─── STORAGE ─────────────────────────────────────────────────
+var LS_KEY = 'pgymplan_v4';
 function loadData(){try{return JSON.parse(localStorage.getItem(LS_KEY))||{};}catch(e){return {};}}
 function saveData(d){localStorage.setItem(LS_KEY,JSON.stringify(d));}
 
-// Toast
+// ─── TOAST ───────────────────────────────────────────────────
 var toastTimer;
 function showToast(msg,color){
   clearTimeout(toastTimer);
@@ -514,7 +549,15 @@ function showToast(msg,color){
   toastTimer=setTimeout(function(){t.classList.remove('show');},2500);
 }
 
-// Render all exercise cards
+// ─── DATE FORMAT ─────────────────────────────────────────────
+function fmtDate(val){
+  if(!val)return '';
+  var d=new Date(val);
+  if(isNaN(d.getTime()))return String(val);
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+
+// ─── RENDER ALL ──────────────────────────────────────────────
 function renderAll(){
   var data=loadData();
   Object.keys(EXERCISES).forEach(function(dayId){
@@ -561,11 +604,11 @@ function buildCard(container,ex,dayId,data){
       +'<div class="set-col"><div class="set-col-label">SET 2</div><input class="weight-input" type="text" inputmode="decimal" placeholder="'+ph2+'" id="input-'+ex.id+'-s2"></div>'
       +'<div class="set-col"><div class="set-col-label">SET 3</div><input class="weight-input" type="text" inputmode="decimal" placeholder="'+ph3+'" id="input-'+ex.id+'-s3"></div>'
       +'</div>'
-      +'<button class="save-btn" onclick="saveWeight(\''+ex.id+'\',\''+dayId+'\')">Save Sets</button>'
+      +'<button class="save-btn" onclick="saveWeight(''+ex.id+'',''+dayId+'')">Save Sets</button>'
       +'<div class="saved-msg" id="saved-'+ex.id+'">Saved!</div>'
-      +'</div>'
       +'<div class="hist-loading" id="hist-loading-'+ex.id+'"></div>'
-      +'<div id="hist-live-'+ex.id+'"></div>';
+      +'<div id="hist-live-'+ex.id+'"></div>'
+      +'</div>';
   }
 
   var tipHTML=ex.tip?'<p class="tip-text"><strong>Tip: </strong>'+ex.tip+'</p>':'';
@@ -574,12 +617,12 @@ function buildCard(container,ex,dayId,data){
 
   card.innerHTML=
     '<div class="exercise-main">'
-    +'<button class="check-btn'+(isDone?' done':'')+'" onclick="toggleCheck(\''+ex.id+'\')">'+(isDone?'&#10003;':'')+'</button>'
+    +'<button class="check-btn'+(isDone?' done':'')+'" onclick="toggleCheck(''+ex.id+'')">'+(isDone?'&#10003;':'')+'</button>'
     +'<div class="exercise-info">'
     +'<div class="exercise-name">'+ex.name+'</div>'
     +'<div class="exercise-meta"><span class="exercise-sets">'+ex.sets+'</span>'+prevHTML+'</div>'
     +'</div>'
-    +'<button class="info-btn" onclick="toggleTip(this,\''+ex.id+'\',\''+ex.name+'\')">i</button>'
+    +'<button class="info-btn" onclick="toggleTip(this,''+ex.id+'',''+ex.name+'')">i</button>'
     +'</div>'
     +'<div class="exercise-detail">'
     +tipHTML+formHTML+weightHTML
@@ -588,25 +631,25 @@ function buildCard(container,ex,dayId,data){
   container.appendChild(card);
 }
 
+// ─── TOGGLE TIP — always re-fetch history on open ─────────────
 function toggleTip(btn,exId,exName){
   var detail=btn.closest('.exercise').querySelector('.exercise-detail');
   var open=detail.classList.toggle('open');
   btn.classList.toggle('open',open);
   btn.textContent=open?'x':'i';
-  if(open&&exId&&exName&&!btn.dataset.histLoaded){
-    btn.dataset.histLoaded='1';
+  if(open&&exId&&exName){
     fetchLiveHistory(exId,exName);
   }
 }
 
+// ─── LIVE HISTORY FROM SHEETS ────────────────────────────────
 async function fetchLiveHistory(exId,exName){
   var loadingEl=document.getElementById('hist-loading-'+exId);
   var liveEl=document.getElementById('hist-live-'+exId);
   if(!liveEl)return;
-  if(loadingEl)loadingEl.textContent='Loading history...';
+  if(loadingEl)loadingEl.textContent='Loading...';
   try{
-    var url=SHEETS_URL+'?type=history&exercise='+encodeURIComponent(exName);
-    var resp=await fetch(url);
+    var resp=await fetch(SHEETS_URL+'?type=history&exercise='+encodeURIComponent(exName));
     var json=await resp.json();
     if(loadingEl)loadingEl.textContent='';
     if(!json.rows||json.rows.length===0){
@@ -630,6 +673,45 @@ async function fetchLiveHistory(exId,exName){
   }
 }
 
+// ─── CARDIO HISTORY ──────────────────────────────────────────
+async function loadCardioHistory(dayId){
+  var el=document.getElementById('cardio-hist-'+dayId);
+  if(!el)return;
+  el.innerHTML='<div class="hist-loading">Loading...</div>';
+  try{
+    var dayLabel=DAY_LABELS[dayId]||dayId;
+    var resp=await fetch(SHEETS_URL+'?type=cardio_history&day='+encodeURIComponent(dayLabel));
+    var json=await resp.json();
+    if(!json.rows||json.rows.length===0){el.innerHTML='<div class="hist-loading">No cardio logged yet</div>';return;}
+    var html='<div class="history-list open">';
+    json.rows.slice(-3).reverse().forEach(function(r){
+      html+='<div class="history-entry"><div class="h-row"><span class="h-date">'+fmtDate(r.date)+'</span><span class="h-sets">'+(r.cardio||'—')+'</span></div></div>';
+    });
+    html+='</div>';
+    el.innerHTML=html;
+  }catch(err){el.innerHTML='<div class="hist-loading">Could not load</div>';}
+}
+
+// ─── DAY HISTORY ─────────────────────────────────────────────
+async function loadDayHistory(dayId,dayLabel){
+  var el=document.getElementById('day-hist-'+dayId);
+  if(!el)return;
+  el.innerHTML='<div class="hist-loading">Loading...</div>';
+  try{
+    var resp=await fetch(SHEETS_URL+'?type=day_history&day='+encodeURIComponent(dayLabel));
+    var json=await resp.json();
+    if(!json||!json.date){el.innerHTML='<div class="hist-loading">No previous '+dayLabel+' workout found</div>';return;}
+    var html='<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">'+fmtDate(json.date)+'</div>';
+    if(json.cardio)html+='<div style="font-size:12px;margin-bottom:4px;"><span style="color:var(--muted);">Cardio: </span><span style="color:var(--text);">'+json.cardio+'</span></div>';
+    if(json.duration)html+='<div style="font-size:12px;margin-bottom:4px;"><span style="color:var(--muted);">Duration: </span><span style="color:var(--accent);">'+json.duration+' min</span></div>';
+    if(json.calories)html+='<div style="font-size:12px;margin-bottom:4px;"><span style="color:var(--muted);">Calories: </span><span style="color:var(--accent);">'+json.calories+'</span></div>';
+    if(json.heartRate)html+='<div style="font-size:12px;margin-bottom:4px;"><span style="color:var(--muted);">Avg HR: </span><span style="color:var(--accent);">'+json.heartRate+' BPM</span></div>';
+    if(json.notes)html+='<div style="font-size:12px;margin-bottom:4px;"><span style="color:var(--muted);">Notes: </span><span style="color:var(--text);">'+json.notes+'</span></div>';
+    el.innerHTML=html;
+  }catch(err){el.innerHTML='<div class="hist-loading">Could not load</div>';}
+}
+
+// ─── CHECK / RESET ───────────────────────────────────────────
 function toggleCheck(exId){
   var data=loadData();
   if(!data.checks)data.checks={};
@@ -661,14 +743,13 @@ function getExName(exId){
   var found=exId;
   Object.keys(EXERCISES).forEach(function(d){
     Object.keys(EXERCISES[d]).forEach(function(s){
-      EXERCISES[d][s].forEach(function(ex){
-        if(ex.id===exId)found=ex.name;
-      });
+      EXERCISES[d][s].forEach(function(ex){if(ex.id===exId)found=ex.name;});
     });
   });
   return found;
 }
 
+// ─── SAVE WEIGHT — no renderAll to avoid interrupting saves ──
 async function saveWeight(exId,dayId){
   var s1el=document.getElementById('input-'+exId+'-s1');
   var s2el=document.getElementById('input-'+exId+'-s2');
@@ -683,25 +764,36 @@ async function saveWeight(exId,dayId){
   var dayLabel=DAY_LABELS[dayId]||dayId;
   var entry={date:dateStr,dayLabel:dayLabel,s1:s1,s2:s2,s3:s3};
 
+  // Save to localStorage
   var data=loadData();
   if(!data.history)data.history={};
   if(!data.history[exId])data.history[exId]=[];
   data.history[exId].push(entry);
   saveData(data);
 
+  // Update just this card's prev-weight display without re-rendering everything
+  var summary=[s1?'S1:'+s1:'',s2?'S2:'+s2:'',s3?'S3:'+s3:''].filter(Boolean).join(' ');
+  var card=document.getElementById('card-'+exId);
+  if(card){
+    var prevEl=card.querySelector('.prev-weight');
+    if(prevEl){prevEl.textContent=summary;}
+    else{
+      var metaEl=card.querySelector('.exercise-meta');
+      if(metaEl){var sp=document.createElement('span');sp.className='prev-weight';sp.textContent=summary;metaEl.appendChild(sp);}
+    }
+    // Update placeholders
+    var ph1=document.getElementById('input-'+exId+'-s1');
+    var ph2=document.getElementById('input-'+exId+'-s2');
+    var ph3=document.getElementById('input-'+exId+'-s3');
+    if(ph1){ph1.placeholder=s1||'—';ph1.value='';}
+    if(ph2){ph2.placeholder=s2||'—';ph2.value='';}
+    if(ph3){ph3.placeholder=s3||'—';ph3.value='';}
+  }
+
   var msg=document.getElementById('saved-'+exId);
   if(msg){msg.style.display='block';setTimeout(function(){msg.style.display='none';},2000);}
 
-  renderAll();
-  setTimeout(function(){
-    var card=document.getElementById('card-'+exId);
-    if(card){
-      var detail=card.querySelector('.exercise-detail');
-      var btn=card.querySelector('.info-btn');
-      if(detail&&btn){detail.classList.add('open');btn.classList.add('open');btn.textContent='x';}
-    }
-  },30);
-
+  // Post to Sheets
   try{
     var exName=getExName(exId);
     var params='type=exercise&date='+encodeURIComponent(dateStr)+'&day='+encodeURIComponent(dayLabel)+'&exercise='+encodeURIComponent(exName)+'&set1='+encodeURIComponent(s1)+'&set2='+encodeURIComponent(s2)+'&set3='+encodeURIComponent(s3);
@@ -710,6 +802,7 @@ async function saveWeight(exId,dayId){
   }catch(e){showToast('Saved locally','var(--accent2)');}
 }
 
+// ─── SAVE WORKOUT ────────────────────────────────────────────
 async function saveWorkout(dayId){
   var dur=(document.getElementById('stat-dur-'+dayId)||{}).value||'';
   var cal=(document.getElementById('stat-cal-'+dayId)||{}).value||'';
@@ -719,7 +812,6 @@ async function saveWorkout(dayId){
   var notesEl=document.getElementById('notes-'+dayId);
   var notes=notesEl?notesEl.value.trim():'';
   dur=dur.trim();cal=cal.trim();hr=hr.trim();
-
   if(!dur&&!cal&&!hr&&!cardio&&!notes){showToast('Nothing to save','var(--accent2)');return;}
 
   var now=new Date();
@@ -729,20 +821,11 @@ async function saveWorkout(dayId){
   try{
     var params='type=workout&date='+encodeURIComponent(dateStr)+'&day='+encodeURIComponent(dayLabel)+'&cardio='+encodeURIComponent(cardio)+'&duration='+encodeURIComponent(dur)+'&calories='+encodeURIComponent(cal)+'&heartRate='+encodeURIComponent(hr)+'&notes='+encodeURIComponent(notes);
     await fetch(SHEETS_URL+'?'+params,{method:'GET',mode:'no-cors'});
-    ['stat-dur-','stat-cal-','stat-hr-'].forEach(function(p){
-      var el=document.getElementById(p+dayId);if(el)el.value='';
-    });
+    ['stat-dur-','stat-cal-','stat-hr-'].forEach(function(p){var el=document.getElementById(p+dayId);if(el)el.value='';});
     if(cardioEl)cardioEl.value='';
     if(notesEl)notesEl.value='';
     showToast('Workout saved to Sheets');
   }catch(e){showToast('Failed to save','var(--accent2)');}
-}
-
-function fmtDate(val){
-  if(!val)return '';
-  var d=new Date(val);
-  if(isNaN(d.getTime()))return String(val);
-  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 }
 
 // ─── STATS PANEL ─────────────────────────────────────────────
@@ -752,41 +835,33 @@ async function loadStats(){
   if(!wEl||!eEl)return;
   wEl.innerHTML='<div style="color:var(--muted);font-size:13px;">Loading...</div>';
   eEl.innerHTML='<div style="color:var(--muted);font-size:13px;">Loading...</div>';
-
   try{
-    // Load workouts summary
     var wResp=await fetch(SHEETS_URL+'?type=stats_workouts');
     var wJson=await wResp.json();
     if(wJson.rows&&wJson.rows.length>0){
-      var totalSessions=wJson.rows.length;
+      var rows=wJson.rows;
+      var totalSessions=rows.length;
       var avgHR=0,hrCount=0,avgDur=0,durCount=0,avgCal=0,calCount=0;
-      wJson.rows.forEach(function(r){
+      rows.forEach(function(r){
         if(r.heartRate&&!isNaN(parseFloat(r.heartRate))){avgHR+=parseFloat(r.heartRate);hrCount++;}
         if(r.duration&&!isNaN(parseFloat(r.duration))){avgDur+=parseFloat(r.duration);durCount++;}
         if(r.calories&&!isNaN(parseFloat(r.calories))){avgCal+=parseFloat(r.calories);calCount++;}
       });
-      var lastRow=wJson.rows[wJson.rows.length-1];
+      var lastRow=rows[rows.length-1];
       wEl.innerHTML='<div class="stat-summary-card">'
         +'<div class="stat-summary-row"><span class="stat-summary-label">Total Sessions</span><span class="stat-summary-val">'+totalSessions+'</span></div>'
-        +'<div class="stat-summary-row"><span class="stat-summary-label">Last Workout</span><span class="stat-summary-val">'+fmtDate(lastRow.date)+' · '+lastRow.day+'</span></div>'
+        +'<div class="stat-summary-row"><span class="stat-summary-label">Last Workout</span><span class="stat-summary-val">'+fmtDate(lastRow.date)+' — '+lastRow.day+'</span></div>'
         +(hrCount?'<div class="stat-summary-row"><span class="stat-summary-label">Avg Heart Rate</span><span class="stat-summary-val">'+(avgHR/hrCount).toFixed(0)+' BPM</span></div>':'')
         +(durCount?'<div class="stat-summary-row"><span class="stat-summary-label">Avg Duration</span><span class="stat-summary-val">'+(avgDur/durCount).toFixed(0)+' min</span></div>':'')
         +(calCount?'<div class="stat-summary-row"><span class="stat-summary-label">Avg Calories</span><span class="stat-summary-val">'+(avgCal/calCount).toFixed(0)+'</span></div>':'')
         +'</div>';
-    } else {
-      wEl.innerHTML='<div style="color:var(--muted);font-size:13px;">No workouts logged yet.</div>';
-    }
+    }else{wEl.innerHTML='<div style="color:var(--muted);font-size:13px;">No workouts logged yet.</div>';}
 
-    // Load exercise progression
     var eResp=await fetch(SHEETS_URL+'?type=stats_exercises');
     var eJson=await eResp.json();
     if(eJson.rows&&eJson.rows.length>0){
-      // Group by exercise name
       var byEx={};
-      eJson.rows.forEach(function(r){
-        if(!byEx[r.exercise])byEx[r.exercise]=[];
-        byEx[r.exercise].push(r);
-      });
+      eJson.rows.forEach(function(r){if(!byEx[r.exercise])byEx[r.exercise]=[];byEx[r.exercise].push(r);});
       var html='';
       Object.keys(byEx).forEach(function(name){
         var entries=byEx[name].slice(-3).reverse();
@@ -801,21 +876,20 @@ async function loadStats(){
         html+='</div></div>';
       });
       eEl.innerHTML=html;
-    } else {
-      eEl.innerHTML='<div style="color:var(--muted);font-size:13px;">No exercises logged yet.</div>';
-    }
+    }else{eEl.innerHTML='<div style="color:var(--muted);font-size:13px;">No exercises logged yet.</div>';}
   }catch(err){
     wEl.innerHTML='<div style="color:var(--muted);font-size:13px;">Could not load stats.</div>';
     eEl.innerHTML='';
   }
 }
 
+// ─── TAB NAV ─────────────────────────────────────────────────
 function showDay(id){
   document.querySelectorAll('.day-panel').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.day-btn').forEach(function(b){b.classList.remove('active');});
   var panel=document.getElementById(id);
   if(panel)panel.classList.add('active');
-  var tabs=['d1','d2','d3','d4','d5','cardio','macros','stats'];
+  var tabs=['d1','d2','d3','d4','d5','cardio','stats','macros'];
   var btn=document.querySelectorAll('.day-btn')[tabs.indexOf(id)];
   if(btn)btn.classList.add('active');
   window.scrollTo(0,0);

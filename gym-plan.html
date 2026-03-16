@@ -620,7 +620,7 @@ async function fetchLiveHistory(exId,exName){
       if(r.set1)sets+='<span class="h-sets">S1:'+r.set1+'</span> ';
       if(r.set2)sets+='<span class="h-sets">S2:'+r.set2+'</span> ';
       if(r.set3)sets+='<span class="h-sets">S3:'+r.set3+'</span>';
-      html+='<div class="history-entry"><div class="h-row"><span class="h-date">'+r.date+'</span>'+sets+'</div></div>';
+      html+='<div class="history-entry"><div class="h-row"><span class="h-date">'+fmtDate(r.date)+'</span>'+sets+'</div></div>';
     });
     html+='</div>';
     liveEl.innerHTML=html;
@@ -738,6 +738,13 @@ async function saveWorkout(dayId){
   }catch(e){showToast('Failed to save','var(--accent2)');}
 }
 
+function fmtDate(val){
+  if(!val)return '';
+  var d=new Date(val);
+  if(isNaN(d.getTime()))return String(val);
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+
 // ─── STATS PANEL ─────────────────────────────────────────────
 async function loadStats(){
   var wEl=document.getElementById('stats-workouts');
@@ -761,7 +768,7 @@ async function loadStats(){
       var lastRow=wJson.rows[wJson.rows.length-1];
       wEl.innerHTML='<div class="stat-summary-card">'
         +'<div class="stat-summary-row"><span class="stat-summary-label">Total Sessions</span><span class="stat-summary-val">'+totalSessions+'</span></div>'
-        +'<div class="stat-summary-row"><span class="stat-summary-label">Last Workout</span><span class="stat-summary-val">'+lastRow.date+' · '+lastRow.day+'</span></div>'
+        +'<div class="stat-summary-row"><span class="stat-summary-label">Last Workout</span><span class="stat-summary-val">'+fmtDate(lastRow.date)+' · '+lastRow.day+'</span></div>'
         +(hrCount?'<div class="stat-summary-row"><span class="stat-summary-label">Avg Heart Rate</span><span class="stat-summary-val">'+(avgHR/hrCount).toFixed(0)+' BPM</span></div>':'')
         +(durCount?'<div class="stat-summary-row"><span class="stat-summary-label">Avg Duration</span><span class="stat-summary-val">'+(avgDur/durCount).toFixed(0)+' min</span></div>':'')
         +(calCount?'<div class="stat-summary-row"><span class="stat-summary-label">Avg Calories</span><span class="stat-summary-val">'+(avgCal/calCount).toFixed(0)+'</span></div>':'')
@@ -789,7 +796,7 @@ async function loadStats(){
           if(r.set1)sets+='S1:'+r.set1+' ';
           if(r.set2)sets+='S2:'+r.set2+' ';
           if(r.set3)sets+='S3:'+r.set3;
-          html+='<div class="ex-prog-entry"><span class="ex-prog-date">'+r.date+'</span><span class="ex-prog-sets">'+sets.trim()+'</span></div>';
+          html+='<div class="ex-prog-entry"><span class="ex-prog-date">'+fmtDate(r.date)+'</span><span class="ex-prog-sets">'+sets.trim()+'</span></div>';
         });
         html+='</div></div>';
       });

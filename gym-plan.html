@@ -109,6 +109,19 @@
   .alt-name{font-weight:600;font-size:14px;margin-bottom:2px;}
   .alt-note{font-size:13px;color:var(--muted);}
   .ref-link{display:inline-block;margin-top:6px;font-size:12px;color:var(--accent);text-decoration:none;}
+  /* Stats panel */
+  .stat-summary-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px;}
+  .stat-summary-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border);}
+  .stat-summary-row:last-child{border-bottom:none;}
+  .stat-summary-label{color:var(--muted);}
+  .stat-summary-val{font-weight:700;color:var(--accent);}
+  .ex-prog-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;}
+  .ex-prog-name{font-weight:600;font-size:13px;margin-bottom:8px;}
+  .ex-prog-entries{display:flex;flex-direction:column;gap:4px;}
+  .ex-prog-entry{display:flex;justify-content:space-between;font-size:12px;}
+  .ex-prog-date{color:var(--muted);}
+  .ex-prog-sets{color:var(--accent);font-weight:600;}
+  .hist-loading{font-size:12px;color:var(--muted);padding:4px 0;}
   /* Toast */
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:white;font-size:13px;font-weight:600;padding:10px 20px;border-radius:20px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap;}
   .toast.show{opacity:1;}
@@ -129,6 +142,7 @@
   <button class="day-btn optional" onclick="showDay('d5')">Day 5 ✦</button>
   <button class="day-btn" onclick="showDay('cardio')">Cardio</button>
   <button class="day-btn" onclick="showDay('macros')">Macros</button>
+  <button class="day-btn" onclick="showDay('stats')">Stats</button>
 </div>
 
 <!-- DAY 1 -->
@@ -382,6 +396,21 @@
   <div class="callout"><strong>Hydration:</strong> Aim for 100+ oz water/day. Matters for back pain and energy.</div>
 </div>
 
+<!-- STATS -->
+<div class="day-panel" id="stats">
+  <div class="day-label">STATS</div>
+  <div class="day-subtitle" style="margin-bottom:18px;">Live from Google Sheets</div>
+  <div class="section-label">Workout Summary</div>
+  <div id="stats-workouts">
+    <div style="color:var(--muted);font-size:13px;">Loading...</div>
+  </div>
+  <div class="section-label" style="margin-top:24px;">Weight Progression</div>
+  <div style="color:var(--muted);font-size:12px;margin-bottom:12px;">Last 3 entries per exercise</div>
+  <div id="stats-exercises">
+    <div style="color:var(--muted);font-size:13px;">Loading...</div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -510,7 +539,6 @@ function buildCard(container,ex,dayId,data){
   card.className='exercise'+(isDone?' done':'');
   card.id='card-'+ex.id;
 
-  // Build last sets summary string
   var lastSummary='';
   if(lastEntry){
     var parts=[];
@@ -520,23 +548,6 @@ function buildCard(container,ex,dayId,data){
     lastSummary=parts.join(' ');
   }
 
-  // History HTML - no nested backticks, use string concat
-  var histHTML='';
-  if(history.length){
-    var rows='';
-    var recent=[].concat(history).reverse().slice(0,5);
-    recent.forEach(function(e){
-      var sets='';
-      if(e.s1)sets+='<span class="h-sets">S1:'+e.s1+'</span> ';
-      if(e.s2)sets+='<span class="h-sets">S2:'+e.s2+'</span> ';
-      if(e.s3)sets+='<span class="h-sets">S3:'+e.s3+'</span>';
-      rows+='<div class="history-entry"><div class="h-row"><span class="h-date">'+e.date+'</span>'+sets+'</div></div>';
-    });
-    histHTML='<button class="history-toggle" onclick="toggleHistory(\''+ex.id+'\')">History ('+Math.min(history.length,5)+' entries)</button>'
-      +'<div class="history-list" id="hist-'+ex.id+'">'+rows+'</div>';
-  }
-
-  // Weight section HTML
   var weightHTML='';
   if(!ex.noWeight){
     var ph1=lastEntry&&lastEntry.s1?lastEntry.s1:'—';
@@ -553,12 +564,12 @@ function buildCard(container,ex,dayId,data){
       +'<button class="save-btn" onclick="saveWeight(\''+ex.id+'\',\''+dayId+'\')">Save Sets</button>'
       +'<div class="saved-msg" id="saved-'+ex.id+'">Saved!</div>'
       +'</div>'
-      +histHTML;
+      +'<div class="hist-loading" id="hist-loading-'+ex.id+'"></div>'
+      +'<div id="hist-live-'+ex.id+'"></div>';
   }
 
   var tipHTML=ex.tip?'<p class="tip-text"><strong>Tip: </strong>'+ex.tip+'</p>':'';
   var formHTML=ex.form?'<p class="tip-text"><strong>Form: </strong>'+ex.form+'</p>':'';
-
   var prevHTML=lastSummary?'<span class="prev-weight">'+lastSummary+'</span>':'';
 
   card.innerHTML=
@@ -568,7 +579,7 @@ function buildCard(container,ex,dayId,data){
     +'<div class="exercise-name">'+ex.name+'</div>'
     +'<div class="exercise-meta"><span class="exercise-sets">'+ex.sets+'</span>'+prevHTML+'</div>'
     +'</div>'
-    +'<button class="info-btn" onclick="toggleTip(this)">i</button>'
+    +'<button class="info-btn" onclick="toggleTip(this,\''+ex.id+'\',\''+ex.name+'\')">i</button>'
     +'</div>'
     +'<div class="exercise-detail">'
     +tipHTML+formHTML+weightHTML
@@ -577,16 +588,46 @@ function buildCard(container,ex,dayId,data){
   container.appendChild(card);
 }
 
-function toggleTip(btn){
+function toggleTip(btn,exId,exName){
   var detail=btn.closest('.exercise').querySelector('.exercise-detail');
   var open=detail.classList.toggle('open');
   btn.classList.toggle('open',open);
   btn.textContent=open?'x':'i';
+  if(open&&exId&&exName&&!btn.dataset.histLoaded){
+    btn.dataset.histLoaded='1';
+    fetchLiveHistory(exId,exName);
+  }
 }
 
-function toggleHistory(exId){
-  var list=document.getElementById('hist-'+exId);
-  if(list)list.classList.toggle('open');
+async function fetchLiveHistory(exId,exName){
+  var loadingEl=document.getElementById('hist-loading-'+exId);
+  var liveEl=document.getElementById('hist-live-'+exId);
+  if(!liveEl)return;
+  if(loadingEl)loadingEl.textContent='Loading history...';
+  try{
+    var url=SHEETS_URL+'?type=history&exercise='+encodeURIComponent(exName);
+    var resp=await fetch(url,{method:'GET'});
+    var json=await resp.json();
+    if(loadingEl)loadingEl.textContent='';
+    if(!json.rows||json.rows.length===0){
+      liveEl.innerHTML='<div class="hist-loading">No history yet</div>';
+      return;
+    }
+    var rows=json.rows.slice(-3).reverse();
+    var html='<div class="history-list open" style="margin-top:8px;">';
+    rows.forEach(function(r){
+      var sets='';
+      if(r.set1)sets+='<span class="h-sets">S1:'+r.set1+'</span> ';
+      if(r.set2)sets+='<span class="h-sets">S2:'+r.set2+'</span> ';
+      if(r.set3)sets+='<span class="h-sets">S3:'+r.set3+'</span>';
+      html+='<div class="history-entry"><div class="h-row"><span class="h-date">'+r.date+'</span>'+sets+'</div></div>';
+    });
+    html+='</div>';
+    liveEl.innerHTML=html;
+  }catch(err){
+    if(loadingEl)loadingEl.textContent='';
+    liveEl.innerHTML='<div class="hist-loading">Could not load history</div>';
+  }
 }
 
 function toggleCheck(exId){
@@ -697,15 +738,81 @@ async function saveWorkout(dayId){
   }catch(e){showToast('Failed to save','var(--accent2)');}
 }
 
+// ─── STATS PANEL ─────────────────────────────────────────────
+async function loadStats(){
+  var wEl=document.getElementById('stats-workouts');
+  var eEl=document.getElementById('stats-exercises');
+  if(!wEl||!eEl)return;
+  wEl.innerHTML='<div style="color:var(--muted);font-size:13px;">Loading...</div>';
+  eEl.innerHTML='<div style="color:var(--muted);font-size:13px;">Loading...</div>';
+
+  try{
+    // Load workouts summary
+    var wResp=await fetch(SHEETS_URL+'?type=stats_workouts',{method:'GET'});
+    var wJson=await wResp.json();
+    if(wJson.rows&&wJson.rows.length>0){
+      var totalSessions=wJson.rows.length;
+      var avgHR=0,hrCount=0,avgDur=0,durCount=0,avgCal=0,calCount=0;
+      wJson.rows.forEach(function(r){
+        if(r.heartRate&&!isNaN(parseFloat(r.heartRate))){avgHR+=parseFloat(r.heartRate);hrCount++;}
+        if(r.duration&&!isNaN(parseFloat(r.duration))){avgDur+=parseFloat(r.duration);durCount++;}
+        if(r.calories&&!isNaN(parseFloat(r.calories))){avgCal+=parseFloat(r.calories);calCount++;}
+      });
+      var lastRow=wJson.rows[wJson.rows.length-1];
+      wEl.innerHTML='<div class="stat-summary-card">'
+        +'<div class="stat-summary-row"><span class="stat-summary-label">Total Sessions</span><span class="stat-summary-val">'+totalSessions+'</span></div>'
+        +'<div class="stat-summary-row"><span class="stat-summary-label">Last Workout</span><span class="stat-summary-val">'+lastRow.date+' · '+lastRow.day+'</span></div>'
+        +(hrCount?'<div class="stat-summary-row"><span class="stat-summary-label">Avg Heart Rate</span><span class="stat-summary-val">'+(avgHR/hrCount).toFixed(0)+' BPM</span></div>':'')
+        +(durCount?'<div class="stat-summary-row"><span class="stat-summary-label">Avg Duration</span><span class="stat-summary-val">'+(avgDur/durCount).toFixed(0)+' min</span></div>':'')
+        +(calCount?'<div class="stat-summary-row"><span class="stat-summary-label">Avg Calories</span><span class="stat-summary-val">'+(avgCal/calCount).toFixed(0)+'</span></div>':'')
+        +'</div>';
+    } else {
+      wEl.innerHTML='<div style="color:var(--muted);font-size:13px;">No workouts logged yet.</div>';
+    }
+
+    // Load exercise progression
+    var eResp=await fetch(SHEETS_URL+'?type=stats_exercises',{method:'GET'});
+    var eJson=await eResp.json();
+    if(eJson.rows&&eJson.rows.length>0){
+      // Group by exercise name
+      var byEx={};
+      eJson.rows.forEach(function(r){
+        if(!byEx[r.exercise])byEx[r.exercise]=[];
+        byEx[r.exercise].push(r);
+      });
+      var html='';
+      Object.keys(byEx).forEach(function(name){
+        var entries=byEx[name].slice(-3).reverse();
+        html+='<div class="ex-prog-card"><div class="ex-prog-name">'+name+'</div><div class="ex-prog-entries">';
+        entries.forEach(function(r){
+          var sets='';
+          if(r.set1)sets+='S1:'+r.set1+' ';
+          if(r.set2)sets+='S2:'+r.set2+' ';
+          if(r.set3)sets+='S3:'+r.set3;
+          html+='<div class="ex-prog-entry"><span class="ex-prog-date">'+r.date+'</span><span class="ex-prog-sets">'+sets.trim()+'</span></div>';
+        });
+        html+='</div></div>';
+      });
+      eEl.innerHTML=html;
+    } else {
+      eEl.innerHTML='<div style="color:var(--muted);font-size:13px;">No exercises logged yet.</div>';
+    }
+  }catch(err){
+    wEl.innerHTML='<div style="color:var(--muted);font-size:13px;">Could not load stats.</div>';
+    eEl.innerHTML='';
+  }
+}
+
 function showDay(id){
   document.querySelectorAll('.day-panel').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.day-btn').forEach(function(b){b.classList.remove('active');});
   var panel=document.getElementById(id);
   if(panel)panel.classList.add('active');
-  var tabs=['d1','d2','d3','d4','d5','cardio','macros'];
+  var tabs=['d1','d2','d3','d4','d5','cardio','macros','stats'];
   var btn=document.querySelectorAll('.day-btn')[tabs.indexOf(id)];
   if(btn)btn.classList.add('active');
   window.scrollTo(0,0);
+  if(id==='stats')loadStats();
 }
 
 renderAll();

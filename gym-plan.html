@@ -663,11 +663,8 @@ async function saveWeight(exId,dayId){
 
   try{
     var exName=getExName(exId);
-    await fetch(SHEETS_URL,{
-      method:'POST',mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({type:'exercise',date:dateStr,day:dayLabel,exercise:exName,set1:s1,set2:s2,set3:s3})
-    });
+    var params='type=exercise&date='+encodeURIComponent(dateStr)+'&day='+encodeURIComponent(dayLabel)+'&exercise='+encodeURIComponent(exName)+'&set1='+encodeURIComponent(s1)+'&set2='+encodeURIComponent(s2)+'&set3='+encodeURIComponent(s3);
+    await fetch(SHEETS_URL+'?'+params,{method:'GET',mode:'no-cors'});
     showToast('Saved to Sheets');
   }catch(e){showToast('Saved locally','var(--accent2)');}
 }
@@ -689,11 +686,8 @@ async function saveWorkout(dayId){
   var dayLabel=DAY_LABELS[dayId]||dayId;
 
   try{
-    await fetch(SHEETS_URL,{
-      method:'POST',mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({type:'workout',date:dateStr,day:dayLabel,duration:dur,calories:cal,heartRate:hr,cardio:cardio,notes:notes})
-    });
+    var params='type=workout&date='+encodeURIComponent(dateStr)+'&day='+encodeURIComponent(dayLabel)+'&cardio='+encodeURIComponent(cardio)+'&duration='+encodeURIComponent(dur)+'&calories='+encodeURIComponent(cal)+'&heartRate='+encodeURIComponent(hr)+'&notes='+encodeURIComponent(notes);
+    await fetch(SHEETS_URL+'?'+params,{method:'GET',mode:'no-cors'});
     ['stat-dur-','stat-cal-','stat-hr-'].forEach(function(p){
       var el=document.getElementById(p+dayId);if(el)el.value='';
     });

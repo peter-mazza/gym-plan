@@ -6,11 +6,7 @@
 <title>Peter's Gym Plan</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg:#0e0e0f;--surface:#1a1a1c;--surface2:#242426;
-    --accent:#e8ff47;--accent2:#ff6b35;--text:#f0efe8;
-    --muted:#888884;--border:#2e2e30;--green:#4caf50;
-  }
+  :root{--bg:#0e0e0f;--surface:#1a1a1c;--surface2:#242426;--accent:#e8ff47;--accent2:#ff6b35;--text:#f0efe8;--muted:#888884;--border:#2e2e30;--green:#4caf50;}
   *{box-sizing:border-box;margin:0;padding:0;}
   body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.5;max-width:480px;margin:0 auto;padding-bottom:80px;}
   header{padding:22px 20px 12px;border-bottom:1px solid var(--border);}
@@ -27,7 +23,6 @@
   .day-subtitle{color:var(--muted);font-size:13px;margin-top:3px;}
   .skip-note{background:var(--surface2);border-left:3px solid var(--accent2);padding:8px 12px;border-radius:0 6px 6px 0;font-size:12px;color:var(--muted);margin-top:10px;}
   .section-label{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:20px 0 8px;}
-  /* Exercise cards */
   .exercise{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;transition:border-color .2s,opacity .2s;}
   .exercise.done{border-color:var(--green);opacity:.65;}
   .exercise-main{display:flex;align-items:center;padding:11px 12px;gap:8px;}
@@ -44,7 +39,6 @@
   .exercise-detail.open{display:block;}
   .tip-text{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.6;}
   .tip-text strong{color:var(--text);}
-  /* Weight logging */
   .weight-section{margin-top:14px;}
   .weight-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
   .sets-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;}
@@ -56,25 +50,23 @@
   .save-btn{background:var(--accent);border:none;color:#0e0e0f;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;width:100%;margin-top:4px;}
   .save-btn:active{opacity:.75;}
   .saved-msg{font-size:12px;color:var(--green);margin-top:6px;display:none;text-align:center;}
-  /* History */
-  .history-toggle{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:8px 0 0;display:block;font-family:'DM Sans',sans-serif;text-decoration:underline;}
-  .history-list{display:none;margin-top:8px;background:var(--surface2);border-radius:8px;overflow:hidden;}
-  .history-list.open{display:block;}
+  .hist-loading{font-size:12px;color:var(--muted);padding:4px 0;}
+  .history-list{margin-top:8px;background:var(--surface2);border-radius:8px;overflow:hidden;}
   .history-entry{font-size:12px;padding:7px 10px;border-bottom:1px solid var(--border);}
   .history-entry:last-child{border-bottom:none;}
-  .h-row{display:flex;justify-content:space-between;align-items:center;}
-  .h-date{color:var(--muted);}
+  .h-row{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .h-date{color:var(--muted);white-space:nowrap;}
   .h-sets{color:var(--accent);font-weight:700;}
-  /* Warmup */
   .warmup-block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;}
   .warmup-block .w-title{font-weight:600;font-size:13px;margin-bottom:4px;color:var(--accent2);}
   .warmup-item{font-size:13px;color:var(--muted);padding:2px 0;}
-  /* Finisher */
   .finisher{background:linear-gradient(135deg,#1e2200,#1a1a1c);border:1px solid var(--accent);border-radius:10px;padding:14px;margin-top:16px;}
   .finisher-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--accent);letter-spacing:1px;margin-bottom:4px;}
   .finisher-detail{font-size:13px;color:var(--muted);}
   .finisher-detail strong{color:var(--text);}
-  /* Stats block */
+  .hist-block{margin-top:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+  .hist-block-title{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+  .load-link{background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:0;font-family:'DM Sans',sans-serif;text-decoration:underline;}
   .stats-block{margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;}
   .stats-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--accent);letter-spacing:1px;margin-bottom:12px;}
   .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
@@ -85,20 +77,15 @@
   .stat-input::placeholder{color:var(--muted);font-weight:400;font-size:12px;}
   .stats-save-btn{background:var(--accent);border:none;color:#0e0e0f;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;width:100%;}
   .stats-save-btn:active{opacity:.75;}
-  /* Notes block */
   .notes-block{margin-top:14px;}
   .notes-label{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
   .notes-textarea{background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:12px;width:100%;outline:none;resize:none;min-height:80px;line-height:1.5;transition:border-color .15s;}
   .notes-textarea:focus{border-color:var(--accent);}
   .notes-textarea::placeholder{color:var(--muted);}
-  .notes-save-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:7px 16px;border-radius:8px;cursor:pointer;margin-top:8px;}
-  /* Reset */
   .reset-btn{background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;padding:7px 16px;border-radius:20px;cursor:pointer;margin-top:14px;display:block;width:100%;text-align:center;}
-  /* HR zones */
   .hr-zone{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
   .hr-zone:last-child{border-bottom:none;}
   .zone-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-  /* Macros */
   .macro-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px;}
   .macro-name{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
   .macro-amount{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--accent);line-height:1;}
@@ -109,7 +96,6 @@
   .alt-name{font-weight:600;font-size:14px;margin-bottom:2px;}
   .alt-note{font-size:13px;color:var(--muted);}
   .ref-link{display:inline-block;margin-top:6px;font-size:12px;color:var(--accent);text-decoration:none;}
-  /* Stats panel */
   .stat-summary-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px;}
   .stat-summary-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border);}
   .stat-summary-row:last-child{border-bottom:none;}
@@ -121,781 +107,863 @@
   .ex-prog-entry{display:flex;justify-content:space-between;font-size:12px;}
   .ex-prog-date{color:var(--muted);}
   .ex-prog-sets{color:var(--accent);font-weight:600;}
-  .hist-loading{font-size:12px;color:var(--muted);padding:4px 0;}
-  /* Toast */
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:white;font-size:13px;font-weight:600;padding:10px 20px;border-radius:20px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap;}
   .toast.show{opacity:1;}
 </style>
 </head>
 <body>
-
 <header>
   <h1>PETER'S GYM PLAN</h1>
-  <p>4-day split · Southrac · March 2026</p>
+  <p>4-day split · Southrac · 2026</p>
 </header>
-
-<div class="day-nav">
-  <button class="day-btn active" onclick="showDay('d1')">Day 1</button>
-  <button class="day-btn" onclick="showDay('d2')">Day 2</button>
-  <button class="day-btn" onclick="showDay('d3')">Day 3</button>
-  <button class="day-btn" onclick="showDay('d4')">Day 4</button>
-  <button class="day-btn optional" onclick="showDay('d5')">Day 5 ✦</button>
-  <button class="day-btn" onclick="showDay('cardio')">Cardio</button>
-  <button class="day-btn" onclick="showDay('stats')">Stats</button>
-  <button class="day-btn" onclick="showDay('macros')">Macros</button>
-</div>
-
-<!-- DAY 1 -->
-<div class="day-panel active" id="d1">
-  <div style="margin-bottom:18px;">
-    <div class="day-label">DAY 1 — PUSH</div>
-    <div class="day-subtitle">Chest · Shoulders · Triceps · Core</div>
-    <div class="skip-note">⚠️ Only 3 days this week? Drop Day 4, keep Days 1–3.</div>
-  </div>
-  <div class="section-label">Warm-Up</div>
-  <div class="warmup-block">
-    <div class="w-title">5 min Incline Ramp (or substitute)</div>
-    <div class="warmup-item">Zone 1 · HR 100–120 · Easy conversational pace</div>
-  </div>
-  <div class="section-label">Main Work</div>
-  <div id="exercises-d1"></div>
-  <div class="section-label">Core</div>
-  <div id="core-d1"></div>
-  <div class="finisher">
-    <div class="finisher-title">🔥 CARDIO FINISHER</div>
-    <div class="finisher-detail"><strong>10–15 min · Zone 3 · HR 135–155</strong><br>Push the pace — breathing hard but not sprinting. This is where the endorphins kick in.</div>
-    <div style="margin-top:10px;">
-      <div class="stat-col-label" style="text-align:left;margin-bottom:5px;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--muted);">WHAT DID YOU DO?</div>
-      <input class="stat-input" type="text" placeholder="e.g. Ramp, Treadmill, Track, Bike..." id="cardio-d1" style="width:100%;text-align:left;">
-    </div>
-    <div id="cardio-hist-d1" style="margin-top:8px;"></div>
-    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:2px 0;font-family:DM Sans,sans-serif;" onclick="loadCardioHistory('d1')">Last 3 cardio sessions</button>
-  </div>
-  <div class="stats-block" style="background:var(--surface2);border-color:var(--border);">
-    <div class="stats-title" style="color:var(--muted);font-size:0.95rem;">LAST DAY 1 — PUSH WORKOUT</div>
-    <div id="day-hist-d1"><div style="color:var(--muted);font-size:12px;">Tap to load...</div></div>
-    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:4px 0;font-family:DM Sans,sans-serif;" onclick="loadDayHistory('d1','Day 1 — Push')">Load last Day 1 — Push workout</button>
-  </div>
-  <div class="stats-block" style="background:var(--surface2);border-color:var(--border);">
-    <div class="stats-title" style="color:var(--muted);font-size:0.95rem;">LAST DAY 2 — PULL WORKOUT</div>
-    <div id="day-hist-d2"><div style="color:var(--muted);font-size:12px;">Tap to load...</div></div>
-    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:4px 0;font-family:DM Sans,sans-serif;" onclick="loadDayHistory('d2','Day 2 — Pull')">Load last Day 2 — Pull workout</button>
-  </div>
-  <div class="stats-block" style="background:var(--surface2);border-color:var(--border);">
-    <div class="stats-title" style="color:var(--muted);font-size:0.95rem;">LAST DAY 3 — LEGS + GLUTES WORKOUT</div>
-    <div id="day-hist-d3"><div style="color:var(--muted);font-size:12px;">Tap to load...</div></div>
-    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:4px 0;font-family:DM Sans,sans-serif;" onclick="loadDayHistory('d3','Day 3 — Legs + Glutes')">Load last Day 3 — Legs + Glutes workout</button>
-  </div>
-  <div class="stats-block" style="background:var(--surface2);border-color:var(--border);">
-    <div class="stats-title" style="color:var(--muted);font-size:0.95rem;">LAST DAY 4 — UPPER + CONDITIONING WORKOUT</div>
-    <div id="day-hist-d4"><div style="color:var(--muted);font-size:12px;">Tap to load...</div></div>
-    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:4px 0;font-family:DM Sans,sans-serif;" onclick="loadDayHistory('d4','Day 4 — Upper + Conditioning')">Load last Day 4 — Upper + Conditioning workout</button>
-  </div>
-  <div class="stats-block" style="background:var(--surface2);border-color:var(--border);">
-    <div class="stats-title" style="color:var(--muted);font-size:0.95rem;">LAST DAY 5 — ARMS + SHOULDERS WORKOUT</div>
-    <div id="day-hist-d5"><div style="color:var(--muted);font-size:12px;">Tap to load...</div></div>
-    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:4px 0;font-family:DM Sans,sans-serif;" onclick="loadDayHistory('d5','Day 5 — Arms + Shoulders')">Load last Day 5 — Arms + Shoulders workout</button>
-  </div>
-  <div class="stats-block">
-    <div class="stats-title">📊 WRAP UP WORKOUT</div>
-    <div class="stats-grid">
-      <div class="stat-col"><div class="stat-col-label">Duration (min)</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 55" id="stat-dur-d1"></div>
-      <div class="stat-col"><div class="stat-col-label">Calories</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 420" id="stat-cal-d1"></div>
-      <div class="stat-col"><div class="stat-col-label">Avg HR</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 142" id="stat-hr-d1"></div>
-    </div>
-    <div class="notes-block" style="margin-top:10px;">
-      <div class="notes-label">Notes (optional)</div>
-      <textarea class="notes-textarea" id="notes-d1" placeholder="How did it feel? Energy level, PRs, anything notable..."></textarea>
-    </div>
-    <button class="stats-save-btn" style="margin-top:10px;" onclick="saveWorkout('d1')">Save Workout</button>
-  </div>
-  <button class="reset-btn" onclick="resetDay('d1')">↺ Reset checkmarks for today</button>
-</div>
-
-<!-- DAY 2 -->
-<div class="day-panel" id="d2">
-  <div style="margin-bottom:18px;">
-    <div class="day-label">DAY 2 — PULL</div>
-    <div class="day-subtitle">Back · Biceps · Rear Delts · Core</div>
-  </div>
-  <div class="section-label">Warm-Up</div>
-  <div class="warmup-block">
-    <div class="w-title">5 min Incline Ramp (or substitute)</div>
-    <div class="warmup-item">Zone 1 · HR 100–120</div>
-  </div>
-  <div class="section-label">Main Work</div>
-  <div id="exercises-d2"></div>
-  <div class="section-label">Core</div>
-  <div id="core-d2"></div>
-  <div class="finisher">
-    <div class="finisher-title">🔥 CARDIO FINISHER</div>
-    <div class="finisher-detail"><strong>10–15 min · Zone 3 · HR 135–155</strong><br>Push the incline or pace. You want to be breathing hard.</div>
-    <div style="margin-top:10px;">
-      <div class="stat-col-label" style="text-align:left;margin-bottom:5px;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--muted);">WHAT DID YOU DO?</div>
-      <input class="stat-input" type="text" placeholder="e.g. Ramp, Treadmill, Track, Bike..." id="cardio-d2" style="width:100%;text-align:left;">
-    </div>
-    <div id="cardio-hist-d2" style="margin-top:8px;"></div>
-    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:2px 0;font-family:DM Sans,sans-serif;" onclick="loadCardioHistory('d2')">Last 3 cardio sessions</button>
-  </div>
-  <div class="stats-block">
-    <div class="stats-title">📊 WRAP UP WORKOUT</div>
-    <div class="stats-grid">
-      <div class="stat-col"><div class="stat-col-label">Duration (min)</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 55" id="stat-dur-d2"></div>
-      <div class="stat-col"><div class="stat-col-label">Calories</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 420" id="stat-cal-d2"></div>
-      <div class="stat-col"><div class="stat-col-label">Avg HR</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 142" id="stat-hr-d2"></div>
-    </div>
-    <div class="notes-block" style="margin-top:10px;">
-      <div class="notes-label">Notes (optional)</div>
-      <textarea class="notes-textarea" id="notes-d2" placeholder="How did it feel? Energy level, PRs, anything notable..."></textarea>
-    </div>
-    <button class="stats-save-btn" style="margin-top:10px;" onclick="saveWorkout('d2')">Save Workout</button>
-  </div>
-  <button class="reset-btn" onclick="resetDay('d2')">↺ Reset checkmarks for today</button>
-</div>
-
-<!-- DAY 3 -->
-<div class="day-panel" id="d3">
-  <div style="margin-bottom:18px;">
-    <div class="day-label">DAY 3 — LEGS + GLUTES</div>
-    <div class="day-subtitle">Most important day for back health &amp; testosterone</div>
-  </div>
-  <div class="section-label">Glute Activation (band) — Do BEFORE loading weight</div>
-  <div class="warmup-block">
-    <div class="w-title">Band warm-up</div>
-    <div class="warmup-item">Clamshells — 2×15 each side</div>
-    <div class="warmup-item">Glute Bridge with band — 2×15</div>
-    <div class="warmup-item" style="font-size:12px;margin-top:6px;">Fires up the glutes so they do the work during heavy lifts instead of your lower back compensating.</div>
-  </div>
-  <div class="section-label">Warm-Up</div>
-  <div class="warmup-block">
-    <div class="w-title">5 min Incline Ramp</div>
-    <div class="warmup-item">Zone 1–2 · HR 115–135 · Moderate pace</div>
-  </div>
-  <div class="section-label">Main Work</div>
-  <div id="exercises-d3"></div>
-  <div class="section-label">Core</div>
-  <div id="core-d3"></div>
-  <div class="finisher">
-    <div class="finisher-title">🔥 CARDIO FINISHER</div>
-    <div class="finisher-detail"><strong>10–15 min · Zone 3 · HR 135–155</strong><br>Legs will be cooked — moderate incline at strong pace works great. Stair climber is also solid after leg day.</div>
-    <div style="margin-top:10px;">
-      <div class="stat-col-label" style="text-align:left;margin-bottom:5px;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--muted);">WHAT DID YOU DO?</div>
-      <input class="stat-input" type="text" placeholder="e.g. Ramp, Treadmill, Track, Bike..." id="cardio-d3" style="width:100%;text-align:left;">
-    </div>
-    <div id="cardio-hist-d3" style="margin-top:8px;"></div>
-    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:2px 0;font-family:DM Sans,sans-serif;" onclick="loadCardioHistory('d3')">Last 3 cardio sessions</button>
-  </div>
-  <div class="stats-block">
-    <div class="stats-title">📊 WRAP UP WORKOUT</div>
-    <div class="stats-grid">
-      <div class="stat-col"><div class="stat-col-label">Duration (min)</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 55" id="stat-dur-d3"></div>
-      <div class="stat-col"><div class="stat-col-label">Calories</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 420" id="stat-cal-d3"></div>
-      <div class="stat-col"><div class="stat-col-label">Avg HR</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 142" id="stat-hr-d3"></div>
-    </div>
-    <div class="notes-block" style="margin-top:10px;">
-      <div class="notes-label">Notes (optional)</div>
-      <textarea class="notes-textarea" id="notes-d3" placeholder="How did it feel? Energy level, PRs, anything notable..."></textarea>
-    </div>
-    <button class="stats-save-btn" style="margin-top:10px;" onclick="saveWorkout('d3')">Save Workout</button>
-  </div>
-  <button class="reset-btn" onclick="resetDay('d3')">↺ Reset checkmarks for today</button>
-</div>
-
-<!-- DAY 4 -->
-<div class="day-panel" id="d4">
-  <div style="margin-bottom:18px;">
-    <div class="day-label">DAY 4 — UPPER + CONDITIONING</div>
-    <div class="day-subtitle">No legs today — they need recovery after Day 3</div>
-    <div class="skip-note">⚠️ Only 3 days this week? This is the day to drop. Days 1–3 cover everything.</div>
-  </div>
-  <div class="section-label">Warm-Up</div>
-  <div class="warmup-block">
-    <div class="w-title">5 min Incline Ramp</div>
-    <div class="warmup-item">Zone 1 · HR 100–120</div>
-  </div>
-  <div class="section-label">Main Work</div>
-  <div id="exercises-d4"></div>
-  <div class="section-label">Core Circuit — 2 Rounds</div>
-  <div id="core-d4"></div>
-  <div class="finisher">
-    <div class="finisher-title">🔥 CARDIO FINISHER</div>
-    <div class="finisher-detail"><strong>10–15 min · Zone 3 · HR 135–155</strong><br>Push it. This is your conditioning day — the finisher matters more here than any other day.</div>
-    <div style="margin-top:10px;">
-      <div class="stat-col-label" style="text-align:left;margin-bottom:5px;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--muted);">WHAT DID YOU DO?</div>
-      <input class="stat-input" type="text" placeholder="e.g. Ramp, Treadmill, Track, Bike..." id="cardio-d4" style="width:100%;text-align:left;">
-    </div>
-    <div id="cardio-hist-d4" style="margin-top:8px;"></div>
-    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:2px 0;font-family:DM Sans,sans-serif;" onclick="loadCardioHistory('d4')">Last 3 cardio sessions</button>
-  </div>
-  <div class="stats-block">
-    <div class="stats-title">📊 WRAP UP WORKOUT</div>
-    <div class="stats-grid">
-      <div class="stat-col"><div class="stat-col-label">Duration (min)</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 55" id="stat-dur-d4"></div>
-      <div class="stat-col"><div class="stat-col-label">Calories</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 420" id="stat-cal-d4"></div>
-      <div class="stat-col"><div class="stat-col-label">Avg HR</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 142" id="stat-hr-d4"></div>
-    </div>
-    <div class="notes-block" style="margin-top:10px;">
-      <div class="notes-label">Notes (optional)</div>
-      <textarea class="notes-textarea" id="notes-d4" placeholder="How did it feel? Energy level, PRs, anything notable..."></textarea>
-    </div>
-    <button class="stats-save-btn" style="margin-top:10px;" onclick="saveWorkout('d4')">Save Workout</button>
-  </div>
-  <button class="reset-btn" onclick="resetDay('d4')">↺ Reset checkmarks for today</button>
-</div>
-
-<!-- DAY 5 -->
-<div class="day-panel" id="d5">
-  <div style="margin-bottom:18px;">
-    <div class="day-label">DAY 5 — ARMS + SHOULDERS</div>
-    <div class="day-subtitle">Optional · Light on the body · Real workout ✦</div>
-  </div>
-  <div class="section-label">Warm-Up</div>
-  <div class="warmup-block">
-    <div class="w-title">5 min Incline Ramp</div>
-    <div class="warmup-item">Zone 1 · HR 100–120</div>
-  </div>
-  <div class="section-label">Shoulders</div>
-  <div id="shoulders-d5"></div>
-  <div class="section-label">Biceps</div>
-  <div id="biceps-d5"></div>
-  <div class="section-label">Triceps</div>
-  <div id="triceps-d5"></div>
-  <div class="section-label">Core</div>
-  <div id="core-d5"></div>
-  <div class="finisher">
-    <div class="finisher-title">🔥 CARDIO FINISHER</div>
-    <div class="finisher-detail"><strong>10–15 min · Zone 2–3 · HR 125–150</strong><br>Slightly easier today. Bonus session — push it but don't bury yourself.</div>
-    <div style="margin-top:10px;">
-      <div class="stat-col-label" style="text-align:left;margin-bottom:5px;font-size:10px;font-weight:600;letter-spacing:1px;color:var(--muted);">WHAT DID YOU DO?</div>
-      <input class="stat-input" type="text" placeholder="e.g. Ramp, Treadmill, Track, Bike..." id="cardio-d5" style="width:100%;text-align:left;">
-    </div>
-    <div id="cardio-hist-d5" style="margin-top:8px;"></div>
-    <button style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:2px 0;font-family:DM Sans,sans-serif;" onclick="loadCardioHistory('d5')">Last 3 cardio sessions</button>
-  </div>
-  <div class="callout" style="margin-top:16px;">
-    <strong>At-home recovery (a few minutes anytime)</strong>
-    <a class="ref-link" href="https://www.youtube.com/watch?v=PB0IfqcCRBo" target="_blank">▶ Hip Flexor Stretch</a><br>
-    <a class="ref-link" href="https://www.youtube.com/watch?v=LQn2MiTEVH0" target="_blank">▶ Thoracic Rotation</a><br>
-    <a class="ref-link" href="https://www.youtube.com/watch?v=s9UgHjP14sI" target="_blank">▶ Pigeon Pose (Glutes)</a><br>
-    <a class="ref-link" href="https://www.youtube.com/watch?v=sTxC3J3gQEU" target="_blank">▶ Lower Back Decompression</a>
-  </div>
-  <div class="stats-block">
-    <div class="stats-title">📊 WRAP UP WORKOUT</div>
-    <div class="stats-grid">
-      <div class="stat-col"><div class="stat-col-label">Duration (min)</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 55" id="stat-dur-d5"></div>
-      <div class="stat-col"><div class="stat-col-label">Calories</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 420" id="stat-cal-d5"></div>
-      <div class="stat-col"><div class="stat-col-label">Avg HR</div><input class="stat-input" type="text" inputmode="decimal" placeholder="e.g. 142" id="stat-hr-d5"></div>
-    </div>
-    <div class="notes-block" style="margin-top:10px;">
-      <div class="notes-label">Notes (optional)</div>
-      <textarea class="notes-textarea" id="notes-d5" placeholder="How did it feel? Energy level, PRs, anything notable..."></textarea>
-    </div>
-    <button class="stats-save-btn" style="margin-top:10px;" onclick="saveWorkout('d5')">Save Workout</button>
-  </div>
-  <button class="reset-btn" onclick="resetDay('d5')">↺ Reset checkmarks for today</button>
-</div>
-
-<!-- CARDIO -->
-<div class="day-panel" id="cardio">
-  <div class="day-label" style="margin-bottom:18px;">CARDIO OPTIONS</div>
-  <div class="section-label">Heart Rate Zones</div>
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:16px;">
-    <div class="hr-zone"><div class="zone-dot" style="background:#4fc3f7"></div><div><strong>Zone 1</strong> · 95–115 BPM · <span style="color:var(--muted)">Warm-up / Day 5 cardio</span></div></div>
-    <div class="hr-zone"><div class="zone-dot" style="background:#81c784"></div><div><strong>Zone 2</strong> · 115–135 BPM · <span style="color:var(--muted)">Fat burn / aerobic base</span></div></div>
-    <div class="hr-zone"><div class="zone-dot" style="background:#ffb74d"></div><div><strong>Zone 3</strong> · 135–155 BPM · <span style="color:var(--muted)">Target for finishers · Endorphin zone</span></div></div>
-    <div class="hr-zone"><div class="zone-dot" style="background:#e57373"></div><div><strong>Zone 4</strong> · 155–170 BPM · <span style="color:var(--muted)">Occasional use only for now</span></div></div>
-  </div>
-  <div class="section-label">Incline Ramp Alternatives</div>
-  <div class="alt-item"><div class="alt-name">🏃 Indoor Track (jog)</div><div class="alt-note">Southrac's 1/8-mile track. Easy to hit Zone 3 with a moderate jog. Low impact, no learning curve.</div></div>
-  <div class="alt-item"><div class="alt-name">🚴 Stationary Bike</div><div class="alt-note">Very back-friendly. Best option if your back is flaring. Reliable Zone 3 at moderate resistance.</div></div>
-  <div class="alt-item"><div class="alt-name">🪜 Stair Climber</div><div class="alt-note">High endorphin output. Glute-heavy — great after leg days. Hits Zone 3 fast.</div></div>
-  <div class="alt-item"><div class="alt-name">🚣 Rowing Machine</div><div class="alt-note">Full body, excellent conditioning. Learn form before going hard — poor rowing can stress lower back.</div></div>
-</div>
-
-<!-- MACROS -->
-<div class="day-panel" id="macros">
-  <div class="day-label">MACROS</div>
-  <div class="day-subtitle" style="margin-bottom:18px;">~165 lbs · Recomp goal · 4 training days</div>
-  <div class="macro-card"><div class="macro-name">Daily Calories</div><div class="macro-amount">2,700–2,900</div><div class="macro-note">kcal · Supports training volume without gaining weight</div></div>
-  <div class="macro-card"><div class="macro-name">Protein · Priority #1</div><div class="macro-amount">165–180g</div><div class="macro-note">~1g per lb bodyweight · Non-negotiable for muscle building</div></div>
-  <div class="macro-card"><div class="macro-name">Carbohydrates</div><div class="macro-amount">300–340g</div><div class="macro-note">Energy for training, mood, and endorphin release</div></div>
-  <div class="macro-card"><div class="macro-name">Fat</div><div class="macro-amount">70–85g</div><div class="macro-note">Testosterone production requires dietary fat — don't go very low</div></div>
-  <div class="section-label">Priority Order</div>
-  <div class="callout">1. <strong>Hit protein first</strong> — if you miss one macro, don't let it be this one<br>2. <strong>Hit total calories</strong> — being significantly under slows recovery<br>3. <strong>Fill in carbs</strong> — especially pre-workout<br>4. <strong>Let fat flex</strong> — you're already fat-heavy by habit</div>
-  <div class="section-label">Protein Strategy</div>
-  <div class="callout"><strong>Whey protein:</strong> 2 scoops/day = ~40–50g with zero meal planning.<br>1 scoop post-workout · 1 scoop at another meal or in a smoothie.</div>
-  <div class="section-label">Drinking Days (3x/week)</div>
-  <div class="callout">~3 drinks = 300–400 kcal. On those days:<br><strong>Drop 100–150g of carbs, not fat.</strong><br>Keep protein high regardless.</div>
-  <div class="section-label">Quick References</div>
-  <div class="callout">1 cup cooked rice = 45g carbs<br>1 banana = 27g carbs<br>2 slices bread = 30g carbs<br>1 scoop whey = 24–25g protein<br>6oz chicken breast = 52g protein<br>2 eggs = 12g protein<br>1 cup Greek yogurt = 17–20g protein</div>
-  <div class="callout"><strong>Hydration:</strong> Aim for 100+ oz water/day. Matters for back pain and energy.</div>
-</div>
-
-<!-- STATS -->
-<div class="day-panel" id="stats">
-  <div class="day-label">STATS</div>
-  <div class="day-subtitle" style="margin-bottom:18px;">Live from Google Sheets</div>
-  <div class="section-label">Workout Summary</div>
-  <div id="stats-workouts">
-    <div style="color:var(--muted);font-size:13px;">Loading...</div>
-  </div>
-  <div class="section-label" style="margin-top:24px;">Weight Progression</div>
-  <div style="color:var(--muted);font-size:12px;margin-bottom:12px;">Last 3 entries per exercise</div>
-  <div id="stats-exercises">
-    <div style="color:var(--muted);font-size:13px;">Loading...</div>
-  </div>
-</div>
-
+<div class="day-nav" id="dayNav"></div>
+<div id="dayPanels"></div>
 <div class="toast" id="toast"></div>
-
 <script>
-var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyCbQUIngm3ikOI-TXGQIuvw3nrLi8zozffbU7oniIQ2f4Ypa9-qGn7ltjfs_s5y6vHnw/exec';
+var SHEETS_URL = "https://script.google.com/macros/s/AKfycbyCbQUIngm3ikOI-TXGQIuvw3nrLi8zozffbU7oniIQ2f4Ypa9-qGn7ltjfs_s5y6vHnw/exec";
 
-var DAY_LABELS = {
-  d1:'Day 1 — Push', d2:'Day 2 — Pull',
-  d3:'Day 3 — Legs + Glutes', d4:'Day 4 — Upper + Conditioning',
-  d5:'Day 5 — Arms + Shoulders'
-};
+var DAYS = [
+  { id:"d1", label:"Day 1", title:"DAY 1 — PUSH", subtitle:"Chest · Shoulders · Triceps · Core",
+    skipNote:"Only 3 days this week? Drop Day 4, keep Days 1–3.",
+    warmup:"5 min Incline Ramp (or sub) · Zone 1 · HR 100–120",
+    finisherNote:"Push the pace — breathing hard but not sprinting. This is where the endorphins kick in.",
+    finisherZone:"10–15 min · Zone 3 · HR 135–155" },
+  { id:"d2", label:"Day 2", title:"DAY 2 — PULL", subtitle:"Back · Biceps · Rear Delts · Core",
+    warmup:"5 min Incline Ramp (or sub) · Zone 1 · HR 100–120",
+    finisherNote:"Push the incline or pace. You want to be breathing hard.",
+    finisherZone:"10–15 min · Zone 3 · HR 135–155" },
+  { id:"d3", label:"Day 3", title:"DAY 3 — LEGS + GLUTES", subtitle:"Most important day for back health & testosterone",
+    warmup:"5 min Incline Ramp · Zone 1–2 · HR 115–135",
+    activation:true,
+    finisherNote:"Legs will be cooked — moderate incline at strong pace. Stair climber also solid after leg day.",
+    finisherZone:"10–15 min · Zone 3 · HR 135–155" },
+  { id:"d4", label:"Day 4", title:"DAY 4 — UPPER + CONDITIONING", subtitle:"No legs today — they need recovery after Day 3",
+    skipNote:"Only 3 days this week? Drop this day. Days 1–3 cover everything.",
+    warmup:"5 min Incline Ramp · Zone 1 · HR 100–120",
+    finisherNote:"Push it. This is your conditioning day — the finisher matters more here.",
+    finisherZone:"10–15 min · Zone 3 · HR 135–155" },
+  { id:"d5", label:"Day 5 ✦", title:"DAY 5 — ARMS + SHOULDERS", subtitle:"Optional · Light on the body · Real workout",
+    optional:true,
+    warmup:"5 min Incline Ramp · Zone 1 · HR 100–120",
+    finisherNote:"Slightly easier today. Bonus session — push it but do not bury yourself.",
+    finisherZone:"10–15 min · Zone 2–3 · HR 125–150",
+    recovery:true },
+  { id:"cardio", label:"Cardio", title:"CARDIO OPTIONS", cardioRef:true },
+  { id:"stats", label:"Stats", title:"STATS", statsPanel:true },
+  { id:"macros", label:"Macros", title:"MACROS", macrosPanel:true }
+];
 
 var EXERCISES = {
-  d1:{
-    'exercises-d1':[
-      {id:'d1_incline_db_press',name:'Incline Dumbbell Press',sets:'3x10',tip:'Start weight: 25-35 lb dumbbells. Last 2 reps should feel hard without losing form.',form:'Keep shoulder blades pinched back. Don't let elbows flare past 45 degrees.'},
-      {id:'d1_seated_db_press',name:'Seated DB Shoulder Press',sets:'3x10',tip:'Start weight: 20-30 lb dumbbells.',form:'Press in a slight forward arc. Stop just before lockout to keep tension.'},
-      {id:'d1_cable_lateral',name:'Cable Lateral Raise',sets:'3x12',tip:'Start weight: 5-10 lbs on cable stack.',form:'Stand sideways to cable. Lead with elbow, not wrist. Don't shrug at the top.'},
-      {id:'d1_chest_fly',name:'Chest Fly Machine',sets:'3x12',tip:'Start weight: 40-60 lbs on the stack.',form:'Think hugging a tree, not pushing. Full stretch at open position, controlled close.'},
-      {id:'d1_rope_pushdown',name:'Tricep Rope Pushdown',sets:'3x12',tip:'Start weight: 30-40 lbs.',form:'At the bottom, spread rope handles apart to fully contract. Keep elbows pinned to sides.'},
-      {id:'d1_oh_tricep',name:'Overhead Tricep Extension (cable)',sets:'3x12',tip:'Start weight: 20-30 lbs.',form:'Face away from cable, rope at top. Keep elbows close to head. Full stretch down, squeeze up.'}
+  d1: {
+    "exercises-d1": [
+      { id:"d1_incline_db_press", name:"Incline Dumbbell Press", sets:"3x10",
+        tip:"Start weight: 25–35 lb dumbbells. Last 2 reps should feel hard without losing form.",
+        form:"Keep shoulder blades pinched back into the bench. No elbow flare past 45 degrees." },
+      { id:"d1_seated_db_press", name:"Seated DB Shoulder Press", sets:"3x10",
+        tip:"Start weight: 20–30 lb dumbbells.",
+        form:"Press in a slight forward arc. Stop just before lockout to keep tension." },
+      { id:"d1_cable_lateral", name:"Cable Lateral Raise", sets:"3x12",
+        tip:"Start weight: 5–10 lbs on cable stack.",
+        form:"Stand sideways to cable. Lead with elbow, not wrist. No shrugging at the top." },
+      { id:"d1_chest_fly", name:"Chest Fly Machine", sets:"3x12",
+        tip:"Start weight: 40–60 lbs on the stack.",
+        form:"Think hugging a tree, not pushing. Full stretch at open position, controlled close." },
+      { id:"d1_rope_pushdown", name:"Tricep Rope Pushdown", sets:"3x12",
+        tip:"Start weight: 30–40 lbs.",
+        form:"Spread rope handles apart at the bottom to fully contract. Keep elbows pinned to sides." },
+      { id:"d1_oh_tricep", name:"Overhead Tricep Extension (cable)", sets:"3x12",
+        tip:"Start weight: 20–30 lbs.",
+        form:"Face away from cable, rope at top. Keep elbows close to head. Full stretch down, squeeze up." }
     ],
-    'core-d1':[
-      {id:'d1_plank',name:'Plank',sets:'3x40 sec',noWeight:true,form:'Squeeze glutes and abs simultaneously. Don't let hips sag or pike.'},
-      {id:'d1_dead_bug',name:'Dead Bug',sets:'3x10 each side',noWeight:true,form:'Press lower back into floor. Lower opposite arm and leg simultaneously, slow and controlled.'}
+    "core-d1": [
+      { id:"d1_plank", name:"Plank", sets:"3x40 sec", noWeight:true,
+        form:"Squeeze glutes and abs simultaneously. Hips stay level, no sagging or piking." },
+      { id:"d1_dead_bug", name:"Dead Bug", sets:"3x10 each side", noWeight:true,
+        form:"Press lower back into floor throughout. Lower opposite arm and leg simultaneously, slow and controlled." }
     ]
   },
-  d2:{
-    'exercises-d2':[
-      {id:'d2_cable_row',name:'Seated Cable Row (V-bar, narrow)',sets:'3x10',tip:'Use the V-bar narrow grip. Start weight: 50-70 lbs.',form:'Sit tall, pull handle to lower sternum, squeeze shoulder blades. Don't lean back excessively.'},
-      {id:'d2_lat_pulldown',name:'Lat Pulldown (wide grip)',sets:'3x10',tip:'Start weight: 60-80 lbs.',form:'Lean back slightly, pull bar to upper chest, lead with elbows. Don't jerk or use momentum.'},
-      {id:'d2_db_row',name:'Single-Arm Dumbbell Row',sets:'3x10 each',tip:'Start weight: 30-40 lbs.',form:'Brace with opposite hand on bench. Pull elbow straight back past hip. Elbow to ceiling, not hand to hip.'},
-      {id:'d2_face_pull',name:'Face Pulls (cable)',sets:'3x15',tip:'Don't skip this — best shoulder health exercise. Start weight: 20-30 lbs. Keep it light.',form:'Cable at face height, rope attachment. Pull to ears, elbows high, wrists behind elbows. Slow and controlled.'},
-      {id:'d2_ez_curl',name:'EZ Bar Curl',sets:'3x12',tip:'Start weight: 40-55 lbs. Angled grip is easier on wrists than a straight bar.',form:'Keep elbows pinned at sides. Full stretch at bottom, squeeze at top.'},
-      {id:'d2_hammer_curl',name:'Hammer Curl',sets:'3x12',tip:'Start weight: 20-30 lbs.',form:'Palms facing each other, curl straight up. Hits brachialis and forearm — adds thickness and grip.'}
+  d2: {
+    "exercises-d2": [
+      { id:"d2_cable_row", name:"Seated Cable Row (V-bar, narrow)", sets:"3x10",
+        tip:"Use the V-bar narrow grip. Start weight: 50–70 lbs.",
+        form:"Sit tall, pull to lower sternum, squeeze shoulder blades together. Minimal lean back." },
+      { id:"d2_lat_pulldown", name:"Lat Pulldown (wide grip)", sets:"3x10",
+        tip:"Start weight: 60–80 lbs.",
+        form:"Lean back slightly, pull bar to upper chest, lead with elbows. No jerking or momentum." },
+      { id:"d2_db_row", name:"Single-Arm Dumbbell Row", sets:"3x10 each",
+        tip:"Start weight: 30–40 lbs.",
+        form:"Brace with opposite hand on bench. Pull elbow straight back past hip. Elbow to ceiling." },
+      { id:"d2_face_pull", name:"Face Pulls (cable)", sets:"3x15",
+        tip:"Do not skip this — best shoulder health exercise available. Start weight: 20–30 lbs. Keep it light.",
+        form:"Cable at face height, rope attachment. Pull to ears, elbows high, wrists behind elbows. Slow and controlled." },
+      { id:"d2_ez_curl", name:"EZ Bar Curl", sets:"3x12",
+        tip:"Start weight: 40–55 lbs. Angled grip is easier on wrists than a straight bar.",
+        form:"Keep elbows pinned at sides. Full stretch at bottom, squeeze at top." },
+      { id:"d2_hammer_curl", name:"Hammer Curl", sets:"3x12",
+        tip:"Start weight: 20–30 lbs.",
+        form:"Palms facing each other, curl straight up. Hits brachialis and forearm — adds thickness and grip." }
     ],
-    'core-d2':[
-      {id:'d2_bird_dog',name:'Bird Dog',sets:'3x10 each side',noWeight:true,form:'Extend opposite arm and leg simultaneously. Keep hips level. Pause 1 sec at full extension.'}
+    "core-d2": [
+      { id:"d2_bird_dog", name:"Bird Dog", sets:"3x10 each side", noWeight:true,
+        form:"Extend opposite arm and leg simultaneously. Keep hips level — no rotation. Pause 1 sec at full extension." }
     ]
   },
-  d3:{
-    'exercises-d3':[
-      {id:'d3_goblet_squat',name:'Goblet Squat',sets:'3x12',tip:'Start weight: 25-35 lb dumbbell.',form:'Hold dumbbell vertically at chest. Squat deep, elbows inside knees at bottom.'},
-      {id:'d3_sl_rdl',name:'Single-Leg RDL (kettlebell)',sets:'3x10 each',tip:'Start weight: 20-30 lb kettlebell in contralateral hand (opposite to planted foot).',form:'Hinge at hip, flat back, free leg extends behind. Stop short if lower back rounds — flat back beats depth.'},
-      {id:'d3_hip_thrust',name:'Hip Thrust (barbell or machine)',sets:'3x12',tip:'Start weight: Bodyweight or 45 lb bar.',form:'Upper back on bench, feet flat and close to glutes. Drive through heels, squeeze glutes at top. Don't hyperextend low back.'},
-      {id:'d3_leg_press',name:'Leg Press',sets:'3x12',tip:'Start weight: 90-135 lbs. Lower/wider foot placement = more glute and hamstring.',form:'Don't lock out knees at top. Lower until hips start to tuck — stop there.'},
-      {id:'d3_lunges',name:'Walking Lunges',sets:'3x10 each leg',tip:'Start weight: Bodyweight or 15-20 lb dumbbells. Use the turf area at Southrac.',form:'Big step forward, back knee drops toward (not to) floor. Keep torso upright.'},
-      {id:'d3_leg_curl',name:'Leg Curl Machine',sets:'3x12',tip:'Start weight: 40-60 lbs.',form:'Slow on the way down (eccentric). Don't let hips lift off pad. Full range of motion.'}
+  d3: {
+    "exercises-d3": [
+      { id:"d3_goblet_squat", name:"Goblet Squat", sets:"3x12",
+        tip:"Start weight: 25–35 lb dumbbell.",
+        form:"Hold dumbbell vertically at chest. Squat deep, elbows inside knees at bottom." },
+      { id:"d3_sl_rdl", name:"Single-Leg RDL (kettlebell)", sets:"3x10 each",
+        tip:"Start weight: 20–30 lb kettlebell in contralateral hand (opposite to planted foot).",
+        form:"Hinge at hip, flat back, free leg extends behind. Stop short if lower back rounds — flat back beats depth." },
+      { id:"d3_hip_thrust", name:"Hip Thrust (barbell or machine)", sets:"3x12",
+        tip:"Start weight: Bodyweight or 45 lb bar.",
+        form:"Upper back on bench, feet flat and close to glutes. Drive through heels, squeeze glutes at top. No low back hyperextension." },
+      { id:"d3_leg_press", name:"Leg Press", sets:"3x12",
+        tip:"Start weight: 90–135 lbs. Lower and wider foot placement = more glute and hamstring.",
+        form:"No knee lockout at top. Lower until hips start to tuck — stop there." },
+      { id:"d3_lunges", name:"Walking Lunges", sets:"3x10 each leg",
+        tip:"Start weight: Bodyweight or 15–20 lb dumbbells. Use the turf area at Southrac.",
+        form:"Big step forward, back knee drops toward (not to) floor. Keep torso upright." },
+      { id:"d3_leg_curl", name:"Leg Curl Machine", sets:"3x12",
+        tip:"Start weight: 40–60 lbs.",
+        form:"Slow on the way down (eccentric). Keep hips on pad throughout. Full range of motion." }
     ],
-    'core-d3':[
-      {id:'d3_ab_wheel',name:'Ab Wheel',sets:'3x10',noWeight:true,form:'Start kneeling. Keep core tight, don't let lower back sag. Only go as far as you can control.'},
-      {id:'d3_side_plank',name:'Side Plank',sets:'3x30 sec each side',noWeight:true,form:'Stack or stagger feet. Drive hip up — don't let it sag. Trains lateral core stability.'}
+    "core-d3": [
+      { id:"d3_ab_wheel", name:"Ab Wheel", sets:"3x10", noWeight:true,
+        form:"Start kneeling. Keep core tight, do not let lower back sag as you roll out. Only go as far as you can control." },
+      { id:"d3_side_plank", name:"Side Plank", sets:"3x30 sec each side", noWeight:true,
+        form:"Stack or stagger feet. Drive hip up — do not let it sag. Trains lateral core stability." }
     ]
   },
-  d4:{
-    'exercises-d4':[
-      {id:'d4_db_bench',name:'Dumbbell Bench Press',sets:'3x10',tip:'Start weight: 30-40 lbs each dumbbell.',form:'Flat bench. Horizontal press to balance Day 1 incline work. Lower to chest, press up. Shoulder blades retracted.'},
-      {id:'d4_pull_through',name:'Cable Pull-Through',sets:'3x15',tip:'Replaces kettlebell swing — same pattern, easier to learn. Start weight: 30-40 lbs.',form:'Low cable, rope, face away from machine. Hinge at hips, rope between legs, drive hips forward. Power from glute squeeze at top.'},
-      {id:'d4_pushup',name:'Standard Push-Up',sets:'3x12',noWeight:true,form:'Body in straight line, core tight. Lower until chest nearly touches floor. Elevate feet to increase difficulty.'},
-      {id:'d4_cable_row',name:'Seated Cable Row (V-bar, narrow)',sets:'3x10',tip:'Same as Day 2.',form:'See Day 2 for full form cues.'},
-      {id:'d4_arnold_press',name:'Arnold Press',sets:'3x10',tip:'Start weight: 20-25 lbs each dumbbell.',form:'Start with palms facing you, rotate outward as you press up. Hits all three heads of the shoulder.'},
-      {id:'d4_face_pull',name:'Face Pulls',sets:'3x15',tip:'Repeated from Day 2 intentionally — shoulder health investment.',form:'See Day 2 for form cues.'}
+  d4: {
+    "exercises-d4": [
+      { id:"d4_db_bench", name:"Dumbbell Bench Press", sets:"3x10",
+        tip:"Start weight: 30–40 lbs each dumbbell.",
+        form:"Flat bench. Horizontal press to balance Day 1 incline work. Lower to chest, press up. Shoulder blades retracted." },
+      { id:"d4_pull_through", name:"Cable Pull-Through", sets:"3x15",
+        tip:"Replaces kettlebell swing — same pattern, easier to learn. Start weight: 30–40 lbs.",
+        form:"Low cable, rope, face away from machine. Hinge at hips, rope between legs, drive hips forward to stand. All power from glute squeeze at top." },
+      { id:"d4_pushup", name:"Standard Push-Up", sets:"3x12", noWeight:true,
+        form:"Body in straight line, core tight. Lower until chest nearly touches floor. Elevate feet on bench to increase difficulty." },
+      { id:"d4_cable_row", name:"Seated Cable Row (V-bar, narrow)", sets:"3x10",
+        tip:"Same as Day 2.",
+        form:"See Day 2 for full form cues." },
+      { id:"d4_arnold_press", name:"Arnold Press", sets:"3x10",
+        tip:"Start weight: 20–25 lbs each dumbbell.",
+        form:"Start with palms facing you, rotate outward as you press up. Hits all three heads of the shoulder." },
+      { id:"d4_face_pull", name:"Face Pulls", sets:"3x15",
+        tip:"Repeated from Day 2 intentionally — shoulder health investment.",
+        form:"See Day 2 for form cues." }
     ],
-    'core-d4':[
-      {id:'d4_core_circuit',name:'Plank / Dead Bug / Bird Dog',sets:'3 rounds',noWeight:true,form:'Plank: 40 sec. Dead Bug: 10 each side. Bird Dog: 10 each side. Rest 30-45 sec between rounds.'}
+    "core-d4": [
+      { id:"d4_core_circuit", name:"Plank / Dead Bug / Bird Dog", sets:"3 rounds", noWeight:true,
+        form:"Plank: 40 sec. Dead Bug: 10 each side. Bird Dog: 10 each side. Rest 30–45 sec between rounds." }
     ]
   },
-  d5:{
-    'shoulders-d5':[
-      {id:'d5_cable_lateral',name:'Cable Lateral Raise',sets:'3x15',tip:'Higher rep range today — lighter weight, more pump.',form:'See Day 1 for form cues.'},
-      {id:'d5_face_pull',name:'Face Pulls',sets:'3x15',tip:'Third time this week intentionally. Shoulder longevity investment.',form:'See Day 2 for form cues.'}
+  d5: {
+    "shoulders-d5": [
+      { id:"d5_cable_lateral", name:"Cable Lateral Raise", sets:"3x15",
+        tip:"Higher rep range today — lighter weight, more pump.",
+        form:"See Day 1 for form cues." },
+      { id:"d5_face_pull", name:"Face Pulls", sets:"3x15",
+        tip:"Third time this week intentionally. Cheap investment in shoulder longevity.",
+        form:"See Day 2 for form cues." }
     ],
-    'biceps-d5':[
-      {id:'d5_ez_curl',name:'EZ Bar Curl',sets:'3x12',tip:null,form:'See Day 2 for form cues.'},
-      {id:'d5_cable_curl',name:'Cable Curl (straight bar or rope)',sets:'3x12',tip:'Start weight: 25-35 lbs. Cable keeps constant tension throughout the movement.',form:'Stand at low pulley, elbows stay at sides, curl all the way up, slow on the way down.'}
+    "biceps-d5": [
+      { id:"d5_ez_curl", name:"EZ Bar Curl", sets:"3x12",
+        tip:null,
+        form:"See Day 2 for form cues." },
+      { id:"d5_cable_curl", name:"Cable Curl (straight bar or rope)", sets:"3x12",
+        tip:"Start weight: 25–35 lbs. Cable keeps constant tension throughout the movement.",
+        form:"Stand at low pulley, elbows stay at sides, curl all the way up, slow on the way down." }
     ],
-    'triceps-d5':[
-      {id:'d5_rope_pushdown',name:'Tricep Rope Pushdown',sets:'3x12',tip:null,form:'See Day 1 for form cues.'},
-      {id:'d5_skull_crushers',name:'Skull Crushers (light EZ bar)',sets:'3x12',tip:'Start weight: 30-40 lbs. Keep it light.',form:'Lie flat, lower bar toward forehead bending only at elbows. Elbows point at ceiling. Don't let elbows flare wide.'}
+    "triceps-d5": [
+      { id:"d5_rope_pushdown", name:"Tricep Rope Pushdown", sets:"3x12",
+        tip:null,
+        form:"See Day 1 for form cues." },
+      { id:"d5_skull_crushers", name:"Skull Crushers (light EZ bar)", sets:"3x12",
+        tip:"Start weight: 30–40 lbs. Keep it light.",
+        form:"Lie flat, lower bar toward forehead bending only at elbows. Elbows point at ceiling. No elbow flare." }
     ],
-    'core-d5':[
-      {id:'d5_plank',name:'Plank',sets:'3x45 sec',noWeight:true,form:'See Day 1. Slightly longer hold today.'},
-      {id:'d5_ab_wheel',name:'Ab Wheel',sets:'3x10',noWeight:true,form:'See Day 3 for form cues.'},
-      {id:'d5_sl_rdl_bw',name:'Single-Leg RDL (bodyweight)',sets:'3x10 each',noWeight:true,form:'No weight — balance and glute activation only. Same form as Day 3.'}
+    "core-d5": [
+      { id:"d5_plank", name:"Plank", sets:"3x45 sec", noWeight:true,
+        form:"See Day 1. Slightly longer hold today." },
+      { id:"d5_ab_wheel", name:"Ab Wheel", sets:"3x10", noWeight:true,
+        form:"See Day 3 for form cues." },
+      { id:"d5_sl_rdl_bw", name:"Single-Leg RDL (bodyweight)", sets:"3x10 each", noWeight:true,
+        form:"No weight — balance and glute activation only. Same form as Day 3." }
     ]
   }
 };
 
-// ─── STORAGE ─────────────────────────────────────────────────
-var LS_KEY = 'pgymplan_v4';
-function loadData(){try{return JSON.parse(localStorage.getItem(LS_KEY))||{};}catch(e){return {};}}
-function saveData(d){localStorage.setItem(LS_KEY,JSON.stringify(d));}
+// ── Storage ──────────────────────────────────────────────────
+var LS_KEY = "pgymplan_v5";
+function loadData(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||{}; }catch(e){ return {}; } }
+function saveData(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
 
-// ─── TOAST ───────────────────────────────────────────────────
-var toastTimer;
-function showToast(msg,color){
-  clearTimeout(toastTimer);
-  var t=document.getElementById('toast');
-  t.textContent=msg;
-  t.style.background=color||'var(--green)';
-  t.classList.add('show');
-  toastTimer=setTimeout(function(){t.classList.remove('show');},2500);
+// ── Toast ────────────────────────────────────────────────────
+var _toastTimer;
+function showToast(msg, color){
+  clearTimeout(_toastTimer);
+  var t = document.getElementById("toast");
+  t.textContent = msg;
+  t.style.background = color || "var(--green)";
+  t.classList.add("show");
+  _toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 2500);
 }
 
-// ─── DATE FORMAT ─────────────────────────────────────────────
+// ── Date format ──────────────────────────────────────────────
 function fmtDate(val){
-  if(!val)return '';
-  var d=new Date(val);
-  if(isNaN(d.getTime()))return String(val);
-  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  if(!val) return "";
+  var d = new Date(val);
+  if(isNaN(d.getTime())) return String(val);
+  return d.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
 }
 
-// ─── RENDER ALL ──────────────────────────────────────────────
+// ── Build HTML ───────────────────────────────────────────────
+function buildNav(){
+  var nav = document.getElementById("dayNav");
+  DAYS.forEach(function(day, i){
+    var btn = document.createElement("button");
+    btn.className = "day-btn" + (day.optional?" optional":"") + (i===0?" active":"");
+    btn.textContent = day.label;
+    btn.onclick = function(){ showDay(day.id); };
+    nav.appendChild(btn);
+  });
+}
+
+function buildPanels(){
+  var container = document.getElementById("dayPanels");
+  DAYS.forEach(function(day, i){
+    var panel = document.createElement("div");
+    panel.className = "day-panel" + (i===0?" active":"");
+    panel.id = day.id;
+
+    if(day.cardioRef){ panel.innerHTML = buildCardioHTML(); container.appendChild(panel); return; }
+    if(day.statsPanel){ panel.innerHTML = buildStatsHTML(); container.appendChild(panel); return; }
+    if(day.macrosPanel){ panel.innerHTML = buildMacrosHTML(); container.appendChild(panel); return; }
+
+    var html = "";
+    html += "<div style='margin-bottom:18px;'>";
+    html += "<div class='day-label'>" + day.title + "</div>";
+    html += "<div class='day-subtitle'>" + day.subtitle + "</div>";
+    if(day.skipNote) html += "<div class='skip-note'>⚠️ " + day.skipNote + "</div>";
+    html += "</div>";
+
+    // Glute activation for d3
+    if(day.activation){
+      html += "<div class='section-label'>Glute Activation (band) — Do BEFORE loading weight</div>";
+      html += "<div class='warmup-block'>";
+      html += "<div class='w-title'>Band warm-up</div>";
+      html += "<div class='warmup-item'>Clamshells — 2x15 each side</div>";
+      html += "<div class='warmup-item'>Glute Bridge with band — 2x15</div>";
+      html += "<div class='warmup-item' style='font-size:12px;margin-top:6px;'>Fires up the glutes so they do the work during heavy lifts instead of your lower back compensating.</div>";
+      html += "</div>";
+    }
+
+    // Warmup
+    html += "<div class='section-label'>Warm-Up</div>";
+    html += "<div class='warmup-block'><div class='w-title'>Incline Ramp (or substitute)</div><div class='warmup-item'>" + day.warmup + "</div></div>";
+
+    // Exercise sections
+    var sections = EXERCISES[day.id];
+    if(sections){
+      Object.keys(sections).forEach(function(sectionId){
+        var label = sectionId.replace(/-/g," ").replace(day.id,"").trim();
+        if(sectionId.indexOf("exercises") === 0) label = "Main Work";
+        else if(sectionId.indexOf("core") === 0) label = "Core";
+        else if(sectionId.indexOf("shoulders") === 0) label = "Shoulders";
+        else if(sectionId.indexOf("biceps") === 0) label = "Biceps";
+        else if(sectionId.indexOf("triceps") === 0) label = "Triceps";
+        if(sectionId === "core-d4") label = "Core Circuit — 3 Rounds";
+        html += "<div class='section-label'>" + label + "</div>";
+        html += "<div id='" + sectionId + "'></div>";
+      });
+    }
+
+    // Finisher
+    html += "<div class='finisher'>";
+    html += "<div class='finisher-title'>🔥 CARDIO FINISHER</div>";
+    html += "<div class='finisher-detail'><strong>" + day.finisherZone + "</strong><br>" + day.finisherNote + "</div>";
+    html += "<div style='margin-top:10px;'>";
+    html += "<div class='stat-col-label' style='text-align:left;margin-bottom:5px;'>WHAT DID YOU DO?</div>";
+    html += "<input class='stat-input' type='text' placeholder='e.g. Ramp, Treadmill, Track, Bike...' id='cardio-" + day.id + "' style='width:100%;text-align:left;'>";
+    html += "</div>";
+    html += "<div class='hist-block' style='margin-top:10px;background:rgba(0,0,0,0.2);border:none;'>";
+    html += "<div class='hist-block-title'>Last 3 Cardio Sessions</div>";
+    html += "<div id='cardio-hist-" + day.id + "'><button class='load-link' onclick='loadCardioHistory(\"" + day.id + "\")'>Load history</button></div>";
+    html += "</div>";
+    html += "</div>";
+
+    // Recovery links for d5
+    if(day.recovery){
+      html += "<div class='callout' style='margin-top:16px;'>";
+      html += "<strong>At-home recovery (a few minutes anytime)</strong>";
+      html += "<a class='ref-link' href='https://www.youtube.com/watch?v=PB0IfqcCRBo' target='_blank'>▶ Hip Flexor Stretch</a><br>";
+      html += "<a class='ref-link' href='https://www.youtube.com/watch?v=LQn2MiTEVH0' target='_blank'>▶ Thoracic Rotation</a><br>";
+      html += "<a class='ref-link' href='https://www.youtube.com/watch?v=s9UgHjP14sI' target='_blank'>▶ Pigeon Pose (Glutes)</a><br>";
+      html += "<a class='ref-link' href='https://www.youtube.com/watch?v=sTxC3J3gQEU' target='_blank'>▶ Lower Back Decompression</a>";
+      html += "</div>";
+    }
+
+    // Last day workout history
+    html += "<div class='hist-block' style='margin-top:20px;'>";
+    html += "<div class='hist-block-title'>Last " + day.title + " Workout</div>";
+    html += "<div id='day-hist-" + day.id + "'><button class='load-link' onclick='loadDayHistory(\"" + day.id + "\",\"" + day.title + "\")'>Load last session</button></div>";
+    html += "</div>";
+
+    // Wrap-up stats
+    html += "<div class='stats-block'>";
+    html += "<div class='stats-title'>📊 WRAP UP WORKOUT</div>";
+    html += "<div class='stats-grid'>";
+    html += "<div class='stat-col'><div class='stat-col-label'>Duration (min)</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 55' id='stat-dur-" + day.id + "'></div>";
+    html += "<div class='stat-col'><div class='stat-col-label'>Calories</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 420' id='stat-cal-" + day.id + "'></div>";
+    html += "<div class='stat-col'><div class='stat-col-label'>Avg HR</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 142' id='stat-hr-" + day.id + "'></div>";
+    html += "</div>";
+    html += "<div class='notes-block'><div class='notes-label'>Notes (optional)</div>";
+    html += "<textarea class='notes-textarea' id='notes-" + day.id + "' placeholder='How did it feel? Energy level, PRs, anything notable...'></textarea></div>";
+    html += "<button class='stats-save-btn' style='margin-top:10px;' onclick='saveWorkout(\"" + day.id + "\")'>Save Workout</button>";
+    html += "</div>";
+
+    html += "<button class='reset-btn' onclick='resetDay(\"" + day.id + "\")'>↺ Reset checkmarks for today</button>";
+
+    panel.innerHTML = html;
+    container.appendChild(panel);
+  });
+}
+
+function buildCardioHTML(){
+  return "<div class='day-label' style='margin-bottom:18px;'>CARDIO OPTIONS</div>"
+    + "<div class='section-label'>Heart Rate Zones</div>"
+    + "<div style='background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:16px;'>"
+    + "<div class='hr-zone'><div class='zone-dot' style='background:#4fc3f7'></div><div><strong>Zone 1</strong> · 95–115 BPM · <span style='color:var(--muted)'>Warm-up</span></div></div>"
+    + "<div class='hr-zone'><div class='zone-dot' style='background:#81c784'></div><div><strong>Zone 2</strong> · 115–135 BPM · <span style='color:var(--muted)'>Fat burn / aerobic base</span></div></div>"
+    + "<div class='hr-zone'><div class='zone-dot' style='background:#ffb74d'></div><div><strong>Zone 3</strong> · 135–155 BPM · <span style='color:var(--muted)'>Target for finishers · Endorphin zone</span></div></div>"
+    + "<div class='hr-zone'><div class='zone-dot' style='background:#e57373'></div><div><strong>Zone 4</strong> · 155–170 BPM · <span style='color:var(--muted)'>Occasional use only for now</span></div></div>"
+    + "</div>"
+    + "<div class='section-label'>Incline Ramp Alternatives</div>"
+    + "<div class='alt-item'><div class='alt-name'>🏃 Indoor Track (jog)</div><div class='alt-note'>Southrac 1/8-mile track. Easy to hit Zone 3 with a moderate jog. Low impact, no learning curve.</div></div>"
+    + "<div class='alt-item'><div class='alt-name'>🚴 Stationary Bike</div><div class='alt-note'>Very back-friendly. Best option if your back is flaring. Reliable Zone 3 at moderate resistance.</div></div>"
+    + "<div class='alt-item'><div class='alt-name'>🪜 Stair Climber</div><div class='alt-note'>High endorphin output. Glute-heavy — great after leg days. Hits Zone 3 fast.</div></div>"
+    + "<div class='alt-item'><div class='alt-name'>🚣 Rowing Machine</div><div class='alt-note'>Full body, excellent conditioning. Learn form before going hard — poor rowing can stress lower back.</div></div>";
+}
+
+function buildStatsHTML(){
+  return "<div class='day-label'>STATS</div>"
+    + "<div class='day-subtitle' style='margin-bottom:18px;'>Live from Google Sheets</div>"
+    + "<div class='section-label'>Workout Summary</div>"
+    + "<div id='stats-workouts'><button class='load-link' onclick='loadStats()'>Load stats</button></div>"
+    + "<div class='section-label' style='margin-top:24px;'>Weight Progression</div>"
+    + "<div style='color:var(--muted);font-size:12px;margin-bottom:12px;'>Last 3 entries per exercise</div>"
+    + "<div id='stats-exercises'></div>";
+}
+
+function buildMacrosHTML(){
+  return "<div class='day-label'>MACROS</div>"
+    + "<div class='day-subtitle' style='margin-bottom:18px;'>~165 lbs · Recomp goal · 4 training days</div>"
+    + "<div class='macro-card'><div class='macro-name'>Daily Calories</div><div class='macro-amount'>2,700–2,900</div><div class='macro-note'>kcal · Supports training volume without gaining weight</div></div>"
+    + "<div class='macro-card'><div class='macro-name'>Protein · Priority #1</div><div class='macro-amount'>165–180g</div><div class='macro-note'>~1g per lb bodyweight · Non-negotiable for muscle building</div></div>"
+    + "<div class='macro-card'><div class='macro-name'>Carbohydrates</div><div class='macro-amount'>300–340g</div><div class='macro-note'>Energy for training, mood, and endorphin release</div></div>"
+    + "<div class='macro-card'><div class='macro-name'>Fat</div><div class='macro-amount'>70–85g</div><div class='macro-note'>Testosterone production requires dietary fat — do not go very low</div></div>"
+    + "<div class='section-label'>Priority Order</div>"
+    + "<div class='callout'>1. <strong>Hit protein first</strong> — do not miss this one<br>2. <strong>Hit total calories</strong> — being significantly under slows recovery<br>3. <strong>Fill in carbs</strong> — especially pre-workout<br>4. <strong>Let fat flex</strong></div>"
+    + "<div class='section-label'>Protein Strategy</div>"
+    + "<div class='callout'><strong>Whey protein:</strong> 2 scoops/day = ~40–50g with zero meal planning.<br>1 scoop post-workout · 1 scoop at another meal.</div>"
+    + "<div class='section-label'>Drinking Days (3x/week)</div>"
+    + "<div class='callout'>~3 drinks = 300–400 kcal. <strong>Drop 100–150g of carbs, not fat.</strong> Keep protein high regardless.</div>"
+    + "<div class='section-label'>Quick References</div>"
+    + "<div class='callout'>1 cup cooked rice = 45g carbs<br>1 banana = 27g carbs<br>2 slices bread = 30g carbs<br>1 scoop whey = 24–25g protein<br>6oz chicken breast = 52g protein<br>2 eggs = 12g protein<br>1 cup Greek yogurt = 17–20g protein</div>"
+    + "<div class='callout'><strong>Hydration:</strong> Aim for 100+ oz water/day.</div>";
+}
+
+// ── Render exercise cards ────────────────────────────────────
 function renderAll(){
-  var data=loadData();
+  var data = loadData();
   Object.keys(EXERCISES).forEach(function(dayId){
-    var sections=EXERCISES[dayId];
-    Object.keys(sections).forEach(function(containerId){
-      var container=document.getElementById(containerId);
-      if(!container)return;
-      container.innerHTML='';
-      sections[containerId].forEach(function(ex){
-        buildCard(container,ex,dayId,data);
+    var sections = EXERCISES[dayId];
+    Object.keys(sections).forEach(function(sectionId){
+      var container = document.getElementById(sectionId);
+      if(!container) return;
+      container.innerHTML = "";
+      sections[sectionId].forEach(function(ex){
+        buildCard(container, ex, dayId, data);
       });
     });
   });
 }
 
-function buildCard(container,ex,dayId,data){
-  var isDone=!!(data.checks&&data.checks[ex.id]);
-  var history=(data.history&&data.history[ex.id])||[];
-  var lastEntry=history.length?history[history.length-1]:null;
+function buildCard(container, ex, dayId, data){
+  var isDone = !!(data.checks && data.checks[ex.id]);
+  var history = (data.history && data.history[ex.id]) || [];
+  var lastEntry = history.length ? history[history.length-1] : null;
 
-  var card=document.createElement('div');
-  card.className='exercise'+(isDone?' done':'');
-  card.id='card-'+ex.id;
-
-  var lastSummary='';
+  var lastSummary = "";
   if(lastEntry){
-    var parts=[];
-    if(lastEntry.s1)parts.push('S1:'+lastEntry.s1);
-    if(lastEntry.s2)parts.push('S2:'+lastEntry.s2);
-    if(lastEntry.s3)parts.push('S3:'+lastEntry.s3);
-    lastSummary=parts.join(' ');
+    var parts = [];
+    if(lastEntry.s1) parts.push("S1:" + lastEntry.s1);
+    if(lastEntry.s2) parts.push("S2:" + lastEntry.s2);
+    if(lastEntry.s3) parts.push("S3:" + lastEntry.s3);
+    lastSummary = parts.join(" ");
   }
 
-  var weightHTML='';
+  var card = document.createElement("div");
+  card.className = "exercise" + (isDone ? " done" : "");
+  card.id = "card-" + ex.id;
+
+  // Main row
+  var mainDiv = document.createElement("div");
+  mainDiv.className = "exercise-main";
+
+  var checkBtn = document.createElement("button");
+  checkBtn.className = "check-btn" + (isDone ? " done" : "");
+  checkBtn.innerHTML = isDone ? "&#10003;" : "";
+  checkBtn.onclick = (function(eid){ return function(){ toggleCheck(eid); }; })(ex.id);
+  mainDiv.appendChild(checkBtn);
+
+  var infoDiv = document.createElement("div");
+  infoDiv.className = "exercise-info";
+  var nameDiv = document.createElement("div");
+  nameDiv.className = "exercise-name";
+  nameDiv.textContent = ex.name;
+  infoDiv.appendChild(nameDiv);
+  var metaDiv = document.createElement("div");
+  metaDiv.className = "exercise-meta";
+  var setsSpan = document.createElement("span");
+  setsSpan.className = "exercise-sets";
+  setsSpan.textContent = ex.sets;
+  metaDiv.appendChild(setsSpan);
+  if(lastSummary){
+    var prevSpan = document.createElement("span");
+    prevSpan.className = "prev-weight";
+    prevSpan.textContent = lastSummary;
+    metaDiv.appendChild(prevSpan);
+  }
+  infoDiv.appendChild(metaDiv);
+  mainDiv.appendChild(infoDiv);
+
+  var infoBtn = document.createElement("button");
+  infoBtn.className = "info-btn";
+  infoBtn.textContent = "i";
+  infoBtn.onclick = (function(eid, ename, btn){ return function(){ toggleTip(btn, eid, ename); }; })(ex.id, ex.name, infoBtn);
+  mainDiv.appendChild(infoBtn);
+  card.appendChild(mainDiv);
+
+  // Detail panel
+  var detailDiv = document.createElement("div");
+  detailDiv.className = "exercise-detail";
+
+  if(ex.tip){
+    var tipP = document.createElement("p");
+    tipP.className = "tip-text";
+    tipP.innerHTML = "<strong>Tip: </strong>" + ex.tip;
+    detailDiv.appendChild(tipP);
+  }
+  if(ex.form){
+    var formP = document.createElement("p");
+    formP.className = "tip-text";
+    formP.innerHTML = "<strong>Form: </strong>" + ex.form;
+    detailDiv.appendChild(formP);
+  }
+
   if(!ex.noWeight){
-    var ph1=lastEntry&&lastEntry.s1?lastEntry.s1:'—';
-    var ph2=lastEntry&&lastEntry.s2?lastEntry.s2:'—';
-    var ph3=lastEntry&&lastEntry.s3?lastEntry.s3:'—';
-    var lastLine=lastSummary?'<span style="color:var(--accent2);font-size:11px;font-weight:600;margin-left:6px;">'+lastSummary+'</span>':'';
-    weightHTML='<div class="weight-section">'
-      +'<div class="weight-label">Log Weight'+lastLine+'</div>'
-      +'<div class="sets-grid">'
-      +'<div class="set-col"><div class="set-col-label">SET 1</div><input class="weight-input" type="text" inputmode="decimal" placeholder="'+ph1+'" id="input-'+ex.id+'-s1"></div>'
-      +'<div class="set-col"><div class="set-col-label">SET 2</div><input class="weight-input" type="text" inputmode="decimal" placeholder="'+ph2+'" id="input-'+ex.id+'-s2"></div>'
-      +'<div class="set-col"><div class="set-col-label">SET 3</div><input class="weight-input" type="text" inputmode="decimal" placeholder="'+ph3+'" id="input-'+ex.id+'-s3"></div>'
-      +'</div>'
-      +'<button class="save-btn" onclick="saveWeight(''+ex.id+'',''+dayId+'')">Save Sets</button>'
-      +'<div class="saved-msg" id="saved-'+ex.id+'">Saved!</div>'
-      +'<div class="hist-loading" id="hist-loading-'+ex.id+'"></div>'
-      +'<div id="hist-live-'+ex.id+'"></div>'
-      +'</div>';
+    var ph1 = lastEntry && lastEntry.s1 ? lastEntry.s1 : "—";
+    var ph2 = lastEntry && lastEntry.s2 ? lastEntry.s2 : "—";
+    var ph3 = lastEntry && lastEntry.s3 ? lastEntry.s3 : "—";
+
+    var wsDiv = document.createElement("div");
+    wsDiv.className = "weight-section";
+
+    var wLabel = document.createElement("div");
+    wLabel.className = "weight-label";
+    wLabel.textContent = "Log Weight";
+    if(lastSummary){
+      var lSpan = document.createElement("span");
+      lSpan.style.cssText = "color:var(--accent2);font-size:11px;font-weight:600;margin-left:6px;";
+      lSpan.textContent = lastSummary;
+      wLabel.appendChild(lSpan);
+    }
+    wsDiv.appendChild(wLabel);
+
+    var grid = document.createElement("div");
+    grid.className = "sets-grid";
+    ["SET 1","SET 2","SET 3"].forEach(function(label, si){
+      var col = document.createElement("div");
+      col.className = "set-col";
+      var lbl = document.createElement("div");
+      lbl.className = "set-col-label";
+      lbl.textContent = label;
+      col.appendChild(lbl);
+      var inp = document.createElement("input");
+      inp.className = "weight-input";
+      inp.type = "text";
+      inp.inputMode = "decimal";
+      inp.placeholder = [ph1,ph2,ph3][si];
+      inp.id = "input-" + ex.id + "-s" + (si+1);
+      col.appendChild(inp);
+      grid.appendChild(col);
+    });
+    wsDiv.appendChild(grid);
+
+    var saveBtn = document.createElement("button");
+    saveBtn.className = "save-btn";
+    saveBtn.textContent = "Save Sets";
+    saveBtn.onclick = (function(eid, did){ return function(){ saveWeight(eid, did); }; })(ex.id, dayId);
+    wsDiv.appendChild(saveBtn);
+
+    var savedMsg = document.createElement("div");
+    savedMsg.className = "saved-msg";
+    savedMsg.id = "saved-" + ex.id;
+    savedMsg.textContent = "Saved!";
+    wsDiv.appendChild(savedMsg);
+
+    var histLoading = document.createElement("div");
+    histLoading.className = "hist-loading";
+    histLoading.id = "hist-loading-" + ex.id;
+    wsDiv.appendChild(histLoading);
+
+    var histLive = document.createElement("div");
+    histLive.id = "hist-live-" + ex.id;
+    wsDiv.appendChild(histLive);
+
+    detailDiv.appendChild(wsDiv);
   }
 
-  var tipHTML=ex.tip?'<p class="tip-text"><strong>Tip: </strong>'+ex.tip+'</p>':'';
-  var formHTML=ex.form?'<p class="tip-text"><strong>Form: </strong>'+ex.form+'</p>':'';
-  var prevHTML=lastSummary?'<span class="prev-weight">'+lastSummary+'</span>':'';
-
-  card.innerHTML=
-    '<div class="exercise-main">'
-    +'<button class="check-btn'+(isDone?' done':'')+'" onclick="toggleCheck(''+ex.id+'')">'+(isDone?'&#10003;':'')+'</button>'
-    +'<div class="exercise-info">'
-    +'<div class="exercise-name">'+ex.name+'</div>'
-    +'<div class="exercise-meta"><span class="exercise-sets">'+ex.sets+'</span>'+prevHTML+'</div>'
-    +'</div>'
-    +'<button class="info-btn" onclick="toggleTip(this,''+ex.id+'',''+ex.name+'')">i</button>'
-    +'</div>'
-    +'<div class="exercise-detail">'
-    +tipHTML+formHTML+weightHTML
-    +'</div>';
-
+  card.appendChild(detailDiv);
   container.appendChild(card);
 }
 
-// ─── TOGGLE TIP — always re-fetch history on open ─────────────
-function toggleTip(btn,exId,exName){
-  var detail=btn.closest('.exercise').querySelector('.exercise-detail');
-  var open=detail.classList.toggle('open');
-  btn.classList.toggle('open',open);
-  btn.textContent=open?'x':'i';
-  if(open&&exId&&exName){
-    fetchLiveHistory(exId,exName);
-  }
+// ── Toggle tip panel ─────────────────────────────────────────
+function toggleTip(btn, exId, exName){
+  var card = document.getElementById("card-" + exId);
+  var detail = card.querySelector(".exercise-detail");
+  var open = detail.classList.toggle("open");
+  btn.classList.toggle("open", open);
+  btn.textContent = open ? "x" : "i";
+  if(open && exId && exName) fetchLiveHistory(exId, exName);
 }
 
-// ─── LIVE HISTORY FROM SHEETS ────────────────────────────────
-async function fetchLiveHistory(exId,exName){
-  var loadingEl=document.getElementById('hist-loading-'+exId);
-  var liveEl=document.getElementById('hist-live-'+exId);
-  if(!liveEl)return;
-  if(loadingEl)loadingEl.textContent='Loading...';
+// ── Live history from Sheets ─────────────────────────────────
+async function fetchLiveHistory(exId, exName){
+  var loadEl = document.getElementById("hist-loading-" + exId);
+  var liveEl = document.getElementById("hist-live-" + exId);
+  if(!liveEl) return;
+  if(loadEl) loadEl.textContent = "Loading...";
   try{
-    var resp=await fetch(SHEETS_URL+'?type=history&exercise='+encodeURIComponent(exName));
-    var json=await resp.json();
-    if(loadingEl)loadingEl.textContent='';
-    if(!json.rows||json.rows.length===0){
-      liveEl.innerHTML='<div class="hist-loading">No history yet</div>';
+    var resp = await fetch(SHEETS_URL + "?type=history&exercise=" + encodeURIComponent(exName));
+    var json = await resp.json();
+    if(loadEl) loadEl.textContent = "";
+    if(!json.rows || json.rows.length === 0){
+      liveEl.innerHTML = "<div class='hist-loading'>No history yet</div>";
       return;
     }
-    var rows=json.rows.slice(-3).reverse();
-    var html='<div class="history-list open" style="margin-top:8px;">';
+    var rows = json.rows.slice(-3).reverse();
+    var div = document.createElement("div");
+    div.className = "history-list";
     rows.forEach(function(r){
-      var sets='';
-      if(r.set1)sets+='<span class="h-sets">S1:'+r.set1+'</span> ';
-      if(r.set2)sets+='<span class="h-sets">S2:'+r.set2+'</span> ';
-      if(r.set3)sets+='<span class="h-sets">S3:'+r.set3+'</span>';
-      html+='<div class="history-entry"><div class="h-row"><span class="h-date">'+fmtDate(r.date)+'</span>'+sets+'</div></div>';
+      var entry = document.createElement("div");
+      entry.className = "history-entry";
+      var row = document.createElement("div");
+      row.className = "h-row";
+      var dateSpan = document.createElement("span");
+      dateSpan.className = "h-date";
+      dateSpan.textContent = fmtDate(r.date);
+      row.appendChild(dateSpan);
+      var setsSpan = document.createElement("span");
+      setsSpan.className = "h-sets";
+      var parts = [];
+      if(r.set1) parts.push("S1:" + r.set1);
+      if(r.set2) parts.push("S2:" + r.set2);
+      if(r.set3) parts.push("S3:" + r.set3);
+      setsSpan.textContent = parts.join(" ");
+      row.appendChild(setsSpan);
+      entry.appendChild(row);
+      div.appendChild(entry);
     });
-    html+='</div>';
-    liveEl.innerHTML=html;
+    liveEl.innerHTML = "";
+    liveEl.appendChild(div);
   }catch(err){
-    if(loadingEl)loadingEl.textContent='';
-    liveEl.innerHTML='<div class="hist-loading">Could not load history</div>';
+    if(loadEl) loadEl.textContent = "";
+    liveEl.innerHTML = "<div class='hist-loading'>Could not load history</div>";
   }
 }
 
-// ─── CARDIO HISTORY ──────────────────────────────────────────
+// ── Cardio history ───────────────────────────────────────────
 async function loadCardioHistory(dayId){
-  var el=document.getElementById('cardio-hist-'+dayId);
-  if(!el)return;
-  el.innerHTML='<div class="hist-loading">Loading...</div>';
+  var el = document.getElementById("cardio-hist-" + dayId);
+  if(!el) return;
+  el.innerHTML = "<div class='hist-loading'>Loading...</div>";
+  var dayTitle = "";
+  DAYS.forEach(function(d){ if(d.id === dayId) dayTitle = d.title; });
   try{
-    var dayLabel=DAY_LABELS[dayId]||dayId;
-    var resp=await fetch(SHEETS_URL+'?type=cardio_history&day='+encodeURIComponent(dayLabel));
-    var json=await resp.json();
-    if(!json.rows||json.rows.length===0){el.innerHTML='<div class="hist-loading">No cardio logged yet</div>';return;}
-    var html='<div class="history-list open">';
+    var resp = await fetch(SHEETS_URL + "?type=cardio_history&day=" + encodeURIComponent(dayTitle));
+    var json = await resp.json();
+    if(!json.rows || json.rows.length === 0){
+      el.innerHTML = "<div class='hist-loading'>No cardio logged yet</div>";
+      return;
+    }
+    var div = document.createElement("div");
+    div.className = "history-list";
     json.rows.slice(-3).reverse().forEach(function(r){
-      html+='<div class="history-entry"><div class="h-row"><span class="h-date">'+fmtDate(r.date)+'</span><span class="h-sets">'+(r.cardio||'—')+'</span></div></div>';
+      var entry = document.createElement("div");
+      entry.className = "history-entry";
+      var row = document.createElement("div");
+      row.className = "h-row";
+      var d = document.createElement("span");
+      d.className = "h-date";
+      d.textContent = fmtDate(r.date);
+      var s = document.createElement("span");
+      s.className = "h-sets";
+      s.textContent = r.cardio || "—";
+      row.appendChild(d);
+      row.appendChild(s);
+      entry.appendChild(row);
+      div.appendChild(entry);
     });
-    html+='</div>';
-    el.innerHTML=html;
-  }catch(err){el.innerHTML='<div class="hist-loading">Could not load</div>';}
+    el.innerHTML = "";
+    el.appendChild(div);
+  }catch(err){
+    el.innerHTML = "<div class='hist-loading'>Could not load</div>";
+  }
 }
 
-// ─── DAY HISTORY ─────────────────────────────────────────────
-async function loadDayHistory(dayId,dayLabel){
-  var el=document.getElementById('day-hist-'+dayId);
-  if(!el)return;
-  el.innerHTML='<div class="hist-loading">Loading...</div>';
+// ── Day history ──────────────────────────────────────────────
+async function loadDayHistory(dayId, dayTitle){
+  var el = document.getElementById("day-hist-" + dayId);
+  if(!el) return;
+  el.innerHTML = "<div class='hist-loading'>Loading...</div>";
   try{
-    var resp=await fetch(SHEETS_URL+'?type=day_history&day='+encodeURIComponent(dayLabel));
-    var json=await resp.json();
-    if(!json||!json.date){el.innerHTML='<div class="hist-loading">No previous '+dayLabel+' workout found</div>';return;}
-    var html='<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">'+fmtDate(json.date)+'</div>';
-    if(json.cardio)html+='<div style="font-size:12px;margin-bottom:4px;"><span style="color:var(--muted);">Cardio: </span><span style="color:var(--text);">'+json.cardio+'</span></div>';
-    if(json.duration)html+='<div style="font-size:12px;margin-bottom:4px;"><span style="color:var(--muted);">Duration: </span><span style="color:var(--accent);">'+json.duration+' min</span></div>';
-    if(json.calories)html+='<div style="font-size:12px;margin-bottom:4px;"><span style="color:var(--muted);">Calories: </span><span style="color:var(--accent);">'+json.calories+'</span></div>';
-    if(json.heartRate)html+='<div style="font-size:12px;margin-bottom:4px;"><span style="color:var(--muted);">Avg HR: </span><span style="color:var(--accent);">'+json.heartRate+' BPM</span></div>';
-    if(json.notes)html+='<div style="font-size:12px;margin-bottom:4px;"><span style="color:var(--muted);">Notes: </span><span style="color:var(--text);">'+json.notes+'</span></div>';
-    el.innerHTML=html;
-  }catch(err){el.innerHTML='<div class="hist-loading">Could not load</div>';}
+    var resp = await fetch(SHEETS_URL + "?type=day_history&day=" + encodeURIComponent(dayTitle));
+    var json = await resp.json();
+    if(!json || !json.date){
+      el.innerHTML = "<div class='hist-loading'>No previous " + dayTitle + " workout found</div>";
+      return;
+    }
+    var html = "<div style='font-size:12px;color:var(--muted);margin-bottom:6px;'>" + fmtDate(json.date) + "</div>";
+    if(json.cardio) html += "<div style='font-size:12px;margin-bottom:4px;'><span style='color:var(--muted);'>Cardio: </span><span style='color:var(--text);'>" + json.cardio + "</span></div>";
+    if(json.duration) html += "<div style='font-size:12px;margin-bottom:4px;'><span style='color:var(--muted);'>Duration: </span><span style='color:var(--accent);'>" + json.duration + " min</span></div>";
+    if(json.calories) html += "<div style='font-size:12px;margin-bottom:4px;'><span style='color:var(--muted);'>Calories: </span><span style='color:var(--accent);'>" + json.calories + "</span></div>";
+    if(json.heartRate) html += "<div style='font-size:12px;margin-bottom:4px;'><span style='color:var(--muted);'>Avg HR: </span><span style='color:var(--accent);'>" + json.heartRate + " BPM</span></div>";
+    if(json.notes) html += "<div style='font-size:12px;margin-bottom:4px;'><span style='color:var(--muted);'>Notes: </span><span style='color:var(--text);'>" + json.notes + "</span></div>";
+    el.innerHTML = html;
+  }catch(err){
+    el.innerHTML = "<div class='hist-loading'>Could not load</div>";
+  }
 }
 
-// ─── CHECK / RESET ───────────────────────────────────────────
+// ── Check / Reset ────────────────────────────────────────────
 function toggleCheck(exId){
-  var data=loadData();
-  if(!data.checks)data.checks={};
-  data.checks[exId]=!data.checks[exId];
+  var data = loadData();
+  if(!data.checks) data.checks = {};
+  data.checks[exId] = !data.checks[exId];
   saveData(data);
-  var card=document.getElementById('card-'+exId);
+  var card = document.getElementById("card-" + exId);
   if(card){
-    card.classList.toggle('done',data.checks[exId]);
-    var btn=card.querySelector('.check-btn');
-    btn.classList.toggle('done',data.checks[exId]);
-    btn.innerHTML=data.checks[exId]?'&#10003;':'';
+    card.classList.toggle("done", data.checks[exId]);
+    var btn = card.querySelector(".check-btn");
+    btn.classList.toggle("done", data.checks[exId]);
+    btn.innerHTML = data.checks[exId] ? "&#10003;" : "";
   }
 }
 
 function resetDay(dayId){
-  var data=loadData();
-  if(!data.checks)return;
-  var sections=EXERCISES[dayId];
-  if(!sections)return;
+  var data = loadData();
+  if(!data.checks) return;
+  var sections = EXERCISES[dayId];
+  if(!sections) return;
   Object.keys(sections).forEach(function(k){
-    sections[k].forEach(function(ex){delete data.checks[ex.id];});
+    sections[k].forEach(function(ex){ delete data.checks[ex.id]; });
   });
   saveData(data);
   renderAll();
-  showToast('Checkmarks reset','#555');
+  showToast("Checkmarks reset", "#555");
 }
 
 function getExName(exId){
-  var found=exId;
+  var found = exId;
   Object.keys(EXERCISES).forEach(function(d){
     Object.keys(EXERCISES[d]).forEach(function(s){
-      EXERCISES[d][s].forEach(function(ex){if(ex.id===exId)found=ex.name;});
+      EXERCISES[d][s].forEach(function(ex){ if(ex.id === exId) found = ex.name; });
     });
   });
   return found;
 }
 
-// ─── SAVE WEIGHT — no renderAll to avoid interrupting saves ──
-async function saveWeight(exId,dayId){
-  var s1el=document.getElementById('input-'+exId+'-s1');
-  var s2el=document.getElementById('input-'+exId+'-s2');
-  var s3el=document.getElementById('input-'+exId+'-s3');
-  var s1=s1el?s1el.value.trim():'';
-  var s2=s2el?s2el.value.trim():'';
-  var s3=s3el?s3el.value.trim():'';
-  if(!s1&&!s2&&!s3){showToast('Enter at least one set','var(--accent2)');return;}
+// ── Save weight — no renderAll to prevent mid-workout issues ─
+async function saveWeight(exId, dayId){
+  var s1el = document.getElementById("input-" + exId + "-s1");
+  var s2el = document.getElementById("input-" + exId + "-s2");
+  var s3el = document.getElementById("input-" + exId + "-s3");
+  var s1 = s1el ? s1el.value.trim() : "";
+  var s2 = s2el ? s2el.value.trim() : "";
+  var s3 = s3el ? s3el.value.trim() : "";
+  if(!s1 && !s2 && !s3){ showToast("Enter at least one set", "var(--accent2)"); return; }
 
-  var now=new Date();
-  var dateStr=now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  var dayLabel=DAY_LABELS[dayId]||dayId;
-  var entry={date:dateStr,dayLabel:dayLabel,s1:s1,s2:s2,s3:s3};
+  var now = new Date();
+  var dateStr = now.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
+  var dayTitle = "";
+  DAYS.forEach(function(d){ if(d.id === dayId) dayTitle = d.title; });
 
-  // Save to localStorage
-  var data=loadData();
-  if(!data.history)data.history={};
-  if(!data.history[exId])data.history[exId]=[];
-  data.history[exId].push(entry);
+  // Save locally
+  var data = loadData();
+  if(!data.history) data.history = {};
+  if(!data.history[exId]) data.history[exId] = [];
+  data.history[exId].push({date:dateStr, dayLabel:dayTitle, s1:s1, s2:s2, s3:s3});
   saveData(data);
 
-  // Update just this card's prev-weight display without re-rendering everything
-  var summary=[s1?'S1:'+s1:'',s2?'S2:'+s2:'',s3?'S3:'+s3:''].filter(Boolean).join(' ');
-  var card=document.getElementById('card-'+exId);
+  // Update card display in-place without full re-render
+  var summary = [];
+  if(s1) summary.push("S1:" + s1);
+  if(s2) summary.push("S2:" + s2);
+  if(s3) summary.push("S3:" + s3);
+  var summaryStr = summary.join(" ");
+  var card = document.getElementById("card-" + exId);
   if(card){
-    var prevEl=card.querySelector('.prev-weight');
-    if(prevEl){prevEl.textContent=summary;}
+    var prevEl = card.querySelector(".prev-weight");
+    if(prevEl){ prevEl.textContent = summaryStr; }
     else{
-      var metaEl=card.querySelector('.exercise-meta');
-      if(metaEl){var sp=document.createElement('span');sp.className='prev-weight';sp.textContent=summary;metaEl.appendChild(sp);}
+      var metaEl = card.querySelector(".exercise-meta");
+      if(metaEl){
+        var sp = document.createElement("span");
+        sp.className = "prev-weight";
+        sp.textContent = summaryStr;
+        metaEl.appendChild(sp);
+      }
     }
     // Update placeholders
-    var ph1=document.getElementById('input-'+exId+'-s1');
-    var ph2=document.getElementById('input-'+exId+'-s2');
-    var ph3=document.getElementById('input-'+exId+'-s3');
-    if(ph1){ph1.placeholder=s1||'—';ph1.value='';}
-    if(ph2){ph2.placeholder=s2||'—';ph2.value='';}
-    if(ph3){ph3.placeholder=s3||'—';ph3.value='';}
+    if(s1el){ s1el.placeholder = s1; s1el.value = ""; }
+    if(s2el){ s2el.placeholder = s2; s2el.value = ""; }
+    if(s3el){ s3el.placeholder = s3; s3el.value = ""; }
+    // Update weight label
+    var wLabel = card.querySelector(".weight-label");
+    if(wLabel){
+      wLabel.textContent = "Log Weight";
+      var lSpan = document.createElement("span");
+      lSpan.style.cssText = "color:var(--accent2);font-size:11px;font-weight:600;margin-left:6px;";
+      lSpan.textContent = summaryStr;
+      wLabel.appendChild(lSpan);
+    }
   }
 
-  var msg=document.getElementById('saved-'+exId);
-  if(msg){msg.style.display='block';setTimeout(function(){msg.style.display='none';},2000);}
+  var msg = document.getElementById("saved-" + exId);
+  if(msg){ msg.style.display = "block"; setTimeout(function(){ msg.style.display = "none"; }, 2000); }
 
   // Post to Sheets
   try{
-    var exName=getExName(exId);
-    var params='type=exercise&date='+encodeURIComponent(dateStr)+'&day='+encodeURIComponent(dayLabel)+'&exercise='+encodeURIComponent(exName)+'&set1='+encodeURIComponent(s1)+'&set2='+encodeURIComponent(s2)+'&set3='+encodeURIComponent(s3);
-    await fetch(SHEETS_URL+'?'+params,{method:'GET',mode:'no-cors'});
-    showToast('Saved to Sheets');
-  }catch(e){showToast('Saved locally','var(--accent2)');}
+    var exName = getExName(exId);
+    var params = "type=exercise&date=" + encodeURIComponent(dateStr) + "&day=" + encodeURIComponent(dayTitle) + "&exercise=" + encodeURIComponent(exName) + "&set1=" + encodeURIComponent(s1) + "&set2=" + encodeURIComponent(s2) + "&set3=" + encodeURIComponent(s3);
+    await fetch(SHEETS_URL + "?" + params, {method:"GET", mode:"no-cors"});
+    showToast("Saved to Sheets");
+  }catch(e){ showToast("Saved locally", "var(--accent2)"); }
 }
 
-// ─── SAVE WORKOUT ────────────────────────────────────────────
+// ── Save workout ─────────────────────────────────────────────
 async function saveWorkout(dayId){
-  var dur=(document.getElementById('stat-dur-'+dayId)||{}).value||'';
-  var cal=(document.getElementById('stat-cal-'+dayId)||{}).value||'';
-  var hr=(document.getElementById('stat-hr-'+dayId)||{}).value||'';
-  var cardioEl=document.getElementById('cardio-'+dayId);
-  var cardio=cardioEl?cardioEl.value.trim():'';
-  var notesEl=document.getElementById('notes-'+dayId);
-  var notes=notesEl?notesEl.value.trim():'';
-  dur=dur.trim();cal=cal.trim();hr=hr.trim();
-  if(!dur&&!cal&&!hr&&!cardio&&!notes){showToast('Nothing to save','var(--accent2)');return;}
+  var dur = (document.getElementById("stat-dur-" + dayId)||{}).value || "";
+  var cal = (document.getElementById("stat-cal-" + dayId)||{}).value || "";
+  var hr = (document.getElementById("stat-hr-" + dayId)||{}).value || "";
+  var cardioEl = document.getElementById("cardio-" + dayId);
+  var notesEl = document.getElementById("notes-" + dayId);
+  var cardio = cardioEl ? cardioEl.value.trim() : "";
+  var notes = notesEl ? notesEl.value.trim() : "";
+  dur = dur.trim(); cal = cal.trim(); hr = hr.trim();
+  if(!dur && !cal && !hr && !cardio && !notes){ showToast("Nothing to save", "var(--accent2)"); return; }
 
-  var now=new Date();
-  var dateStr=now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  var dayLabel=DAY_LABELS[dayId]||dayId;
+  var now = new Date();
+  var dateStr = now.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
+  var dayTitle = "";
+  DAYS.forEach(function(d){ if(d.id === dayId) dayTitle = d.title; });
 
   try{
-    var params='type=workout&date='+encodeURIComponent(dateStr)+'&day='+encodeURIComponent(dayLabel)+'&cardio='+encodeURIComponent(cardio)+'&duration='+encodeURIComponent(dur)+'&calories='+encodeURIComponent(cal)+'&heartRate='+encodeURIComponent(hr)+'&notes='+encodeURIComponent(notes);
-    await fetch(SHEETS_URL+'?'+params,{method:'GET',mode:'no-cors'});
-    ['stat-dur-','stat-cal-','stat-hr-'].forEach(function(p){var el=document.getElementById(p+dayId);if(el)el.value='';});
-    if(cardioEl)cardioEl.value='';
-    if(notesEl)notesEl.value='';
-    showToast('Workout saved to Sheets');
-  }catch(e){showToast('Failed to save','var(--accent2)');}
+    var params = "type=workout&date=" + encodeURIComponent(dateStr) + "&day=" + encodeURIComponent(dayTitle) + "&cardio=" + encodeURIComponent(cardio) + "&duration=" + encodeURIComponent(dur) + "&calories=" + encodeURIComponent(cal) + "&heartRate=" + encodeURIComponent(hr) + "&notes=" + encodeURIComponent(notes);
+    await fetch(SHEETS_URL + "?" + params, {method:"GET", mode:"no-cors"});
+    ["stat-dur-","stat-cal-","stat-hr-"].forEach(function(p){
+      var el = document.getElementById(p + dayId); if(el) el.value = "";
+    });
+    if(cardioEl) cardioEl.value = "";
+    if(notesEl) notesEl.value = "";
+    showToast("Workout saved to Sheets");
+  }catch(e){ showToast("Failed to save", "var(--accent2)"); }
 }
 
-// ─── STATS PANEL ─────────────────────────────────────────────
+// ── Stats panel ──────────────────────────────────────────────
 async function loadStats(){
-  var wEl=document.getElementById('stats-workouts');
-  var eEl=document.getElementById('stats-exercises');
-  if(!wEl||!eEl)return;
-  wEl.innerHTML='<div style="color:var(--muted);font-size:13px;">Loading...</div>';
-  eEl.innerHTML='<div style="color:var(--muted);font-size:13px;">Loading...</div>';
+  var wEl = document.getElementById("stats-workouts");
+  var eEl = document.getElementById("stats-exercises");
+  if(!wEl) return;
+  wEl.innerHTML = "<div style='color:var(--muted);font-size:13px;'>Loading...</div>";
+  if(eEl) eEl.innerHTML = "<div style='color:var(--muted);font-size:13px;'>Loading...</div>";
   try{
-    var wResp=await fetch(SHEETS_URL+'?type=stats_workouts');
-    var wJson=await wResp.json();
-    if(wJson.rows&&wJson.rows.length>0){
-      var rows=wJson.rows;
-      var totalSessions=rows.length;
-      var avgHR=0,hrCount=0,avgDur=0,durCount=0,avgCal=0,calCount=0;
+    var wResp = await fetch(SHEETS_URL + "?type=stats_workouts");
+    var wJson = await wResp.json();
+    if(wJson.rows && wJson.rows.length > 0){
+      var rows = wJson.rows;
+      var total = rows.length;
+      var avgHR=0,hrCnt=0,avgDur=0,durCnt=0,avgCal=0,calCnt=0;
       rows.forEach(function(r){
-        if(r.heartRate&&!isNaN(parseFloat(r.heartRate))){avgHR+=parseFloat(r.heartRate);hrCount++;}
-        if(r.duration&&!isNaN(parseFloat(r.duration))){avgDur+=parseFloat(r.duration);durCount++;}
-        if(r.calories&&!isNaN(parseFloat(r.calories))){avgCal+=parseFloat(r.calories);calCount++;}
+        if(r.heartRate && !isNaN(parseFloat(r.heartRate))){ avgHR+=parseFloat(r.heartRate); hrCnt++; }
+        if(r.duration && !isNaN(parseFloat(r.duration))){ avgDur+=parseFloat(r.duration); durCnt++; }
+        if(r.calories && !isNaN(parseFloat(r.calories))){ avgCal+=parseFloat(r.calories); calCnt++; }
       });
-      var lastRow=rows[rows.length-1];
-      wEl.innerHTML='<div class="stat-summary-card">'
-        +'<div class="stat-summary-row"><span class="stat-summary-label">Total Sessions</span><span class="stat-summary-val">'+totalSessions+'</span></div>'
-        +'<div class="stat-summary-row"><span class="stat-summary-label">Last Workout</span><span class="stat-summary-val">'+fmtDate(lastRow.date)+' — '+lastRow.day+'</span></div>'
-        +(hrCount?'<div class="stat-summary-row"><span class="stat-summary-label">Avg Heart Rate</span><span class="stat-summary-val">'+(avgHR/hrCount).toFixed(0)+' BPM</span></div>':'')
-        +(durCount?'<div class="stat-summary-row"><span class="stat-summary-label">Avg Duration</span><span class="stat-summary-val">'+(avgDur/durCount).toFixed(0)+' min</span></div>':'')
-        +(calCount?'<div class="stat-summary-row"><span class="stat-summary-label">Avg Calories</span><span class="stat-summary-val">'+(avgCal/calCount).toFixed(0)+'</span></div>':'')
-        +'</div>';
-    }else{wEl.innerHTML='<div style="color:var(--muted);font-size:13px;">No workouts logged yet.</div>';}
-
-    var eResp=await fetch(SHEETS_URL+'?type=stats_exercises');
-    var eJson=await eResp.json();
-    if(eJson.rows&&eJson.rows.length>0){
-      var byEx={};
-      eJson.rows.forEach(function(r){if(!byEx[r.exercise])byEx[r.exercise]=[];byEx[r.exercise].push(r);});
-      var html='';
+      var last = rows[rows.length-1];
+      var html = "<div class='stat-summary-card'>"
+        + "<div class='stat-summary-row'><span class='stat-summary-label'>Total Sessions</span><span class='stat-summary-val'>" + total + "</span></div>"
+        + "<div class='stat-summary-row'><span class='stat-summary-label'>Last Workout</span><span class='stat-summary-val'>" + fmtDate(last.date) + " — " + last.day + "</span></div>"
+        + (hrCnt ? "<div class='stat-summary-row'><span class='stat-summary-label'>Avg Heart Rate</span><span class='stat-summary-val'>" + (avgHR/hrCnt).toFixed(0) + " BPM</span></div>" : "")
+        + (durCnt ? "<div class='stat-summary-row'><span class='stat-summary-label'>Avg Duration</span><span class='stat-summary-val'>" + (avgDur/durCnt).toFixed(0) + " min</span></div>" : "")
+        + (calCnt ? "<div class='stat-summary-row'><span class='stat-summary-label'>Avg Calories</span><span class='stat-summary-val'>" + (avgCal/calCnt).toFixed(0) + "</span></div>" : "")
+        + "</div>";
+      wEl.innerHTML = html;
+    } else {
+      wEl.innerHTML = "<div style='color:var(--muted);font-size:13px;'>No workouts logged yet.</div>";
+    }
+    if(!eEl) return;
+    var eResp = await fetch(SHEETS_URL + "?type=stats_exercises");
+    var eJson = await eResp.json();
+    if(eJson.rows && eJson.rows.length > 0){
+      var byEx = {};
+      eJson.rows.forEach(function(r){ if(!byEx[r.exercise]) byEx[r.exercise]=[]; byEx[r.exercise].push(r); });
+      var eHtml = "";
       Object.keys(byEx).forEach(function(name){
-        var entries=byEx[name].slice(-3).reverse();
-        html+='<div class="ex-prog-card"><div class="ex-prog-name">'+name+'</div><div class="ex-prog-entries">';
+        var entries = byEx[name].slice(-3).reverse();
+        eHtml += "<div class='ex-prog-card'><div class='ex-prog-name'>" + name + "</div><div class='ex-prog-entries'>";
         entries.forEach(function(r){
-          var sets='';
-          if(r.set1)sets+='S1:'+r.set1+' ';
-          if(r.set2)sets+='S2:'+r.set2+' ';
-          if(r.set3)sets+='S3:'+r.set3;
-          html+='<div class="ex-prog-entry"><span class="ex-prog-date">'+fmtDate(r.date)+'</span><span class="ex-prog-sets">'+sets.trim()+'</span></div>';
+          var sets = [];
+          if(r.set1) sets.push("S1:" + r.set1);
+          if(r.set2) sets.push("S2:" + r.set2);
+          if(r.set3) sets.push("S3:" + r.set3);
+          eHtml += "<div class='ex-prog-entry'><span class='ex-prog-date'>" + fmtDate(r.date) + "</span><span class='ex-prog-sets'>" + sets.join(" ") + "</span></div>";
         });
-        html+='</div></div>';
+        eHtml += "</div></div>";
       });
-      eEl.innerHTML=html;
-    }else{eEl.innerHTML='<div style="color:var(--muted);font-size:13px;">No exercises logged yet.</div>';}
+      eEl.innerHTML = eHtml;
+    } else {
+      eEl.innerHTML = "<div style='color:var(--muted);font-size:13px;'>No exercises logged yet.</div>";
+    }
   }catch(err){
-    wEl.innerHTML='<div style="color:var(--muted);font-size:13px;">Could not load stats.</div>';
-    eEl.innerHTML='';
+    wEl.innerHTML = "<div style='color:var(--muted);font-size:13px;'>Could not load stats.</div>";
   }
 }
 
-// ─── TAB NAV ─────────────────────────────────────────────────
+// ── Tab navigation ───────────────────────────────────────────
 function showDay(id){
-  document.querySelectorAll('.day-panel').forEach(function(p){p.classList.remove('active');});
-  document.querySelectorAll('.day-btn').forEach(function(b){b.classList.remove('active');});
-  var panel=document.getElementById(id);
-  if(panel)panel.classList.add('active');
-  var tabs=['d1','d2','d3','d4','d5','cardio','stats','macros'];
-  var btn=document.querySelectorAll('.day-btn')[tabs.indexOf(id)];
-  if(btn)btn.classList.add('active');
-  window.scrollTo(0,0);
-  if(id==='stats')loadStats();
+  document.querySelectorAll(".day-panel").forEach(function(p){ p.classList.remove("active"); });
+  document.querySelectorAll(".day-btn").forEach(function(b){ b.classList.remove("active"); });
+  var panel = document.getElementById(id);
+  if(panel) panel.classList.add("active");
+  DAYS.forEach(function(d, i){
+    if(d.id === id){
+      var btns = document.querySelectorAll(".day-btn");
+      if(btns[i]) btns[i].classList.add("active");
+    }
+  });
+  window.scrollTo(0, 0);
+  if(id === "stats") loadStats();
 }
 
+// ── Init ─────────────────────────────────────────────────────
+buildNav();
+buildPanels();
 renderAll();
 </script>
 </body>

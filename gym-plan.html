@@ -109,6 +109,16 @@
   .ex-prog-sets{color:var(--accent);font-weight:600;}
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:white;font-size:13px;font-weight:600;padding:10px 20px;border-radius:20px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap;}
   .toast.show{opacity:1;}
+  .day-btn.week-done{border-color:var(--green);color:var(--green);}
+  .day-btn.week-done.active{background:var(--green);color:#0e0e0f;border-color:var(--green);}
+  .week-summary-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;}
+  .week-summary-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border);}
+  .week-summary-row:last-child{border-bottom:none;}
+  .week-label{color:var(--muted);}
+  .week-val{font-weight:700;color:var(--accent);}
+  .graph-container{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:12px;}
+  .graph-title{font-weight:600;font-size:13px;margin-bottom:10px;color:var(--text);}
+  .show-graph-link{background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer;padding:4px 0 0;font-family:"DM Sans",sans-serif;text-decoration:underline;display:block;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
@@ -149,8 +159,8 @@ var DAYS = [
     finisherNote:"Slightly easier today. Bonus session - push it but do not bury yourself.",
     finisherZone:"10-15 min - Zone 2-3 - HR 125-150",
     recovery:true },
-  { id:"cardio", label:"Cardio", title:"CARDIO OPTIONS", cardioRef:true },
   { id:"stats", label:"Stats", title:"STATS", statsPanel:true },
+  { id:"cardio", label:"Cardio", title:"CARDIO OPTIONS", cardioRef:true },
   { id:"macros", label:"Macros", title:"MACROS", macrosPanel:true }
 ];
 
@@ -453,16 +463,16 @@ function buildCardioHTML(){
 function buildStatsHTML(){
   return "<div class='day-label'>STATS</div>"
     + "<div class='day-subtitle' style='margin-bottom:18px;'>Live from Google Sheets</div>"
-    + "<div class='section-label'>Workout Summary</div>"
-    + "<div id='stats-workouts'><button class='load-link' onclick='loadStats()'>Load stats</button></div>"
-    + "<div class='section-label' style='margin-top:24px;'>Weight Progression</div>"
-    + "<div style='color:var(--muted);font-size:12px;margin-bottom:8px;'>Tap an exercise to see its graph</div>"
-    + "<div id='stats-exercises'></div>"
-    + "<div id='stats-graph-area' style='display:none;margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;'>"
-    + "<div id='stats-graph-title' style='font-weight:600;font-size:13px;margin-bottom:12px;'></div>"
-    + "<canvas id='weightChart' height='200'></canvas>"
-    + "<div style='color:var(--muted);font-size:11px;margin-top:8px;text-align:center;'>Set 1 · Set 2 · Set 3</div>"
-    + "</div>";
+    + "<div class='section-label'>This Week</div>"
+    + "<div id='stats-week'><button class='load-link' onclick='loadStats()'>Load stats</button></div>"
+    + "<div class='section-label' style='margin-top:20px;'>Weekly Workout History</div>"
+    + "<div style='color:var(--muted);font-size:12px;margin-bottom:8px;'>Duration per session</div>"
+    + "<div class='graph-container'><canvas id='weeklyChart' height='180'></canvas></div>"
+    + "<div class='section-label' style='margin-top:20px;'>All-Time Trend</div>"
+    + "<div style='color:var(--muted);font-size:12px;margin-bottom:8px;'>Rolling avg heart rate</div>"
+    + "<div class='graph-container'><canvas id='allTimeChart' height='180'></canvas></div>"
+    + "<div id='stats-workouts' style='display:none;'></div>"
+    + "<div id='stats-exercises' style='display:none;'></div>";
 }
 
 function buildMacrosHTML(){
@@ -631,6 +641,20 @@ function buildCard(container, ex, dayId, data){
     var histLive = document.createElement("div");
     histLive.id = "hist-live-" + ex.id;
     wsDiv.appendChild(histLive);
+
+    var graphLink = document.createElement("button");
+    graphLink.className = "show-graph-link";
+    graphLink.textContent = "Show progression graph";
+    graphLink.id = "graph-link-" + ex.id;
+    graphLink.onclick = (function(eid, ename){ return function(){ toggleExGraph(eid, ename, this); }; })(ex.id, ex.name);
+    wsDiv.appendChild(graphLink);
+
+    var graphContainer = document.createElement("div");
+    graphContainer.className = "graph-container";
+    graphContainer.id = "graph-container-" + ex.id;
+    graphContainer.style.display = "none";
+    graphContainer.innerHTML = "<canvas id='graph-canvas-" + ex.id + "' height='160'></canvas>";
+    wsDiv.appendChild(graphContainer);
 
     detailDiv.appendChild(wsDiv);
   }
@@ -916,134 +940,220 @@ async function saveWorkout(dayId){
     });
     if(cardioEl) cardioEl.value = "";
     if(notesEl) notesEl.value = "";
+    markDayComplete(dayId);
     showToast("Workout saved to Sheets");
   }catch(e){ showToast("Failed to save", "var(--accent2)"); }
 }
 
-// ── Stats panel ──────────────────────────────────────────────
-async function loadStats(){
-  var wEl = document.getElementById("stats-workouts");
-  var eEl = document.getElementById("stats-exercises");
-  if(!wEl) return;
-  wEl.innerHTML = "<div style='color:var(--muted);font-size:13px;'>Loading...</div>";
-  if(eEl) eEl.innerHTML = "<div style='color:var(--muted);font-size:13px;'>Loading...</div>";
-  try{
-    var wResp = await fetch(SHEETS_URL + "?type=stats_workouts");
-    var wJson = await wResp.json();
-    if(wJson.rows && wJson.rows.length > 0){
-      var rows = wJson.rows;
-      var total = rows.length;
-      var avgHR=0,hrCnt=0,avgDur=0,durCnt=0,avgCal=0,calCnt=0;
-      rows.forEach(function(r){
-        if(r.heartRate && !isNaN(parseFloat(r.heartRate))){ avgHR+=parseFloat(r.heartRate); hrCnt++; }
-        if(r.duration && !isNaN(parseFloat(r.duration))){ avgDur+=parseFloat(r.duration); durCnt++; }
-        if(r.calories && !isNaN(parseFloat(r.calories))){ avgCal+=parseFloat(r.calories); calCnt++; }
-      });
-      var last = rows[rows.length-1];
-      var html = "<div class='stat-summary-card'>"
-        + "<div class='stat-summary-row'><span class='stat-summary-label'>Total Sessions</span><span class='stat-summary-val'>" + total + "</span></div>"
-        + "<div class='stat-summary-row'><span class='stat-summary-label'>Last Workout</span><span class='stat-summary-val'>" + fmtDate(last.date) + " - " + last.day + "</span></div>"
-        + (hrCnt ? "<div class='stat-summary-row'><span class='stat-summary-label'>Avg Heart Rate</span><span class='stat-summary-val'>" + (avgHR/hrCnt).toFixed(0) + " BPM</span></div>" : "")
-        + (durCnt ? "<div class='stat-summary-row'><span class='stat-summary-label'>Avg Duration</span><span class='stat-summary-val'>" + (avgDur/durCnt).toFixed(0) + " min</span></div>" : "")
-        + (calCnt ? "<div class='stat-summary-row'><span class='stat-summary-label'>Avg Calories</span><span class='stat-summary-val'>" + (avgCal/calCnt).toFixed(0) + "</span></div>" : "")
-        + "</div>";
-      wEl.innerHTML = html;
-    } else {
-      wEl.innerHTML = "<div style='color:var(--muted);font-size:13px;'>No workouts logged yet.</div>";
-    }
-    if(!eEl) return;
-    var eResp = await fetch(SHEETS_URL + "?type=stats_exercises");
-    var eJson = await eResp.json();
-    if(eJson.rows && eJson.rows.length > 0){
-      var byEx = {};
-      eJson.rows.forEach(function(r){ if(!byEx[r.exercise]) byEx[r.exercise]=[]; byEx[r.exercise].push(r); });
-      // Store globally for graph access
-      window._exerciseData = byEx;
-      var eHtml = "";
-      Object.keys(byEx).forEach(function(name){
-        var entries = byEx[name].slice(-3).reverse();
-        var safeId = name.replace(/[^a-zA-Z0-9]/g,"_");
-        eHtml += "<div class='ex-prog-card' style='cursor:pointer;' data-exid='" + safeId + "' onclick='handleExClick(this)'>";
-        eHtml += "<div class='ex-prog-name' style='display:flex;justify-content:space-between;align-items:center;'>";
-        eHtml += "<span>" + name + "</span><span style='color:var(--accent);font-size:11px;'>Graph</span></div>";
-        eHtml += "<div class='ex-prog-entries'>";
-        entries.forEach(function(r){
-          var sets = [];
-          if(r.set1) sets.push("S1:" + r.set1);
-          if(r.set2) sets.push("S2:" + r.set2);
-          if(r.set3) sets.push("S3:" + r.set3);
-          eHtml += "<div class='ex-prog-entry'><span class='ex-prog-date'>" + fmtDate(r.date) + "</span><span class='ex-prog-sets'>" + sets.join(" ") + "</span></div>";
-        });
-        eHtml += "</div></div>";
-      });
-      eEl.innerHTML = eHtml;
-      // Store name->safeId map
-      window._exNameMap = {};
-      Object.keys(byEx).forEach(function(name){
-        var safeId = name.replace(/[^a-zA-Z0-9]/g,"_");
-        window._exNameMap[safeId] = name;
-      });
-    } else {
-      eEl.innerHTML = "<div style='color:var(--muted);font-size:13px;'>No exercises logged yet.</div>";
-    }
-  }catch(err){
-    wEl.innerHTML = "<div style='color:var(--muted);font-size:13px;'>Could not load stats.</div>";
-  }
+// ── Week utilities ───────────────────────────────────────────
+function getPacificWeekKey(){
+  var now = new Date();
+  var pacificOffset = -8;
+  var utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
+  var pacific = new Date(utcMs + (pacificOffset * 3600000));
+  var d = new Date(pacific);
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate() + 3 - (d.getDay()+6)%7);
+  var week1 = new Date(d.getFullYear(),0,4);
+  var weekNum = 1 + Math.round(((d.getTime()-week1.getTime())/86400000 - 3 + (week1.getDay()+6)%7)/7);
+  return d.getFullYear() + "-W" + String(weekNum).padStart(2,"0");
 }
 
-// ── Exercise graph ───────────────────────────────────────────
-function handleExClick(el){
-  var safeId = el.getAttribute("data-exid");
-  if(safeId) showExerciseGraph(safeId);
+function isThisWeek(dateStr){
+  if(!dateStr) return false;
+  var d = new Date(dateStr);
+  if(isNaN(d.getTime())) return false;
+  var pacificOffset = -8;
+  var utcMs = d.getTime() + (d.getTimezoneOffset() * 60000);
+  var pacific = new Date(utcMs + (pacificOffset * 3600000));
+  var year = pacific.getFullYear();
+  var pd = new Date(pacific);
+  pd.setHours(0,0,0,0);
+  pd.setDate(pd.getDate() + 3 - (pd.getDay()+6)%7);
+  var week1 = new Date(year,0,4);
+  var wn = 1 + Math.round(((pd.getTime()-week1.getTime())/86400000 - 3 + (week1.getDay()+6)%7)/7);
+  var key = year + "-W" + String(wn).padStart(2,"0");
+  return key === getPacificWeekKey();
 }
-var _currentChart = null;
-function showExerciseGraph(safeId){
-  var byEx = window._exerciseData;
-  var nameMap = window._exNameMap;
-  if(!byEx || !nameMap) return;
-  var name = nameMap[safeId];
-  if(!name || !byEx[name]) return;
 
-  var entries = byEx[name];
-  var labels = entries.map(function(r){ return fmtDate(r.date); });
-  var s1 = entries.map(function(r){ return parseFloat(r.set1)||null; });
-  var s2 = entries.map(function(r){ return parseFloat(r.set2)||null; });
-  var s3 = entries.map(function(r){ return parseFloat(r.set3)||null; });
+function markDayComplete(dayId){
+  var data = loadData();
+  if(!data.weekDone) data.weekDone = {};
+  var weekKey = getPacificWeekKey();
+  if(!data.weekDone[weekKey]) data.weekDone[weekKey] = {};
+  data.weekDone[weekKey][dayId] = true;
+  saveData(data);
+  updateDayTabColors();
+}
 
-  var graphArea = document.getElementById("stats-graph-area");
-  var titleEl = document.getElementById("stats-graph-title");
-  if(graphArea) graphArea.style.display = "block";
-  if(titleEl) titleEl.textContent = name;
-
-  // Scroll to graph
-  if(graphArea) graphArea.scrollIntoView({behavior:"smooth", block:"nearest"});
-
-  var canvas = document.getElementById("weightChart");
-  if(!canvas) return;
-  if(_currentChart){ _currentChart.destroy(); _currentChart = null; }
-
-  _currentChart = new Chart(canvas, {
-    type: "line",
-    data: {
-      labels: labels,
-      datasets: [
-        { label:"Set 1", data:s1, borderColor:"#e8ff47", backgroundColor:"rgba(232,255,71,0.1)", tension:0.3, pointRadius:5, pointBackgroundColor:"#e8ff47", spanGaps:true },
-        { label:"Set 2", data:s2, borderColor:"#ff6b35", backgroundColor:"rgba(255,107,53,0.1)", tension:0.3, pointRadius:5, pointBackgroundColor:"#ff6b35", spanGaps:true },
-        { label:"Set 3", data:s3, borderColor:"#4caf50", backgroundColor:"rgba(76,175,80,0.1)", tension:0.3, pointRadius:5, pointBackgroundColor:"#4caf50", spanGaps:true }
-      ]
-    },
-    options: {
-      responsive:true,
-      plugins:{
-        legend:{ labels:{ color:"#888884", font:{ family:"DM Sans, sans-serif", size:11 } } }
-      },
-      scales:{
-        x:{ ticks:{ color:"#888884", font:{ size:10 } }, grid:{ color:"#2e2e30" } },
-        y:{ ticks:{ color:"#888884", font:{ size:10 } }, grid:{ color:"#2e2e30" } }
-      }
+function updateDayTabColors(){
+  var data = loadData();
+  var weekKey = getPacificWeekKey();
+  var done = (data.weekDone && data.weekDone[weekKey]) || {};
+  var dayIds = ["d1","d2","d3","d4","d5"];
+  var btnArr = [];
+  document.querySelectorAll(".day-btn").forEach(function(b){ btnArr.push(b); });
+  DAYS.forEach(function(d, i){
+    if(dayIds.indexOf(d.id) !== -1 && btnArr[i]){
+      if(done[d.id]){ btnArr[i].classList.add("week-done"); }
+      else { btnArr[i].classList.remove("week-done"); }
     }
   });
 }
+
+// ── Per-exercise progression graph ───────────────────────────
+var _exCharts = {};
+async function toggleExGraph(exId, exName, linkEl){
+  var container = document.getElementById("graph-container-" + exId);
+  if(!container) return;
+  var isHidden = container.style.display === "none";
+  if(!isHidden){
+    container.style.display = "none";
+    if(linkEl) linkEl.textContent = "Show progression graph";
+    if(_exCharts[exId]){ _exCharts[exId].destroy(); delete _exCharts[exId]; }
+    return;
+  }
+  if(linkEl) linkEl.textContent = "Loading...";
+  try{
+    var resp = await fetch(SHEETS_URL + "?type=history&exercise=" + encodeURIComponent(exName));
+    var json = await resp.json();
+    if(!json.rows || json.rows.length === 0){
+      container.style.display = "block";
+      container.innerHTML = "<div class='hist-loading'>Not enough data for a graph yet</div>";
+      if(linkEl) linkEl.textContent = "Hide graph";
+      return;
+    }
+    var rows = json.rows;
+    var labels = rows.map(function(r){ return fmtDate(r.date); });
+    var s1 = rows.map(function(r){ return parseFloat(r.set1)||null; });
+    var s2 = rows.map(function(r){ return parseFloat(r.set2)||null; });
+    var s3 = rows.map(function(r){ return parseFloat(r.set3)||null; });
+    container.style.display = "block";
+    container.innerHTML = "<canvas id='graph-canvas-" + exId + "' height='160'></canvas>";
+    var canvas = document.getElementById("graph-canvas-" + exId);
+    if(_exCharts[exId]){ _exCharts[exId].destroy(); }
+    _exCharts[exId] = new Chart(canvas, {
+      type:"line",
+      data:{
+        labels:labels,
+        datasets:[
+          {label:"Set 1",data:s1,borderColor:"#e8ff47",backgroundColor:"rgba(232,255,71,0.08)",tension:0.3,pointRadius:4,pointBackgroundColor:"#e8ff47",spanGaps:true},
+          {label:"Set 2",data:s2,borderColor:"#ff6b35",backgroundColor:"rgba(255,107,53,0.08)",tension:0.3,pointRadius:4,pointBackgroundColor:"#ff6b35",spanGaps:true},
+          {label:"Set 3",data:s3,borderColor:"#4caf50",backgroundColor:"rgba(76,175,80,0.08)",tension:0.3,pointRadius:4,pointBackgroundColor:"#4caf50",spanGaps:true}
+        ]
+      },
+      options:{
+        responsive:true,
+        plugins:{legend:{labels:{color:"#888884",font:{family:"DM Sans, sans-serif",size:10}}}},
+        scales:{
+          x:{ticks:{color:"#888884",font:{size:9},maxRotation:45},grid:{color:"#2e2e30"}},
+          y:{ticks:{color:"#888884",font:{size:9}},grid:{color:"#2e2e30"}}
+        }
+      }
+    });
+    if(linkEl) linkEl.textContent = "Hide graph";
+  }catch(err){
+    container.style.display = "block";
+    container.innerHTML = "<div class='hist-loading'>Could not load graph</div>";
+    if(linkEl) linkEl.textContent = "Show progression graph";
+  }
+}
+
+// ── Stats panel (updated with weekly + all-time graphs) ───────
+var _weeklyChart = null;
+var _allTimeChart = null;
+async function loadStats(){
+  var weekEl = document.getElementById("stats-week");
+  if(!weekEl) return;
+  weekEl.innerHTML = "<div style='color:var(--muted);font-size:13px;'>Loading...</div>";
+  try{
+    var resp = await fetch(SHEETS_URL + "?type=stats_workouts");
+    var json = await resp.json();
+    var rows = (json && json.rows) ? json.rows : [];
+
+    // ── Weekly summary ──────────────────────────────────────
+    var weekRows = rows.filter(function(r){ return isThisWeek(r.date); });
+    var totalDur=0, totalCal=0, totalHR=0, hrCnt=0, sessionCnt=weekRows.length;
+    weekRows.forEach(function(r){
+      if(r.duration && !isNaN(parseFloat(r.duration))) totalDur += parseFloat(r.duration);
+      if(r.calories && !isNaN(parseFloat(r.calories))) totalCal += parseFloat(r.calories);
+      if(r.heartRate && !isNaN(parseFloat(r.heartRate))){ totalHR += parseFloat(r.heartRate); hrCnt++; }
+    });
+    var weekKey = getPacificWeekKey();
+    var html = "<div class='week-summary-card'>"
+      + "<div class='week-summary-row'><span class='week-label'>Week</span><span class='week-val'>" + weekKey + "</span></div>"
+      + "<div class='week-summary-row'><span class='week-label'>Sessions</span><span class='week-val'>" + sessionCnt + "</span></div>"
+      + (totalDur>0?"<div class='week-summary-row'><span class='week-label'>Total Duration</span><span class='week-val'>"+Math.round(totalDur)+" min</span></div>":"")
+      + (totalCal>0?"<div class='week-summary-row'><span class='week-label'>Total Calories</span><span class='week-val'>"+Math.round(totalCal)+"</span></div>":"")
+      + (hrCnt>0?"<div class='week-summary-row'><span class='week-label'>Avg Heart Rate</span><span class='week-val'>"+(totalHR/hrCnt).toFixed(0)+" BPM</span></div>":"")
+      + "</div>";
+    weekEl.innerHTML = html;
+
+    // ── Weekly chart — last 10 sessions, duration bars ──────
+    var recentRows = rows.slice(-10);
+    var wLabels = recentRows.map(function(r){ return fmtDate(r.date).replace(", 2026",""); });
+    var wDur = recentRows.map(function(r){ return parseFloat(r.duration)||0; });
+    var wCal = recentRows.map(function(r){ return parseFloat(r.calories)||0; });
+    var wCanvas = document.getElementById("weeklyChart");
+    if(wCanvas){
+      if(_weeklyChart){ _weeklyChart.destroy(); }
+      _weeklyChart = new Chart(wCanvas,{
+        type:"bar",
+        data:{
+          labels:wLabels,
+          datasets:[
+            {label:"Duration (min)",data:wDur,backgroundColor:"rgba(232,255,71,0.7)",borderColor:"#e8ff47",borderWidth:1,yAxisID:"y"},
+            {label:"Calories",data:wCal,backgroundColor:"rgba(255,107,53,0.5)",borderColor:"#ff6b35",borderWidth:1,yAxisID:"y1"}
+          ]
+        },
+        options:{
+          responsive:true,
+          plugins:{legend:{labels:{color:"#888884",font:{size:10}}}},
+          scales:{
+            x:{ticks:{color:"#888884",font:{size:9},maxRotation:45},grid:{color:"#2e2e30"}},
+            y:{ticks:{color:"#888884",font:{size:9}},grid:{color:"#2e2e30"},title:{display:true,text:"min",color:"#888884",font:{size:9}}},
+            y1:{position:"right",ticks:{color:"#888884",font:{size:9}},grid:{drawOnChartArea:false},title:{display:true,text:"cal",color:"#888884",font:{size:9}}}
+          }
+        }
+      });
+    }
+
+    // ── All-time chart — rolling avg HR line ─────────────────
+    var hrRows = rows.filter(function(r){ return r.heartRate && !isNaN(parseFloat(r.heartRate)); });
+    var atLabels = hrRows.map(function(r){ return fmtDate(r.date).replace(", 2026",""); });
+    var atHR = hrRows.map(function(r){ return parseFloat(r.heartRate); });
+    var atDur = hrRows.map(function(r){ return parseFloat(r.duration)||null; });
+    var atCanvas = document.getElementById("allTimeChart");
+    if(atCanvas && hrRows.length > 0){
+      if(_allTimeChart){ _allTimeChart.destroy(); }
+      _allTimeChart = new Chart(atCanvas,{
+        type:"line",
+        data:{
+          labels:atLabels,
+          datasets:[
+            {label:"Avg HR (BPM)",data:atHR,borderColor:"#e8ff47",backgroundColor:"rgba(232,255,71,0.08)",tension:0.3,pointRadius:3,pointBackgroundColor:"#e8ff47",yAxisID:"y"},
+            {label:"Duration (min)",data:atDur,borderColor:"#4caf50",backgroundColor:"rgba(76,175,80,0.08)",tension:0.3,pointRadius:3,pointBackgroundColor:"#4caf50",spanGaps:true,yAxisID:"y1"}
+          ]
+        },
+        options:{
+          responsive:true,
+          plugins:{legend:{labels:{color:"#888884",font:{size:10}}}},
+          scales:{
+            x:{ticks:{color:"#888884",font:{size:9},maxRotation:45},grid:{color:"#2e2e30"}},
+            y:{ticks:{color:"#888884",font:{size:9}},grid:{color:"#2e2e30"},title:{display:true,text:"BPM",color:"#888884",font:{size:9}}},
+            y1:{position:"right",ticks:{color:"#888884",font:{size:9}},grid:{drawOnChartArea:false},title:{display:true,text:"min",color:"#888884",font:{size:9}}}
+          }
+        }
+      });
+    } else if(atCanvas){
+      atCanvas.parentElement.innerHTML = "<div style='color:var(--muted);font-size:13px;padding:10px 0;'>Log more workouts with HR data to see this graph.</div>";
+    }
+
+  }catch(err){
+    if(weekEl) weekEl.innerHTML = "<div style='color:var(--muted);font-size:13px;'>Could not load stats.</div>";
+  }
+}
+
 
 // ── Tab navigation ───────────────────────────────────────────
 function showDay(id){
@@ -1065,6 +1175,7 @@ function showDay(id){
 buildNav();
 buildPanels();
 renderAll();
+updateDayTabColors();
 </script>
 </body>
 </html>

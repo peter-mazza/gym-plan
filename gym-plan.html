@@ -110,6 +110,7 @@
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:white;font-size:13px;font-weight:600;padding:10px 20px;border-radius:20px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap;}
   .toast.show{opacity:1;}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
 <header>
@@ -123,30 +124,30 @@
 var SHEETS_URL = "https://script.google.com/macros/s/AKfycbyCbQUIngm3ikOI-TXGQIuvw3nrLi8zozffbU7oniIQ2f4Ypa9-qGn7ltjfs_s5y6vHnw/exec";
 
 var DAYS = [
-  { id:"d1", label:"Day 1", title:"DAY 1 — PUSH", subtitle:"Chest · Shoulders · Triceps · Core",
-    skipNote:"Only 3 days this week? Drop Day 4, keep Days 1–3.",
-    warmup:"5 min Incline Ramp (or sub) · Zone 1 · HR 100–120",
-    finisherNote:"Push the pace — breathing hard but not sprinting. This is where the endorphins kick in.",
-    finisherZone:"10–15 min · Zone 3 · HR 135–155" },
-  { id:"d2", label:"Day 2", title:"DAY 2 — PULL", subtitle:"Back · Biceps · Rear Delts · Core",
-    warmup:"5 min Incline Ramp (or sub) · Zone 1 · HR 100–120",
+  { id:"d1", label:"Day 1", title:"DAY 1 - PUSH", subtitle:"Chest - Shoulders - Triceps - Core",
+    skipNote:"Only 3 days this week? Drop Day 4, keep Days 1-3.",
+    warmup:"5 min Incline Ramp (or sub) - Zone 1 - HR 100-120",
+    finisherNote:"Push the pace - breathing hard but not sprinting. This is where the endorphins kick in.",
+    finisherZone:"10-15 min - Zone 3 - HR 135-155" },
+  { id:"d2", label:"Day 2", title:"DAY 2 - PULL", subtitle:"Back - Biceps - Rear Delts - Core",
+    warmup:"5 min Incline Ramp (or sub) - Zone 1 - HR 100-120",
     finisherNote:"Push the incline or pace. You want to be breathing hard.",
-    finisherZone:"10–15 min · Zone 3 · HR 135–155" },
-  { id:"d3", label:"Day 3", title:"DAY 3 — LEGS + GLUTES", subtitle:"Most important day for back health & testosterone",
-    warmup:"5 min Incline Ramp · Zone 1–2 · HR 115–135",
+    finisherZone:"10-15 min - Zone 3 - HR 135-155" },
+  { id:"d3", label:"Day 3", title:"DAY 3 - LEGS + GLUTES", subtitle:"Most important day for back health & testosterone",
+    warmup:"5 min Incline Ramp - Zone 1-2 - HR 115-135",
     activation:true,
-    finisherNote:"Legs will be cooked — moderate incline at strong pace. Stair climber also solid after leg day.",
-    finisherZone:"10–15 min · Zone 3 · HR 135–155" },
-  { id:"d4", label:"Day 4", title:"DAY 4 — UPPER + CONDITIONING", subtitle:"No legs today — they need recovery after Day 3",
-    skipNote:"Only 3 days this week? Drop this day. Days 1–3 cover everything.",
-    warmup:"5 min Incline Ramp · Zone 1 · HR 100–120",
-    finisherNote:"Push it. This is your conditioning day — the finisher matters more here.",
-    finisherZone:"10–15 min · Zone 3 · HR 135–155" },
-  { id:"d5", label:"Day 5 ✦", title:"DAY 5 — ARMS + SHOULDERS", subtitle:"Optional · Light on the body · Real workout",
+    finisherNote:"Legs will be cooked - moderate incline at strong pace. Stair climber also solid after leg day.",
+    finisherZone:"10-15 min - Zone 3 - HR 135-155" },
+  { id:"d4", label:"Day 4", title:"DAY 4 - UPPER + CONDITIONING", subtitle:"No legs today - they need recovery after Day 3",
+    skipNote:"Only 3 days this week? Drop this day. Days 1-3 cover everything.",
+    warmup:"5 min Incline Ramp - Zone 1 - HR 100-120",
+    finisherNote:"Push it. This is your conditioning day - the finisher matters more here.",
+    finisherZone:"10-15 min - Zone 3 - HR 135-155" },
+  { id:"d5", label:"Day 5 *", title:"DAY 5 - ARMS + SHOULDERS", subtitle:"Optional - Light on the body - Real workout",
     optional:true,
-    warmup:"5 min Incline Ramp · Zone 1 · HR 100–120",
-    finisherNote:"Slightly easier today. Bonus session — push it but do not bury yourself.",
-    finisherZone:"10–15 min · Zone 2–3 · HR 125–150",
+    warmup:"5 min Incline Ramp - Zone 1 - HR 100-120",
+    finisherNote:"Slightly easier today. Bonus session - push it but do not bury yourself.",
+    finisherZone:"10-15 min - Zone 2-3 - HR 125-150",
     recovery:true },
   { id:"cardio", label:"Cardio", title:"CARDIO OPTIONS", cardioRef:true },
   { id:"stats", label:"Stats", title:"STATS", statsPanel:true },
@@ -157,22 +158,22 @@ var EXERCISES = {
   d1: {
     "exercises-d1": [
       { id:"d1_incline_db_press", name:"Incline Dumbbell Press", sets:"3x10",
-        tip:"Start weight: 25–35 lb dumbbells. Last 2 reps should feel hard without losing form.",
+        tip:"Start weight: 25-35 lb dumbbells. Last 2 reps should feel hard without losing form.",
         form:"Keep shoulder blades pinched back into the bench. No elbow flare past 45 degrees." },
       { id:"d1_seated_db_press", name:"Seated DB Shoulder Press", sets:"3x10",
-        tip:"Start weight: 20–30 lb dumbbells.",
+        tip:"Start weight: 20-30 lb dumbbells.",
         form:"Press in a slight forward arc. Stop just before lockout to keep tension." },
       { id:"d1_cable_lateral", name:"Cable Lateral Raise", sets:"3x12",
-        tip:"Start weight: 5–10 lbs on cable stack.",
+        tip:"Start weight: 5-10 lbs on cable stack.",
         form:"Stand sideways to cable. Lead with elbow, not wrist. No shrugging at the top." },
       { id:"d1_chest_fly", name:"Chest Fly Machine", sets:"3x12",
-        tip:"Start weight: 40–60 lbs on the stack.",
+        tip:"Start weight: 40-60 lbs on the stack.",
         form:"Think hugging a tree, not pushing. Full stretch at open position, controlled close." },
       { id:"d1_rope_pushdown", name:"Tricep Rope Pushdown", sets:"3x12",
-        tip:"Start weight: 30–40 lbs.",
+        tip:"Start weight: 30-40 lbs.",
         form:"Spread rope handles apart at the bottom to fully contract. Keep elbows pinned to sides." },
       { id:"d1_oh_tricep", name:"Overhead Tricep Extension (cable)", sets:"3x12",
-        tip:"Start weight: 20–30 lbs.",
+        tip:"Start weight: 20-30 lbs.",
         form:"Face away from cable, rope at top. Keep elbows close to head. Full stretch down, squeeze up." }
     ],
     "core-d1": [
@@ -185,64 +186,64 @@ var EXERCISES = {
   d2: {
     "exercises-d2": [
       { id:"d2_cable_row", name:"Seated Cable Row (V-bar, narrow)", sets:"3x10",
-        tip:"Use the V-bar narrow grip. Start weight: 50–70 lbs.",
+        tip:"Use the V-bar narrow grip. Start weight: 50-70 lbs.",
         form:"Sit tall, pull to lower sternum, squeeze shoulder blades together. Minimal lean back." },
       { id:"d2_lat_pulldown", name:"Lat Pulldown (wide grip)", sets:"3x10",
-        tip:"Start weight: 60–80 lbs.",
+        tip:"Start weight: 60-80 lbs.",
         form:"Lean back slightly, pull bar to upper chest, lead with elbows. No jerking or momentum." },
       { id:"d2_db_row", name:"Single-Arm Dumbbell Row", sets:"3x10 each",
-        tip:"Start weight: 30–40 lbs.",
+        tip:"Start weight: 30-40 lbs.",
         form:"Brace with opposite hand on bench. Pull elbow straight back past hip. Elbow to ceiling." },
       { id:"d2_face_pull", name:"Face Pulls (cable)", sets:"3x15",
-        tip:"Do not skip this — best shoulder health exercise available. Start weight: 20–30 lbs. Keep it light.",
+        tip:"Do not skip this - best shoulder health exercise available. Start weight: 20-30 lbs. Keep it light.",
         form:"Cable at face height, rope attachment. Pull to ears, elbows high, wrists behind elbows. Slow and controlled." },
       { id:"d2_ez_curl", name:"EZ Bar Curl", sets:"3x12",
-        tip:"Start weight: 40–55 lbs. Angled grip is easier on wrists than a straight bar.",
+        tip:"Start weight: 40-55 lbs. Angled grip is easier on wrists than a straight bar.",
         form:"Keep elbows pinned at sides. Full stretch at bottom, squeeze at top." },
       { id:"d2_hammer_curl", name:"Hammer Curl", sets:"3x12",
-        tip:"Start weight: 20–30 lbs.",
-        form:"Palms facing each other, curl straight up. Hits brachialis and forearm — adds thickness and grip." }
+        tip:"Start weight: 20-30 lbs.",
+        form:"Palms facing each other, curl straight up. Hits brachialis and forearm - adds thickness and grip." }
     ],
     "core-d2": [
       { id:"d2_bird_dog", name:"Bird Dog", sets:"3x10 each side", noWeight:true,
-        form:"Extend opposite arm and leg simultaneously. Keep hips level — no rotation. Pause 1 sec at full extension." }
+        form:"Extend opposite arm and leg simultaneously. Keep hips level - no rotation. Pause 1 sec at full extension." }
     ]
   },
   d3: {
     "exercises-d3": [
       { id:"d3_goblet_squat", name:"Goblet Squat", sets:"3x12",
-        tip:"Start weight: 25–35 lb dumbbell.",
+        tip:"Start weight: 25-35 lb dumbbell.",
         form:"Hold dumbbell vertically at chest. Squat deep, elbows inside knees at bottom." },
       { id:"d3_sl_rdl", name:"Single-Leg RDL (kettlebell)", sets:"3x10 each",
-        tip:"Start weight: 20–30 lb kettlebell in contralateral hand (opposite to planted foot).",
-        form:"Hinge at hip, flat back, free leg extends behind. Stop short if lower back rounds — flat back beats depth." },
+        tip:"Start weight: 20-30 lb kettlebell in contralateral hand (opposite to planted foot).",
+        form:"Hinge at hip, flat back, free leg extends behind. Stop short if lower back rounds - flat back beats depth." },
       { id:"d3_hip_thrust", name:"Hip Thrust (barbell or machine)", sets:"3x12",
         tip:"Start weight: Bodyweight or 45 lb bar.",
         form:"Upper back on bench, feet flat and close to glutes. Drive through heels, squeeze glutes at top. No low back hyperextension." },
       { id:"d3_leg_press", name:"Leg Press", sets:"3x12",
-        tip:"Start weight: 90–135 lbs. Lower and wider foot placement = more glute and hamstring.",
-        form:"No knee lockout at top. Lower until hips start to tuck — stop there." },
+        tip:"Start weight: 90-135 lbs. Lower and wider foot placement = more glute and hamstring.",
+        form:"No knee lockout at top. Lower until hips start to tuck - stop there." },
       { id:"d3_lunges", name:"Walking Lunges", sets:"3x10 each leg",
-        tip:"Start weight: Bodyweight or 15–20 lb dumbbells. Use the turf area at Southrac.",
+        tip:"Start weight: Bodyweight or 15-20 lb dumbbells. Use the turf area at Southrac.",
         form:"Big step forward, back knee drops toward (not to) floor. Keep torso upright." },
       { id:"d3_leg_curl", name:"Leg Curl Machine", sets:"3x12",
-        tip:"Start weight: 40–60 lbs.",
+        tip:"Start weight: 40-60 lbs.",
         form:"Slow on the way down (eccentric). Keep hips on pad throughout. Full range of motion." }
     ],
     "core-d3": [
       { id:"d3_ab_wheel", name:"Ab Wheel", sets:"3x10", noWeight:true,
         form:"Start kneeling. Keep core tight, do not let lower back sag as you roll out. Only go as far as you can control." },
       { id:"d3_side_plank", name:"Side Plank", sets:"3x30 sec each side", noWeight:true,
-        form:"Stack or stagger feet. Drive hip up — do not let it sag. Trains lateral core stability." }
+        form:"Stack or stagger feet. Drive hip up - do not let it sag. Trains lateral core stability." }
     ]
   },
   d4: {
     "exercises-d4": [
       { id:"d4_db_bench", name:"Dumbbell Bench Press", sets:"3x10",
-        tip:"Start weight: 30–40 lbs each dumbbell.",
+        tip:"Start weight: 30-40 lbs each dumbbell.",
         form:"Flat bench. Horizontal press to balance Day 1 incline work. Lower to chest, press up. Shoulder blades retracted." },
       { id:"d4_pull_through", name:"Cable Pull-Through", sets:"3x15",
-        tip:"Replaces kettlebell swing — same pattern, easier to learn. Start weight: 30–40 lbs.",
+        tip:"Replaces kettlebell swing - same pattern, easier to learn. Start weight: 30-40 lbs.",
         form:"Low cable, rope, face away from machine. Hinge at hips, rope between legs, drive hips forward to stand. All power from glute squeeze at top." },
       { id:"d4_pushup", name:"Standard Push-Up", sets:"3x12", noWeight:true,
         form:"Body in straight line, core tight. Lower until chest nearly touches floor. Elevate feet on bench to increase difficulty." },
@@ -250,21 +251,21 @@ var EXERCISES = {
         tip:"Same as Day 2.",
         form:"See Day 2 for full form cues." },
       { id:"d4_arnold_press", name:"Arnold Press", sets:"3x10",
-        tip:"Start weight: 20–25 lbs each dumbbell.",
+        tip:"Start weight: 20-25 lbs each dumbbell.",
         form:"Start with palms facing you, rotate outward as you press up. Hits all three heads of the shoulder." },
       { id:"d4_face_pull", name:"Face Pulls", sets:"3x15",
-        tip:"Repeated from Day 2 intentionally — shoulder health investment.",
+        tip:"Repeated from Day 2 intentionally - shoulder health investment.",
         form:"See Day 2 for form cues." }
     ],
     "core-d4": [
       { id:"d4_core_circuit", name:"Plank / Dead Bug / Bird Dog", sets:"3 rounds", noWeight:true,
-        form:"Plank: 40 sec. Dead Bug: 10 each side. Bird Dog: 10 each side. Rest 30–45 sec between rounds." }
+        form:"Plank: 40 sec. Dead Bug: 10 each side. Bird Dog: 10 each side. Rest 30-45 sec between rounds." }
     ]
   },
   d5: {
     "shoulders-d5": [
       { id:"d5_cable_lateral", name:"Cable Lateral Raise", sets:"3x15",
-        tip:"Higher rep range today — lighter weight, more pump.",
+        tip:"Higher rep range today - lighter weight, more pump.",
         form:"See Day 1 for form cues." },
       { id:"d5_face_pull", name:"Face Pulls", sets:"3x15",
         tip:"Third time this week intentionally. Cheap investment in shoulder longevity.",
@@ -275,7 +276,7 @@ var EXERCISES = {
         tip:null,
         form:"See Day 2 for form cues." },
       { id:"d5_cable_curl", name:"Cable Curl (straight bar or rope)", sets:"3x12",
-        tip:"Start weight: 25–35 lbs. Cable keeps constant tension throughout the movement.",
+        tip:"Start weight: 25-35 lbs. Cable keeps constant tension throughout the movement.",
         form:"Stand at low pulley, elbows stay at sides, curl all the way up, slow on the way down." }
     ],
     "triceps-d5": [
@@ -283,7 +284,7 @@ var EXERCISES = {
         tip:null,
         form:"See Day 1 for form cues." },
       { id:"d5_skull_crushers", name:"Skull Crushers (light EZ bar)", sets:"3x12",
-        tip:"Start weight: 30–40 lbs. Keep it light.",
+        tip:"Start weight: 30-40 lbs. Keep it light.",
         form:"Lie flat, lower bar toward forehead bending only at elbows. Elbows point at ceiling. No elbow flare." }
     ],
     "core-d5": [
@@ -292,7 +293,7 @@ var EXERCISES = {
       { id:"d5_ab_wheel", name:"Ab Wheel", sets:"3x10", noWeight:true,
         form:"See Day 3 for form cues." },
       { id:"d5_sl_rdl_bw", name:"Single-Leg RDL (bodyweight)", sets:"3x10 each", noWeight:true,
-        form:"No weight — balance and glute activation only. Same form as Day 3." }
+        form:"No weight - balance and glute activation only. Same form as Day 3." }
     ]
   }
 };
@@ -353,11 +354,11 @@ function buildPanels(){
 
     // Glute activation for d3
     if(day.activation){
-      html += "<div class='section-label'>Glute Activation (band) — Do BEFORE loading weight</div>";
+      html += "<div class='section-label'>Glute Activation (band) - Do BEFORE loading weight</div>";
       html += "<div class='warmup-block'>";
       html += "<div class='w-title'>Band warm-up</div>";
-      html += "<div class='warmup-item'>Clamshells — 2x15 each side</div>";
-      html += "<div class='warmup-item'>Glute Bridge with band — 2x15</div>";
+      html += "<div class='warmup-item'>Clamshells - 2x15 each side</div>";
+      html += "<div class='warmup-item'>Glute Bridge with band - 2x15</div>";
       html += "<div class='warmup-item' style='font-size:12px;margin-top:6px;'>Fires up the glutes so they do the work during heavy lifts instead of your lower back compensating.</div>";
       html += "</div>";
     }
@@ -376,7 +377,7 @@ function buildPanels(){
         else if(sectionId.indexOf("shoulders") === 0) label = "Shoulders";
         else if(sectionId.indexOf("biceps") === 0) label = "Biceps";
         else if(sectionId.indexOf("triceps") === 0) label = "Triceps";
-        if(sectionId === "core-d4") label = "Core Circuit — 3 Rounds";
+        if(sectionId === "core-d4") label = "Core Circuit - 3 Rounds";
         html += "<div class='section-label'>" + label + "</div>";
         html += "<div id='" + sectionId + "'></div>";
       });
@@ -437,16 +438,16 @@ function buildCardioHTML(){
   return "<div class='day-label' style='margin-bottom:18px;'>CARDIO OPTIONS</div>"
     + "<div class='section-label'>Heart Rate Zones</div>"
     + "<div style='background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:16px;'>"
-    + "<div class='hr-zone'><div class='zone-dot' style='background:#4fc3f7'></div><div><strong>Zone 1</strong> · 95–115 BPM · <span style='color:var(--muted)'>Warm-up</span></div></div>"
-    + "<div class='hr-zone'><div class='zone-dot' style='background:#81c784'></div><div><strong>Zone 2</strong> · 115–135 BPM · <span style='color:var(--muted)'>Fat burn / aerobic base</span></div></div>"
-    + "<div class='hr-zone'><div class='zone-dot' style='background:#ffb74d'></div><div><strong>Zone 3</strong> · 135–155 BPM · <span style='color:var(--muted)'>Target for finishers · Endorphin zone</span></div></div>"
-    + "<div class='hr-zone'><div class='zone-dot' style='background:#e57373'></div><div><strong>Zone 4</strong> · 155–170 BPM · <span style='color:var(--muted)'>Occasional use only for now</span></div></div>"
+    + "<div class='hr-zone'><div class='zone-dot' style='background:#4fc3f7'></div><div><strong>Zone 1</strong> · 95-115 BPM · <span style='color:var(--muted)'>Warm-up</span></div></div>"
+    + "<div class='hr-zone'><div class='zone-dot' style='background:#81c784'></div><div><strong>Zone 2</strong> · 115-135 BPM · <span style='color:var(--muted)'>Fat burn / aerobic base</span></div></div>"
+    + "<div class='hr-zone'><div class='zone-dot' style='background:#ffb74d'></div><div><strong>Zone 3</strong> · 135-155 BPM · <span style='color:var(--muted)'>Target for finishers · Endorphin zone</span></div></div>"
+    + "<div class='hr-zone'><div class='zone-dot' style='background:#e57373'></div><div><strong>Zone 4</strong> · 155-170 BPM · <span style='color:var(--muted)'>Occasional use only for now</span></div></div>"
     + "</div>"
     + "<div class='section-label'>Incline Ramp Alternatives</div>"
     + "<div class='alt-item'><div class='alt-name'>🏃 Indoor Track (jog)</div><div class='alt-note'>Southrac 1/8-mile track. Easy to hit Zone 3 with a moderate jog. Low impact, no learning curve.</div></div>"
     + "<div class='alt-item'><div class='alt-name'>🚴 Stationary Bike</div><div class='alt-note'>Very back-friendly. Best option if your back is flaring. Reliable Zone 3 at moderate resistance.</div></div>"
-    + "<div class='alt-item'><div class='alt-name'>🪜 Stair Climber</div><div class='alt-note'>High endorphin output. Glute-heavy — great after leg days. Hits Zone 3 fast.</div></div>"
-    + "<div class='alt-item'><div class='alt-name'>🚣 Rowing Machine</div><div class='alt-note'>Full body, excellent conditioning. Learn form before going hard — poor rowing can stress lower back.</div></div>";
+    + "<div class='alt-item'><div class='alt-name'>🪜 Stair Climber</div><div class='alt-note'>High endorphin output. Glute-heavy - great after leg days. Hits Zone 3 fast.</div></div>"
+    + "<div class='alt-item'><div class='alt-name'>🚣 Rowing Machine</div><div class='alt-note'>Full body, excellent conditioning. Learn form before going hard - poor rowing can stress lower back.</div></div>";
 }
 
 function buildStatsHTML(){
@@ -455,25 +456,30 @@ function buildStatsHTML(){
     + "<div class='section-label'>Workout Summary</div>"
     + "<div id='stats-workouts'><button class='load-link' onclick='loadStats()'>Load stats</button></div>"
     + "<div class='section-label' style='margin-top:24px;'>Weight Progression</div>"
-    + "<div style='color:var(--muted);font-size:12px;margin-bottom:12px;'>Last 3 entries per exercise</div>"
-    + "<div id='stats-exercises'></div>";
+    + "<div style='color:var(--muted);font-size:12px;margin-bottom:8px;'>Tap an exercise to see its graph</div>"
+    + "<div id='stats-exercises'></div>"
+    + "<div id='stats-graph-area' style='display:none;margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;'>"
+    + "<div id='stats-graph-title' style='font-weight:600;font-size:13px;margin-bottom:12px;'></div>"
+    + "<canvas id='weightChart' height='200'></canvas>"
+    + "<div style='color:var(--muted);font-size:11px;margin-top:8px;text-align:center;'>Set 1 · Set 2 · Set 3</div>"
+    + "</div>";
 }
 
 function buildMacrosHTML(){
   return "<div class='day-label'>MACROS</div>"
     + "<div class='day-subtitle' style='margin-bottom:18px;'>~165 lbs · Recomp goal · 4 training days</div>"
-    + "<div class='macro-card'><div class='macro-name'>Daily Calories</div><div class='macro-amount'>2,700–2,900</div><div class='macro-note'>kcal · Supports training volume without gaining weight</div></div>"
-    + "<div class='macro-card'><div class='macro-name'>Protein · Priority #1</div><div class='macro-amount'>165–180g</div><div class='macro-note'>~1g per lb bodyweight · Non-negotiable for muscle building</div></div>"
-    + "<div class='macro-card'><div class='macro-name'>Carbohydrates</div><div class='macro-amount'>300–340g</div><div class='macro-note'>Energy for training, mood, and endorphin release</div></div>"
-    + "<div class='macro-card'><div class='macro-name'>Fat</div><div class='macro-amount'>70–85g</div><div class='macro-note'>Testosterone production requires dietary fat — do not go very low</div></div>"
+    + "<div class='macro-card'><div class='macro-name'>Daily Calories</div><div class='macro-amount'>2,700-2,900</div><div class='macro-note'>kcal · Supports training volume without gaining weight</div></div>"
+    + "<div class='macro-card'><div class='macro-name'>Protein · Priority #1</div><div class='macro-amount'>165-180g</div><div class='macro-note'>~1g per lb bodyweight · Non-negotiable for muscle building</div></div>"
+    + "<div class='macro-card'><div class='macro-name'>Carbohydrates</div><div class='macro-amount'>300-340g</div><div class='macro-note'>Energy for training, mood, and endorphin release</div></div>"
+    + "<div class='macro-card'><div class='macro-name'>Fat</div><div class='macro-amount'>70-85g</div><div class='macro-note'>Testosterone production requires dietary fat - do not go very low</div></div>"
     + "<div class='section-label'>Priority Order</div>"
-    + "<div class='callout'>1. <strong>Hit protein first</strong> — do not miss this one<br>2. <strong>Hit total calories</strong> — being significantly under slows recovery<br>3. <strong>Fill in carbs</strong> — especially pre-workout<br>4. <strong>Let fat flex</strong></div>"
+    + "<div class='callout'>1. <strong>Hit protein first</strong> - do not miss this one<br>2. <strong>Hit total calories</strong> - being significantly under slows recovery<br>3. <strong>Fill in carbs</strong> - especially pre-workout<br>4. <strong>Let fat flex</strong></div>"
     + "<div class='section-label'>Protein Strategy</div>"
-    + "<div class='callout'><strong>Whey protein:</strong> 2 scoops/day = ~40–50g with zero meal planning.<br>1 scoop post-workout · 1 scoop at another meal.</div>"
+    + "<div class='callout'><strong>Whey protein:</strong> 2 scoops/day = ~40-50g with zero meal planning.<br>1 scoop post-workout · 1 scoop at another meal.</div>"
     + "<div class='section-label'>Drinking Days (3x/week)</div>"
-    + "<div class='callout'>~3 drinks = 300–400 kcal. <strong>Drop 100–150g of carbs, not fat.</strong> Keep protein high regardless.</div>"
+    + "<div class='callout'>~3 drinks = 300-400 kcal. <strong>Drop 100-150g of carbs, not fat.</strong> Keep protein high regardless.</div>"
     + "<div class='section-label'>Quick References</div>"
-    + "<div class='callout'>1 cup cooked rice = 45g carbs<br>1 banana = 27g carbs<br>2 slices bread = 30g carbs<br>1 scoop whey = 24–25g protein<br>6oz chicken breast = 52g protein<br>2 eggs = 12g protein<br>1 cup Greek yogurt = 17–20g protein</div>"
+    + "<div class='callout'>1 cup cooked rice = 45g carbs<br>1 banana = 27g carbs<br>2 slices bread = 30g carbs<br>1 scoop whey = 24-25g protein<br>6oz chicken breast = 52g protein<br>2 eggs = 12g protein<br>1 cup Greek yogurt = 17-20g protein</div>"
     + "<div class='callout'><strong>Hydration:</strong> Aim for 100+ oz water/day.</div>";
 }
 
@@ -567,9 +573,9 @@ function buildCard(container, ex, dayId, data){
   }
 
   if(!ex.noWeight){
-    var ph1 = lastEntry && lastEntry.s1 ? lastEntry.s1 : "—";
-    var ph2 = lastEntry && lastEntry.s2 ? lastEntry.s2 : "—";
-    var ph3 = lastEntry && lastEntry.s3 ? lastEntry.s3 : "—";
+    var ph1 = lastEntry && lastEntry.s1 ? lastEntry.s1 : "-";
+    var ph2 = lastEntry && lastEntry.s2 ? lastEntry.s2 : "-";
+    var ph3 = lastEntry && lastEntry.s3 ? lastEntry.s3 : "-";
 
     var wsDiv = document.createElement("div");
     wsDiv.className = "weight-section";
@@ -696,7 +702,7 @@ async function loadCardioHistory(dayId){
   var dayTitle = "";
   DAYS.forEach(function(d){ if(d.id === dayId) dayTitle = d.title; });
   try{
-    var resp = await fetch(SHEETS_URL + "?type=cardio_history&day=" + encodeURIComponent(dayTitle));
+    var resp = await fetch(SHEETS_URL + "?type=cardio_history&day=" + encodeURIComponent(dayTitle) + "&dayId=" + encodeURIComponent(dayId));
     var json = await resp.json();
     if(!json.rows || json.rows.length === 0){
       el.innerHTML = "<div class='hist-loading'>No cardio logged yet</div>";
@@ -714,7 +720,7 @@ async function loadCardioHistory(dayId){
       d.textContent = fmtDate(r.date);
       var s = document.createElement("span");
       s.className = "h-sets";
-      s.textContent = r.cardio || "—";
+      s.textContent = r.cardio || "-";
       row.appendChild(d);
       row.appendChild(s);
       entry.appendChild(row);
@@ -733,7 +739,7 @@ async function loadDayHistory(dayId, dayTitle){
   if(!el) return;
   el.innerHTML = "<div class='hist-loading'>Loading...</div>";
   try{
-    var resp = await fetch(SHEETS_URL + "?type=day_history&day=" + encodeURIComponent(dayTitle));
+    var resp = await fetch(SHEETS_URL + "?type=day_history&day=" + encodeURIComponent(dayTitle) + "&dayId=" + encodeURIComponent(dayId));
     var json = await resp.json();
     if(!json || !json.date){
       el.innerHTML = "<div class='hist-loading'>No previous " + dayTitle + " workout found</div>";
@@ -763,6 +769,13 @@ function toggleCheck(exId){
     var btn = card.querySelector(".check-btn");
     btn.classList.toggle("done", data.checks[exId]);
     btn.innerHTML = data.checks[exId] ? "&#10003;" : "";
+    // Auto-collapse detail when marking complete
+    if(data.checks[exId]){
+      var detail = card.querySelector(".exercise-detail");
+      var infoBtn = card.querySelector(".info-btn");
+      if(detail){ detail.classList.remove("open"); }
+      if(infoBtn){ infoBtn.classList.remove("open"); infoBtn.textContent = "i"; }
+    }
   }
 }
 
@@ -789,7 +802,7 @@ function getExName(exId){
   return found;
 }
 
-// ── Save weight — no renderAll to prevent mid-workout issues ─
+// ── Save weight - no renderAll to prevent mid-workout issues ─
 async function saveWeight(exId, dayId){
   var s1el = document.getElementById("input-" + exId + "-s1");
   var s2el = document.getElementById("input-" + exId + "-s2");
@@ -846,7 +859,28 @@ async function saveWeight(exId, dayId){
   }
 
   var msg = document.getElementById("saved-" + exId);
-  if(msg){ msg.style.display = "block"; setTimeout(function(){ msg.style.display = "none"; }, 2000); }
+  if(msg){ msg.style.display = "block"; setTimeout(function(){ msg.style.display = "none"; }, 1500); }
+
+  // Auto-collapse and mark complete
+  setTimeout(function(){
+    var card2 = document.getElementById("card-" + exId);
+    if(card2){
+      var detail2 = card2.querySelector(".exercise-detail");
+      var infoBtn2 = card2.querySelector(".info-btn");
+      if(detail2){ detail2.classList.remove("open"); }
+      if(infoBtn2){ infoBtn2.classList.remove("open"); infoBtn2.textContent = "i"; }
+      // Mark complete
+      var data2 = loadData();
+      if(!data2.checks) data2.checks = {};
+      if(!data2.checks[exId]){
+        data2.checks[exId] = true;
+        saveData(data2);
+        card2.classList.add("done");
+        var checkBtn2 = card2.querySelector(".check-btn");
+        if(checkBtn2){ checkBtn2.classList.add("done"); checkBtn2.innerHTML = "&#10003;"; }
+      }
+    }
+  }, 400);
 
   // Post to Sheets
   try{
@@ -908,7 +942,7 @@ async function loadStats(){
       var last = rows[rows.length-1];
       var html = "<div class='stat-summary-card'>"
         + "<div class='stat-summary-row'><span class='stat-summary-label'>Total Sessions</span><span class='stat-summary-val'>" + total + "</span></div>"
-        + "<div class='stat-summary-row'><span class='stat-summary-label'>Last Workout</span><span class='stat-summary-val'>" + fmtDate(last.date) + " — " + last.day + "</span></div>"
+        + "<div class='stat-summary-row'><span class='stat-summary-label'>Last Workout</span><span class='stat-summary-val'>" + fmtDate(last.date) + " - " + last.day + "</span></div>"
         + (hrCnt ? "<div class='stat-summary-row'><span class='stat-summary-label'>Avg Heart Rate</span><span class='stat-summary-val'>" + (avgHR/hrCnt).toFixed(0) + " BPM</span></div>" : "")
         + (durCnt ? "<div class='stat-summary-row'><span class='stat-summary-label'>Avg Duration</span><span class='stat-summary-val'>" + (avgDur/durCnt).toFixed(0) + " min</span></div>" : "")
         + (calCnt ? "<div class='stat-summary-row'><span class='stat-summary-label'>Avg Calories</span><span class='stat-summary-val'>" + (avgCal/calCnt).toFixed(0) + "</span></div>" : "")
@@ -923,10 +957,16 @@ async function loadStats(){
     if(eJson.rows && eJson.rows.length > 0){
       var byEx = {};
       eJson.rows.forEach(function(r){ if(!byEx[r.exercise]) byEx[r.exercise]=[]; byEx[r.exercise].push(r); });
+      // Store globally for graph access
+      window._exerciseData = byEx;
       var eHtml = "";
       Object.keys(byEx).forEach(function(name){
         var entries = byEx[name].slice(-3).reverse();
-        eHtml += "<div class='ex-prog-card'><div class='ex-prog-name'>" + name + "</div><div class='ex-prog-entries'>";
+        var safeId = name.replace(/[^a-zA-Z0-9]/g,"_");
+        eHtml += "<div class='ex-prog-card' style='cursor:pointer;' data-exid='" + safeId + "' onclick='handleExClick(this)'>";
+        eHtml += "<div class='ex-prog-name' style='display:flex;justify-content:space-between;align-items:center;'>";
+        eHtml += "<span>" + name + "</span><span style='color:var(--accent);font-size:11px;'>Graph</span></div>";
+        eHtml += "<div class='ex-prog-entries'>";
         entries.forEach(function(r){
           var sets = [];
           if(r.set1) sets.push("S1:" + r.set1);
@@ -937,12 +977,72 @@ async function loadStats(){
         eHtml += "</div></div>";
       });
       eEl.innerHTML = eHtml;
+      // Store name->safeId map
+      window._exNameMap = {};
+      Object.keys(byEx).forEach(function(name){
+        var safeId = name.replace(/[^a-zA-Z0-9]/g,"_");
+        window._exNameMap[safeId] = name;
+      });
     } else {
       eEl.innerHTML = "<div style='color:var(--muted);font-size:13px;'>No exercises logged yet.</div>";
     }
   }catch(err){
     wEl.innerHTML = "<div style='color:var(--muted);font-size:13px;'>Could not load stats.</div>";
   }
+}
+
+// ── Exercise graph ───────────────────────────────────────────
+function handleExClick(el){
+  var safeId = el.getAttribute("data-exid");
+  if(safeId) showExerciseGraph(safeId);
+}
+var _currentChart = null;
+function showExerciseGraph(safeId){
+  var byEx = window._exerciseData;
+  var nameMap = window._exNameMap;
+  if(!byEx || !nameMap) return;
+  var name = nameMap[safeId];
+  if(!name || !byEx[name]) return;
+
+  var entries = byEx[name];
+  var labels = entries.map(function(r){ return fmtDate(r.date); });
+  var s1 = entries.map(function(r){ return parseFloat(r.set1)||null; });
+  var s2 = entries.map(function(r){ return parseFloat(r.set2)||null; });
+  var s3 = entries.map(function(r){ return parseFloat(r.set3)||null; });
+
+  var graphArea = document.getElementById("stats-graph-area");
+  var titleEl = document.getElementById("stats-graph-title");
+  if(graphArea) graphArea.style.display = "block";
+  if(titleEl) titleEl.textContent = name;
+
+  // Scroll to graph
+  if(graphArea) graphArea.scrollIntoView({behavior:"smooth", block:"nearest"});
+
+  var canvas = document.getElementById("weightChart");
+  if(!canvas) return;
+  if(_currentChart){ _currentChart.destroy(); _currentChart = null; }
+
+  _currentChart = new Chart(canvas, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        { label:"Set 1", data:s1, borderColor:"#e8ff47", backgroundColor:"rgba(232,255,71,0.1)", tension:0.3, pointRadius:5, pointBackgroundColor:"#e8ff47", spanGaps:true },
+        { label:"Set 2", data:s2, borderColor:"#ff6b35", backgroundColor:"rgba(255,107,53,0.1)", tension:0.3, pointRadius:5, pointBackgroundColor:"#ff6b35", spanGaps:true },
+        { label:"Set 3", data:s3, borderColor:"#4caf50", backgroundColor:"rgba(76,175,80,0.1)", tension:0.3, pointRadius:5, pointBackgroundColor:"#4caf50", spanGaps:true }
+      ]
+    },
+    options: {
+      responsive:true,
+      plugins:{
+        legend:{ labels:{ color:"#888884", font:{ family:"DM Sans, sans-serif", size:11 } } }
+      },
+      scales:{
+        x:{ ticks:{ color:"#888884", font:{ size:10 } }, grid:{ color:"#2e2e30" } },
+        y:{ ticks:{ color:"#888884", font:{ size:10 } }, grid:{ color:"#2e2e30" } }
+      }
+    }
+  });
 }
 
 // ── Tab navigation ───────────────────────────────────────────

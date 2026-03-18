@@ -119,6 +119,14 @@
   .graph-container{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:12px;}
   .graph-title{font-weight:600;font-size:13px;margin-bottom:10px;color:var(--text);}
   .show-graph-link{background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer;padding:4px 0 0;font-family:"DM Sans",sans-serif;text-decoration:underline;display:block;}
+  .cardio-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+  .cardio-pill{background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:6px 12px;border-radius:20px;cursor:pointer;}
+  .cardio-pill.active{background:var(--accent);color:#0e0e0f;border-color:var(--accent);}
+  .overload-nudge{font-size:12px;color:var(--accent);font-weight:600;margin-top:8px;padding:6px 10px;background:rgba(232,255,71,0.08);border-radius:6px;border-left:2px solid var(--accent);}
+  .streak-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;display:flex;gap:12px;}
+  .streak-col{flex:1;text-align:center;}
+  .streak-num{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;color:var(--accent);line-height:1;}
+  .streak-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:3px;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
@@ -399,11 +407,16 @@ function buildPanels(){
     html += "<div class='finisher-detail'><strong>" + day.finisherZone + "</strong><br>" + day.finisherNote + "</div>";
     html += "<div style='margin-top:10px;'>";
     html += "<div class='stat-col-label' style='text-align:left;margin-bottom:5px;'>WHAT DID YOU DO?</div>";
-    html += "<input class='stat-input' type='text' placeholder='e.g. Ramp, Treadmill, Track, Bike...' id='cardio-" + day.id + "' style='width:100%;text-align:left;'>";
+    html += "<div class='cardio-pills'>";
+    ["Ramp","Treadmill","Bike","Stairs","Track"].forEach(function(t){
+      html += "<button class='cardio-pill' onclick='toggleCardioPill(this,\"cardio-" + day.id + "\",\"" + t + "\")'>" + t + "</button>";
+    });
+    html += "</div>";
+    html += "<input class='stat-input' type='text' placeholder='or type here...' id='cardio-" + day.id + "' style='width:100%;text-align:left;'>";
     html += "</div>";
     html += "<div class='hist-block' style='margin-top:10px;background:rgba(0,0,0,0.2);border:none;'>";
     html += "<div class='hist-block-title'>Last 3 Cardio Sessions</div>";
-    html += "<div id='cardio-hist-" + day.id + "'><button class='load-link' onclick='loadCardioHistory(\"" + day.id + "\")'>Load history</button></div>";
+    html += "<div id='cardio-hist-" + day.id + "'><div class='hist-loading'>Loading...</div></div>";
     html += "</div>";
     html += "</div>";
 
@@ -421,7 +434,7 @@ function buildPanels(){
     // Last day workout history
     html += "<div class='hist-block' style='margin-top:20px;'>";
     html += "<div class='hist-block-title'>Last " + day.title + " Workout</div>";
-    html += "<div id='day-hist-" + day.id + "'><button class='load-link' onclick='loadDayHistory(\"" + day.id + "\",\"" + day.title + "\")'>Load last session</button></div>";
+    html += "<div id='day-hist-" + day.id + "'><div class='hist-loading'>Loading...</div></div>";
     html += "</div>";
 
     // Wrap-up stats
@@ -437,7 +450,7 @@ function buildPanels(){
     html += "<button class='stats-save-btn' style='margin-top:10px;' onclick='saveWorkout(\"" + day.id + "\")'>Save Workout</button>";
     html += "</div>";
 
-    html += "<button class='reset-btn' onclick='resetDay(\"" + day.id + "\")'>↺ Reset checkmarks for today</button>";
+    html += "<button class='reset-btn' onclick='if(confirm(\"Reset all checkmarks for today?\")) resetDay(\"" + day.id + "\")'>↺ Reset checkmarks for today</button>";
 
     panel.innerHTML = html;
     container.appendChild(panel);
@@ -463,6 +476,8 @@ function buildCardioHTML(){
 function buildStatsHTML(){
   return "<div class='day-label'>STATS</div>"
     + "<div class='day-subtitle' style='margin-bottom:18px;'>Live from Google Sheets</div>"
+    + "<div class='section-label'>Streak</div>"
+    + "<div class='streak-card'><div class='streak-col'><div class='streak-num' id='streak-current'>-</div><div class='streak-label'>Current Streak</div></div><div class='streak-col'><div class='streak-num' id='streak-best'>-</div><div class='streak-label'>Best Streak</div></div></div>"
     + "<div class='section-label'>This Week</div>"
     + "<div id='stats-week'><button class='load-link' onclick='loadStats()'>Load stats</button></div>"
     + "<div class='section-label' style='margin-top:20px;'>Weekly Workout History</div>"
@@ -712,6 +727,17 @@ async function fetchLiveHistory(exId, exName){
     });
     liveEl.innerHTML = "";
     liveEl.appendChild(div);
+    // Progressive overload nudge based on most recent entry
+    var lastRow = json.rows[json.rows.length - 1];
+    var nudgeNums = [lastRow.set1, lastRow.set2, lastRow.set3].filter(function(v){ return v && !isNaN(parseFloat(v)); });
+    if(nudgeNums.length > 0){
+      var avgLast = nudgeNums.reduce(function(a,b){ return a + parseFloat(b); }, 0) / nudgeNums.length;
+      var suggested = Math.round((avgLast + 2.5) * 2) / 2;
+      var nudgeDiv = document.createElement("div");
+      nudgeDiv.className = "overload-nudge";
+      nudgeDiv.textContent = "\u2191 Try " + suggested + " lbs today (+2.5 from last session)";
+      liveEl.appendChild(nudgeDiv);
+    }
   }catch(err){
     if(loadEl) loadEl.textContent = "";
     liveEl.innerHTML = "<div class='hist-loading'>Could not load history</div>";
@@ -976,6 +1002,29 @@ function isThisWeek(dateStr){
   return key === getPacificWeekKey();
 }
 
+function getWeekKeyForDate(dateStr){
+  if(!dateStr) return null;
+  var d = new Date(dateStr);
+  if(isNaN(d.getTime())) return null;
+  var pacificOffset = -8;
+  var utcMs = d.getTime() + (d.getTimezoneOffset() * 60000);
+  var pacific = new Date(utcMs + (pacificOffset * 3600000));
+  var year = pacific.getFullYear();
+  var pd = new Date(pacific);
+  pd.setHours(0,0,0,0);
+  pd.setDate(pd.getDate() + 3 - (pd.getDay()+6)%7);
+  var week1 = new Date(year,0,4);
+  var wn = 1 + Math.round(((pd.getTime()-week1.getTime())/86400000 - 3 + (week1.getDay()+6)%7)/7);
+  return year + "-W" + String(wn).padStart(2,"0");
+}
+
+function isAdjacentWeek(wk1, wk2){
+  var p1 = wk1.split("-W"), p2 = wk2.split("-W");
+  var y1 = parseInt(p1[0]), w1 = parseInt(p1[1]);
+  var y2 = parseInt(p2[0]), w2 = parseInt(p2[1]);
+  return (y2 === y1 && w2 === w1 + 1) || (y2 === y1 + 1 && w2 === 1 && w1 >= 52);
+}
+
 function markDayComplete(dayId){
   var data = loadData();
   if(!data.weekDone) data.weekDone = {};
@@ -1089,6 +1138,33 @@ async function loadStats(){
       + "</div>";
     weekEl.innerHTML = html;
 
+    // ── Streak calculation ───────────────────────────────────
+    var weekCounts = {};
+    rows.forEach(function(r){
+      var wk = getWeekKeyForDate(r.date);
+      if(wk) weekCounts[wk] = (weekCounts[wk]||0) + 1;
+    });
+    var allWeeks = Object.keys(weekCounts).sort();
+    var qualWeeks = allWeeks.filter(function(w){ return weekCounts[w] >= 3; });
+    var bestStreak = 0, runStreak = 0;
+    for(var wi = 0; wi < qualWeeks.length; wi++){
+      runStreak = (wi === 0 || !isAdjacentWeek(qualWeeks[wi-1], qualWeeks[wi])) ? 1 : runStreak + 1;
+      if(runStreak > bestStreak) bestStreak = runStreak;
+    }
+    var curWk = getPacificWeekKey();
+    var currentStreak = 0;
+    if(qualWeeks.length > 0){
+      var lastQual = qualWeeks[qualWeeks.length - 1];
+      if(lastQual === curWk || isAdjacentWeek(lastQual, curWk)){
+        currentStreak = runStreak;
+      }
+    }
+    var streakUnit = " wk";
+    var curEl = document.getElementById("streak-current");
+    var bestEl = document.getElementById("streak-best");
+    if(curEl) curEl.textContent = currentStreak + streakUnit;
+    if(bestEl) bestEl.textContent = bestStreak + streakUnit;
+
     // ── Weekly chart — last 10 sessions, duration bars ──────
     var recentRows = rows.slice(-10);
     var wLabels = recentRows.map(function(r){ return fmtDate(r.date).replace(", 2026",""); });
@@ -1155,7 +1231,21 @@ async function loadStats(){
 }
 
 
+// ── Cardio pill toggle ────────────────────────────────────────
+function toggleCardioPill(btn, inputId, value){
+  var inp = document.getElementById(inputId);
+  var isActive = btn.classList.contains("active");
+  btn.closest(".cardio-pills").querySelectorAll(".cardio-pill").forEach(function(p){ p.classList.remove("active"); });
+  if(!isActive){
+    btn.classList.add("active");
+    if(inp) inp.value = value;
+  } else {
+    if(inp) inp.value = "";
+  }
+}
+
 // ── Tab navigation ───────────────────────────────────────────
+var WORKOUT_DAYS = ["d1","d2","d3","d4","d5"];
 function showDay(id){
   document.querySelectorAll(".day-panel").forEach(function(p){ p.classList.remove("active"); });
   document.querySelectorAll(".day-btn").forEach(function(b){ b.classList.remove("active"); });
@@ -1168,6 +1258,15 @@ function showDay(id){
     }
   });
   window.scrollTo(0, 0);
+  try{ localStorage.setItem("pgymplan_lastday", id); }catch(e){}
+  if(WORKOUT_DAYS.indexOf(id) !== -1){
+    var dayObj = null;
+    DAYS.forEach(function(d){ if(d.id === id) dayObj = d; });
+    if(dayObj){
+      loadDayHistory(id, dayObj.title);
+      loadCardioHistory(id);
+    }
+  }
   if(id === "stats") loadStats();
 }
 
@@ -1176,6 +1275,13 @@ buildNav();
 buildPanels();
 renderAll();
 updateDayTabColors();
+(function(){
+  try{
+    var lastDay = localStorage.getItem("pgymplan_lastday");
+    if(lastDay && document.getElementById(lastDay)) showDay(lastDay);
+    else showDay("d1");
+  }catch(e){ showDay("d1"); }
+})();
 </script>
 </body>
 </html>

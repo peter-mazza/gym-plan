@@ -513,6 +513,12 @@ function buildStatsHTML(){
     + "<div class='graph-container'><canvas id='allTimeChart' height='180'></canvas></div>"
     + "<div id='stats-workouts' style='display:none;'></div>"
     + "<div id='stats-exercises' style='display:none;'></div>"
+    + "<div class='section-label' style='margin-top:20px;'>Monthly Workout Count</div>"
+    + "<div class='graph-container'><canvas id='monthlyCountChart' height='180'></canvas></div>"
+    + "<div class='section-label' style='margin-top:20px;'>Day Type Distribution</div>"
+    + "<div class='graph-container'><canvas id='dayTypeChart' height='200'></canvas></div>"
+    + "<div class='section-label' style='margin-top:20px;'>Avg Duration by Day Type</div>"
+    + "<div class='graph-container'><canvas id='avgDurChart' height='180'></canvas></div>"
     + "<div style='color:var(--muted);font-size:11px;text-align:center;margin-top:20px;'>Last updated: Mar 19, 2026</div>";
 }
 
@@ -1273,6 +1279,71 @@ function buildCardioDonut(rows){
   });
 }
 
+var _monthlyCountChart = null;
+function buildMonthlyCount(rows){
+  var canvas = document.getElementById("monthlyCountChart");
+  if(!canvas) return;
+  var counts = {};
+  var monthOrder = [];
+  rows.forEach(function(r){
+    if(!r.date) return;
+    var d = new Date(r.date);
+    if(isNaN(d)) return;
+    var key = d.toLocaleDateString("en-US",{month:"short",year:"numeric"});
+    if(!counts[key]){ counts[key] = 0; monthOrder.push(key); }
+    counts[key]++;
+  });
+  var uniqueMonths = monthOrder.filter(function(v,i){ return monthOrder.indexOf(v)===i; }).slice(-6);
+  if(uniqueMonths.length === 0) return;
+  if(_monthlyCountChart){ _monthlyCountChart.destroy(); }
+  _monthlyCountChart = new Chart(canvas, {
+    type:"bar",
+    data:{labels:uniqueMonths,datasets:[{label:"Sessions",data:uniqueMonths.map(function(m){ return counts[m]||0; }),backgroundColor:"rgba(232,255,71,0.7)",borderColor:"#e8ff47",borderWidth:1}]},
+    options:{responsive:true,plugins:{legend:{labels:{color:"#888884",font:{size:10},pointStyle:"line",usePointStyle:true}}},scales:{x:{ticks:{color:"#888884",font:{size:9}},grid:{color:"#2e2e30"}},y:{ticks:{color:"#888884",font:{size:9}},grid:{color:"#2e2e30"}}}}
+  });
+}
+
+var _dayTypeChart = null;
+function buildDayTypeDistribution(rows){
+  var canvas = document.getElementById("dayTypeChart");
+  if(!canvas) return;
+  var counts = {};
+  rows.forEach(function(r){
+    if(!r.day) return;
+    var key = r.day.split(" - ")[0].trim();
+    counts[key] = (counts[key]||0) + 1;
+  });
+  var keys = Object.keys(counts);
+  if(keys.length === 0) return;
+  if(_dayTypeChart){ _dayTypeChart.destroy(); }
+  _dayTypeChart = new Chart(canvas, {
+    type:"doughnut",
+    data:{labels:keys,datasets:[{data:keys.map(function(k){ return counts[k]; }),backgroundColor:["#e8ff47","#ff6b35","#4caf50","#4fc3f7","#ffb74d","#e57373","#81c784"],borderColor:"#1a1a1c",borderWidth:2}]},
+    options:{responsive:true,plugins:{legend:{labels:{color:"#888884",font:{size:10},pointStyle:"line",usePointStyle:true}}}}
+  });
+}
+
+var _avgDurChart = null;
+function buildAvgDurByDay(rows){
+  var canvas = document.getElementById("avgDurChart");
+  if(!canvas) return;
+  var totals = {}, cnts = {};
+  rows.forEach(function(r){
+    if(!r.day || !r.duration || isNaN(parseFloat(r.duration))) return;
+    var key = r.day.split(" - ")[0].trim();
+    totals[key] = (totals[key]||0) + parseFloat(r.duration);
+    cnts[key] = (cnts[key]||0) + 1;
+  });
+  var keys = Object.keys(totals);
+  if(keys.length === 0) return;
+  if(_avgDurChart){ _avgDurChart.destroy(); }
+  _avgDurChart = new Chart(canvas, {
+    type:"bar",
+    data:{labels:keys,datasets:[{label:"Avg Duration (min)",data:keys.map(function(k){ return Math.round(totals[k]/cnts[k]); }),backgroundColor:"rgba(76,175,80,0.7)",borderColor:"#4caf50",borderWidth:1}]},
+    options:{responsive:true,plugins:{legend:{labels:{color:"#888884",font:{size:10},pointStyle:"line",usePointStyle:true}}},scales:{x:{ticks:{color:"#888884",font:{size:9},maxRotation:30},grid:{color:"#2e2e30"}},y:{ticks:{color:"#888884",font:{size:9}},grid:{color:"#2e2e30"}}}}
+  });
+}
+
 // ── Stats panel (updated with weekly + all-time graphs) ───────
 var _weeklyChart = null;
 var _allTimeChart = null;
@@ -1392,6 +1463,9 @@ async function loadStats(){
 
     buildHeatmap(rows);
     buildCardioDonut(rows);
+    buildMonthlyCount(rows);
+    buildDayTypeDistribution(rows);
+    buildAvgDurByDay(rows);
 
   }catch(err){
     if(weekEl) weekEl.innerHTML = "<div style='color:var(--muted);font-size:13px;'>Could not load stats.</div>";

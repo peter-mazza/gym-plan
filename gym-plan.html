@@ -528,6 +528,11 @@ function buildStatsHTML(){
     + "<div class='graph-container'><canvas id='consistencyChart' height='160'></canvas></div>"
     + "<div class='section-label' style='margin-top:20px;'>Personal Records</div>"
     + "<div id='pr-table'></div>"
+    + "<div class='section-label' style='margin-top:20px;'>Strength Index Trend</div>"
+    + "<div style='color:var(--muted);font-size:12px;margin-bottom:8px;'>Avg of max set per exercise per session (local data)</div>"
+    + "<div class='graph-container'><canvas id='strengthIndexChart' height='160'></canvas></div>"
+    + "<div class='section-label' style='margin-top:20px;'>Top 3 Progressions</div>"
+    + "<div id='top3-progressions'></div>"
     + "<div style='color:var(--muted);font-size:11px;text-align:center;margin-top:20px;'>Last updated: Mar 19, 2026</div>";
 }
 
@@ -1405,6 +1410,89 @@ function buildPRTable(){
   el.innerHTML = html;
 }
 
+var _strengthIndexChart = null;
+function buildStrengthIndex(){
+  var canvas = document.getElementById("strengthIndexChart");
+  if(!canvas) return;
+  var data = loadData();
+  var history = data.history || {};
+  // Build map: date -> list of max set weights (one per exercise)
+  var dateMaxes = {};
+  Object.keys(history).forEach(function(exId){
+    var entries = history[exId];
+    entries.forEach(function(e){
+      var maxWt = 0;
+      [e.s1,e.s2,e.s3].forEach(function(v){
+        var n = parseFloat(v);
+        if(!isNaN(n) && n > maxWt) maxWt = n;
+      });
+      if(maxWt > 0){
+        if(!dateMaxes[e.date]) dateMaxes[e.date] = [];
+        dateMaxes[e.date].push(maxWt);
+      }
+    });
+  });
+  var dates = Object.keys(dateMaxes).sort(function(a,b){ return new Date(a)-new Date(b); });
+  if(dates.length < 2) return;
+  var avgs = dates.map(function(d){
+    var vals = dateMaxes[d];
+    return Math.round(vals.reduce(function(a,b){ return a+b; },0) / vals.length);
+  });
+  if(_strengthIndexChart){ _strengthIndexChart.destroy(); }
+  _strengthIndexChart = new Chart(canvas, {
+    type:"line",
+    data:{labels:dates.map(function(d){ return fmtDate(d).replace(", 2026",""); }),datasets:[{label:"Strength Index",data:avgs,borderColor:"#e8ff47",backgroundColor:"rgba(232,255,71,0.08)",tension:0.3,pointRadius:3,pointBackgroundColor:"#e8ff47"}]},
+    options:{responsive:true,plugins:{legend:{labels:{color:"#888884",font:{size:10},pointStyle:"line",usePointStyle:true}}},scales:{x:{ticks:{color:"#888884",font:{size:9},maxRotation:45},grid:{color:"#2e2e30"}},y:{ticks:{color:"#888884",font:{size:9}},grid:{color:"#2e2e30"}}}}
+  });
+}
+
+var _top3Charts = [];
+function buildTop3Progressions(){
+  var el = document.getElementById("top3-progressions");
+  if(!el) return;
+  var data = loadData();
+  var history = data.history || {};
+  // Find top 3 exercises by session count
+  var exCounts = Object.keys(history).map(function(exId){
+    return {exId:exId, count:history[exId].length};
+  });
+  exCounts.sort(function(a,b){ return b.count - a.count; });
+  var top3 = exCounts.slice(0,3);
+  _top3Charts.forEach(function(c){ c.destroy(); });
+  _top3Charts = [];
+  el.innerHTML = "";
+  if(top3.length === 0){ el.innerHTML = "<div class='hist-loading'>No exercise data yet</div>"; return; }
+  top3.forEach(function(item, idx){
+    var exId = item.exId;
+    var exName = getExName(exId);
+    var entries = history[exId].slice().sort(function(a,b){ return new Date(a.date)-new Date(b.date); });
+    var labels = entries.map(function(e){ return fmtDate(e.date).replace(", 2026",""); });
+    var maxSets = entries.map(function(e){
+      var m = 0;
+      [e.s1,e.s2,e.s3].forEach(function(v){ var n=parseFloat(v); if(!isNaN(n)&&n>m) m=n; });
+      return m || null;
+    });
+    var wrap = document.createElement("div");
+    wrap.className = "graph-container";
+    wrap.style.marginBottom = "10px";
+    var title = document.createElement("div");
+    title.className = "graph-title";
+    title.textContent = exName;
+    wrap.appendChild(title);
+    var canvasEl = document.createElement("canvas");
+    canvasEl.height = 120;
+    canvasEl.id = "top3-canvas-" + idx;
+    wrap.appendChild(canvasEl);
+    el.appendChild(wrap);
+    var colors = ["#e8ff47","#ff6b35","#4caf50"];
+    _top3Charts.push(new Chart(canvasEl, {
+      type:"line",
+      data:{labels:labels,datasets:[{label:"Max set (lbs)",data:maxSets,borderColor:colors[idx],backgroundColor:colors[idx].replace("#","rgba(").replace("47","71,0.08)").replace("35","53,0.08)").replace("50","80,0.08)"),tension:0.3,pointRadius:3,pointBackgroundColor:colors[idx],spanGaps:true}]},
+      options:{responsive:true,plugins:{legend:{labels:{color:"#888884",font:{size:9},pointStyle:"line",usePointStyle:true}}},scales:{x:{ticks:{color:"#888884",font:{size:8},maxRotation:45},grid:{color:"#2e2e30"}},y:{ticks:{color:"#888884",font:{size:8}},grid:{color:"#2e2e30"}}}}
+    }));
+  });
+}
+
 // ── Stats panel (updated with weekly + all-time graphs) ───────
 var _weeklyChart = null;
 var _allTimeChart = null;
@@ -1529,6 +1617,8 @@ async function loadStats(){
     buildAvgDurByDay(rows);
     buildConsistencyChart(rows);
     buildPRTable();
+    buildStrengthIndex();
+    buildTop3Progressions();
 
   }catch(err){
     if(weekEl) weekEl.innerHTML = "<div style='color:var(--muted);font-size:13px;'>Could not load stats.</div>";

@@ -469,7 +469,8 @@ function buildStatsHTML(){
     + "<div style='color:var(--muted);font-size:12px;margin-bottom:8px;'>Rolling avg heart rate</div>"
     + "<div class='graph-container'><canvas id='allTimeChart' height='180'></canvas></div>"
     + "<div id='stats-workouts' style='display:none;'></div>"
-    + "<div id='stats-exercises' style='display:none;'></div>";
+    + "<div id='stats-exercises' style='display:none;'></div>"
+    + "<div style='color:var(--muted);font-size:11px;text-align:center;margin-top:20px;'>Last updated: Mar 19, 2026</div>";
 }
 
 function buildMacrosHTML(){
@@ -965,6 +966,17 @@ function getPacificWeekKey(){ return _isoWeekKey(new Date()); }
 function getWeekKeyForDate(ds){ if(!ds) return null; var d=new Date(ds); return isNaN(d)?null:_isoWeekKey(d); }
 function isThisWeek(ds){ return getWeekKeyForDate(ds) === getPacificWeekKey(); }
 
+function weekDateRange(weekKey){
+  var parts = weekKey.split("-W");
+  var year = parseInt(parts[0]), wn = parseInt(parts[1]);
+  var jan4 = new Date(year, 0, 4);
+  var monday = new Date(jan4);
+  monday.setDate(jan4.getDate() - (jan4.getDay()+6)%7 + (wn-1)*7);
+  var sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+  var opts = {month:"short", day:"numeric"};
+  return "Week of " + monday.toLocaleDateString("en-US", opts) + " - " + sunday.toLocaleDateString("en-US", opts);
+}
+
 function isAdjacentWeek(wk1, wk2){
   var p1 = wk1.split("-W"), p2 = wk2.split("-W");
   var y1 = parseInt(p1[0]), w1 = parseInt(p1[1]);
@@ -1077,7 +1089,7 @@ async function loadStats(){
     });
     var weekKey = getPacificWeekKey();
     var html = "<div class='week-summary-card'>"
-      + "<div class='week-summary-row'><span class='week-label'>Week</span><span class='week-val'>" + weekKey + "</span></div>"
+      + "<div class='week-summary-row'><span class='week-label'>Week</span><span class='week-val'>" + weekDateRange(weekKey) + "</span></div>"
       + "<div class='week-summary-row'><span class='week-label'>Sessions</span><span class='week-val'>" + sessionCnt + "</span></div>"
       + (totalDur>0?"<div class='week-summary-row'><span class='week-label'>Total Duration</span><span class='week-val'>"+Math.round(totalDur)+" min</span></div>":"")
       + (totalCal>0?"<div class='week-summary-row'><span class='week-label'>Total Calories</span><span class='week-val'>"+Math.round(totalCal)+"</span></div>":"")

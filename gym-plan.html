@@ -168,7 +168,6 @@ var DAYS = [
     finisherZone:"10-15 min - Zone 2-3 - HR 125-150",
     recovery:true },
   { id:"stats", label:"Stats", title:"STATS", statsPanel:true },
-  { id:"cardio", label:"Cardio", title:"CARDIO OPTIONS", cardioRef:true },
   { id:"macros", label:"Macros", title:"MACROS", macrosPanel:true }
 ];
 
@@ -359,7 +358,6 @@ function buildPanels(){
     panel.className = "day-panel" + (i===0?" active":"");
     panel.id = day.id;
 
-    if(day.cardioRef){ panel.innerHTML = buildCardioHTML(); container.appendChild(panel); return; }
     if(day.statsPanel){ panel.innerHTML = buildStatsHTML(); container.appendChild(panel); return; }
     if(day.macrosPanel){ panel.innerHTML = buildMacrosHTML(); container.appendChild(panel); return; }
 
@@ -408,7 +406,7 @@ function buildPanels(){
     html += "<div style='margin-top:10px;'>";
     html += "<div class='stat-col-label' style='text-align:left;margin-bottom:5px;'>WHAT DID YOU DO?</div>";
     html += "<div class='cardio-pills'>";
-    ["Ramp","Treadmill","Bike","Stairs","Track"].forEach(function(t){
+    ["Ramp","Treadmill","Bike","Stairs","Rower"].forEach(function(t){
       html += "<button class='cardio-pill' onclick='toggleCardioPill(this,\"cardio-" + day.id + "\",\"" + t + "\")'>" + t + "</button>";
     });
     html += "</div>";
@@ -455,22 +453,6 @@ function buildPanels(){
     panel.innerHTML = html;
     container.appendChild(panel);
   });
-}
-
-function buildCardioHTML(){
-  return "<div class='day-label' style='margin-bottom:18px;'>CARDIO OPTIONS</div>"
-    + "<div class='section-label'>Heart Rate Zones</div>"
-    + "<div style='background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:16px;'>"
-    + "<div class='hr-zone'><div class='zone-dot' style='background:#4fc3f7'></div><div><strong>Zone 1</strong> · 95-115 BPM · <span style='color:var(--muted)'>Warm-up</span></div></div>"
-    + "<div class='hr-zone'><div class='zone-dot' style='background:#81c784'></div><div><strong>Zone 2</strong> · 115-135 BPM · <span style='color:var(--muted)'>Fat burn / aerobic base</span></div></div>"
-    + "<div class='hr-zone'><div class='zone-dot' style='background:#ffb74d'></div><div><strong>Zone 3</strong> · 135-155 BPM · <span style='color:var(--muted)'>Target for finishers · Endorphin zone</span></div></div>"
-    + "<div class='hr-zone'><div class='zone-dot' style='background:#e57373'></div><div><strong>Zone 4</strong> · 155-170 BPM · <span style='color:var(--muted)'>Occasional use only for now</span></div></div>"
-    + "</div>"
-    + "<div class='section-label'>Incline Ramp Alternatives</div>"
-    + "<div class='alt-item'><div class='alt-name'>🏃 Indoor Track (jog)</div><div class='alt-note'>Southrac 1/8-mile track. Easy to hit Zone 3 with a moderate jog. Low impact, no learning curve.</div></div>"
-    + "<div class='alt-item'><div class='alt-name'>🚴 Stationary Bike</div><div class='alt-note'>Very back-friendly. Best option if your back is flaring. Reliable Zone 3 at moderate resistance.</div></div>"
-    + "<div class='alt-item'><div class='alt-name'>🪜 Stair Climber</div><div class='alt-note'>High endorphin output. Glute-heavy - great after leg days. Hits Zone 3 fast.</div></div>"
-    + "<div class='alt-item'><div class='alt-name'>🚣 Rowing Machine</div><div class='alt-note'>Full body, excellent conditioning. Learn form before going hard - poor rowing can stress lower back.</div></div>";
 }
 
 function buildStatsHTML(){
@@ -972,51 +954,16 @@ async function saveWorkout(dayId){
 }
 
 // ── Week utilities ───────────────────────────────────────────
-function getPacificWeekKey(){
-  var now = new Date();
-  var pacificOffset = -8;
-  var utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
-  var pacific = new Date(utcMs + (pacificOffset * 3600000));
-  var d = new Date(pacific);
-  d.setHours(0,0,0,0);
-  d.setDate(d.getDate() + 3 - (d.getDay()+6)%7);
-  var week1 = new Date(d.getFullYear(),0,4);
-  var weekNum = 1 + Math.round(((d.getTime()-week1.getTime())/86400000 - 3 + (week1.getDay()+6)%7)/7);
-  return d.getFullYear() + "-W" + String(weekNum).padStart(2,"0");
+function _isoWeekKey(d){
+  var t = new Date(d); t.setHours(0,0,0,0);
+  t.setDate(t.getDate() + 3 - (t.getDay()+6)%7);
+  var w1 = new Date(t.getFullYear(),0,4);
+  var wn = 1 + Math.round(((t-w1)/86400000 - 3 + (w1.getDay()+6)%7)/7);
+  return t.getFullYear() + "-W" + String(wn).padStart(2,"0");
 }
-
-function isThisWeek(dateStr){
-  if(!dateStr) return false;
-  var d = new Date(dateStr);
-  if(isNaN(d.getTime())) return false;
-  var pacificOffset = -8;
-  var utcMs = d.getTime() + (d.getTimezoneOffset() * 60000);
-  var pacific = new Date(utcMs + (pacificOffset * 3600000));
-  var year = pacific.getFullYear();
-  var pd = new Date(pacific);
-  pd.setHours(0,0,0,0);
-  pd.setDate(pd.getDate() + 3 - (pd.getDay()+6)%7);
-  var week1 = new Date(year,0,4);
-  var wn = 1 + Math.round(((pd.getTime()-week1.getTime())/86400000 - 3 + (week1.getDay()+6)%7)/7);
-  var key = year + "-W" + String(wn).padStart(2,"0");
-  return key === getPacificWeekKey();
-}
-
-function getWeekKeyForDate(dateStr){
-  if(!dateStr) return null;
-  var d = new Date(dateStr);
-  if(isNaN(d.getTime())) return null;
-  var pacificOffset = -8;
-  var utcMs = d.getTime() + (d.getTimezoneOffset() * 60000);
-  var pacific = new Date(utcMs + (pacificOffset * 3600000));
-  var year = pacific.getFullYear();
-  var pd = new Date(pacific);
-  pd.setHours(0,0,0,0);
-  pd.setDate(pd.getDate() + 3 - (pd.getDay()+6)%7);
-  var week1 = new Date(year,0,4);
-  var wn = 1 + Math.round(((pd.getTime()-week1.getTime())/86400000 - 3 + (week1.getDay()+6)%7)/7);
-  return year + "-W" + String(wn).padStart(2,"0");
-}
+function getPacificWeekKey(){ return _isoWeekKey(new Date()); }
+function getWeekKeyForDate(ds){ if(!ds) return null; var d=new Date(ds); return isNaN(d)?null:_isoWeekKey(d); }
+function isThisWeek(ds){ return getWeekKeyForDate(ds) === getPacificWeekKey(); }
 
 function isAdjacentWeek(wk1, wk2){
   var p1 = wk1.split("-W"), p2 = wk2.split("-W");

@@ -128,6 +128,11 @@
   .streak-num{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;color:var(--accent);line-height:1;}
   .streak-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:3px;}
   .edit-entry-btn{background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;padding:3px 9px;border-radius:12px;cursor:pointer;margin-left:6px;}
+  .activity-entry{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:8px;}
+  .activity-entry-top{display:flex;justify-content:space-between;align-items:center;}
+  .activity-entry-name{font-weight:600;font-size:14px;}
+  .activity-entry-date{font-size:11px;color:var(--muted);}
+  .activity-entry-meta{font-size:12px;color:var(--muted);margin-top:3px;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
@@ -168,6 +173,7 @@ var DAYS = [
     finisherNote:"Slightly easier today. Bonus session - push it but do not bury yourself.",
     finisherZone:"10-15 min - Zone 2-3 - HR 125-150",
     recovery:true },
+  { id:"activity", label:"+ Activity", title:"ACTIVITY LOG", activityPanel:true },
   { id:"stats", label:"Stats", title:"STATS", statsPanel:true },
   { id:"macros", label:"Macros", title:"MACROS", macrosPanel:true }
 ];
@@ -359,6 +365,7 @@ function buildPanels(){
     panel.className = "day-panel" + (i===0?" active":"");
     panel.id = day.id;
 
+    if(day.activityPanel){ panel.innerHTML = buildActivityHTML(); container.appendChild(panel); return; }
     if(day.statsPanel){ panel.innerHTML = buildStatsHTML(); container.appendChild(panel); return; }
     if(day.macrosPanel){ panel.innerHTML = buildMacrosHTML(); container.appendChild(panel); return; }
 
@@ -455,6 +462,31 @@ function buildPanels(){
     panel.innerHTML = html;
     container.appendChild(panel);
   });
+}
+
+function buildActivityHTML(){
+  var today = new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+  return "<div class='day-label' style='margin-bottom:6px;'>ACTIVITY LOG</div>"
+    + "<div class='day-subtitle' style='margin-bottom:18px;'>Non-gym activities — hikes, rides, runs, swims</div>"
+    + "<div class='section-label'>Activity Type</div>"
+    + "<div class='cardio-pills'>"
+    + ["Trail Run","Hike","Bike Ride","Swim","Other"].map(function(t){
+        return "<button class='cardio-pill' onclick='toggleCardioPill(this,\"activity-type\",\"" + t + "\")'>" + t + "</button>";
+      }).join("")
+    + "</div>"
+    + "<input class='stat-input' type='text' placeholder='or type here...' id='activity-type' style='width:100%;text-align:left;margin-bottom:14px;'>"
+    + "<div class='section-label'>Stats</div>"
+    + "<div class='stats-grid'>"
+    + "<div class='stat-col'><div class='stat-col-label'>Duration (min)</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 45' id='activity-dur'></div>"
+    + "<div class='stat-col'><div class='stat-col-label'>Calories</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 320' id='activity-cal'></div>"
+    + "<div class='stat-col'><div class='stat-col-label'>Avg HR</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 138' id='activity-hr'></div>"
+    + "</div>"
+    + "<div class='notes-block' style='margin-top:10px;'><div class='notes-label'>Notes (optional)</div>"
+    + "<textarea class='notes-textarea' id='activity-notes' placeholder='Distance, route, how it felt...'></textarea></div>"
+    + "<div class='stat-col' style='margin-top:10px;'><div class='stat-col-label'>Date</div><input class='stat-input' type='text' placeholder='Mar 19, 2026' id='activity-date' style='text-align:left;'></div>"
+    + "<button class='stats-save-btn' style='margin-top:12px;' onclick='saveActivity()'>Log Activity</button>"
+    + "<div class='section-label' style='margin-top:20px;'>Recent Activities</div>"
+    + "<div id='activity-history'></div>";
 }
 
 function buildStatsHTML(){
@@ -1014,6 +1046,63 @@ function editWrapUp(dayId){
   }catch(e){}
 }
 
+async function saveActivity(){
+  var typeEl = document.getElementById("activity-type");
+  var durEl = document.getElementById("activity-dur");
+  var calEl = document.getElementById("activity-cal");
+  var hrEl = document.getElementById("activity-hr");
+  var notesEl = document.getElementById("activity-notes");
+  var dateEl = document.getElementById("activity-date");
+  var actType = typeEl ? typeEl.value.trim() : "";
+  var dur = durEl ? durEl.value.trim() : "";
+  var cal = calEl ? calEl.value.trim() : "";
+  var hr = hrEl ? hrEl.value.trim() : "";
+  var notes = notesEl ? notesEl.value.trim() : "";
+  var dateStr = (dateEl && dateEl.value.trim()) ? dateEl.value.trim() : new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+  if(!actType){ showToast("Enter activity type", "var(--accent2)"); return; }
+  var dayLabel = actType.toUpperCase();
+
+  var data = loadData();
+  if(!data.activities) data.activities = [];
+  data.activities.push({date:dateStr, type:actType, dur:dur, cal:cal, hr:hr, notes:notes});
+  saveData(data);
+
+  if(typeEl) typeEl.value = "";
+  if(durEl) durEl.value = "";
+  if(calEl) calEl.value = "";
+  if(hrEl) hrEl.value = "";
+  if(notesEl) notesEl.value = "";
+  document.querySelectorAll(".cardio-pill").forEach(function(p){ p.classList.remove("active"); });
+  loadActivityHistory();
+
+  try{
+    var params = "type=workout&date=" + encodeURIComponent(dateStr) + "&day=" + encodeURIComponent(dayLabel) + "&cardio=" + encodeURIComponent(actType) + "&duration=" + encodeURIComponent(dur) + "&calories=" + encodeURIComponent(cal) + "&heartRate=" + encodeURIComponent(hr) + "&notes=" + encodeURIComponent(notes);
+    await fetch(SHEETS_URL + "?" + params, {method:"GET", mode:"no-cors"});
+    showToast("Activity logged!");
+  }catch(e){ showToast("Saved locally", "var(--accent2)"); }
+}
+
+function loadActivityHistory(){
+  var el = document.getElementById("activity-history");
+  if(!el) return;
+  var data = loadData();
+  var acts = (data.activities || []).slice(-5).reverse();
+  if(acts.length === 0){ el.innerHTML = "<div class='hist-loading'>No activities logged yet</div>"; return; }
+  el.innerHTML = "";
+  acts.forEach(function(a){
+    var meta = [];
+    if(a.dur) meta.push(a.dur + " min");
+    if(a.cal) meta.push(a.cal + " cal");
+    if(a.hr) meta.push(a.hr + " BPM");
+    var div = document.createElement("div");
+    div.className = "activity-entry";
+    div.innerHTML = "<div class='activity-entry-top'><span class='activity-entry-name'>" + a.type + "</span><span class='activity-entry-date'>" + a.date + "</span></div>"
+      + (meta.length ? "<div class='activity-entry-meta'>" + meta.join(" · ") + "</div>" : "")
+      + (a.notes ? "<div class='activity-entry-meta' style='margin-top:2px;font-style:italic;'>" + a.notes + "</div>" : "");
+    el.appendChild(div);
+  });
+}
+
 // ── Week utilities ───────────────────────────────────────────
 function _isoWeekKey(d){
   var t = new Date(d); t.setHours(0,0,0,0);
@@ -1287,6 +1376,11 @@ function showDay(id){
     }
   }
   if(id === "stats") loadStats();
+  if(id === "activity"){
+    loadActivityHistory();
+    var dateEl = document.getElementById("activity-date");
+    if(dateEl && !dateEl.value) dateEl.value = new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+  }
 }
 
 // ── Init ─────────────────────────────────────────────────────

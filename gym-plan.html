@@ -133,6 +133,11 @@
   .heatmap-day.active{background:var(--accent);}
   .heatmap-day.activity{background:var(--accent2);}
   .heatmap-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px;}
+  .pr-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+  .pr-row{display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--border);}
+  .pr-row:last-child{border-bottom:none;}
+  .pr-name{color:var(--muted);}
+  .pr-val{font-weight:700;color:var(--accent);}
   .activity-entry{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:8px;}
   .activity-entry-top{display:flex;justify-content:space-between;align-items:center;}
   .activity-entry-name{font-weight:600;font-size:14px;}
@@ -519,6 +524,10 @@ function buildStatsHTML(){
     + "<div class='graph-container'><canvas id='dayTypeChart' height='200'></canvas></div>"
     + "<div class='section-label' style='margin-top:20px;'>Avg Duration by Day Type</div>"
     + "<div class='graph-container'><canvas id='avgDurChart' height='180'></canvas></div>"
+    + "<div class='section-label' style='margin-top:20px;'>Weekly Consistency (target: 4 sessions)</div>"
+    + "<div class='graph-container'><canvas id='consistencyChart' height='160'></canvas></div>"
+    + "<div class='section-label' style='margin-top:20px;'>Personal Records</div>"
+    + "<div id='pr-table'></div>"
     + "<div style='color:var(--muted);font-size:11px;text-align:center;margin-top:20px;'>Last updated: Mar 19, 2026</div>";
 }
 
@@ -1344,6 +1353,58 @@ function buildAvgDurByDay(rows){
   });
 }
 
+var _consistencyChart = null;
+function buildConsistencyChart(rows){
+  var canvas = document.getElementById("consistencyChart");
+  if(!canvas) return;
+  var weekCounts = {};
+  var weekOrder = [];
+  rows.forEach(function(r){
+    var wk = getWeekKeyForDate(r.date);
+    if(!wk) return;
+    if(!weekCounts[wk]){ weekCounts[wk] = 0; weekOrder.push(wk); }
+    weekCounts[wk]++;
+  });
+  var uniqueWeeks = weekOrder.filter(function(v,i){ return weekOrder.indexOf(v)===i; }).slice(-12);
+  if(uniqueWeeks.length === 0) return;
+  var pcts = uniqueWeeks.map(function(w){ return Math.min(Math.round((weekCounts[w]/4)*100), 100); });
+  var colors = pcts.map(function(p){ return p >= 100 ? "rgba(76,175,80,0.8)" : "rgba(232,255,71,0.6)"; });
+  if(_consistencyChart){ _consistencyChart.destroy(); }
+  _consistencyChart = new Chart(canvas, {
+    type:"bar",
+    data:{labels:uniqueWeeks,datasets:[{label:"% of target (4 sessions)",data:pcts,backgroundColor:colors,borderColor:colors.map(function(c){ return c.replace("0.","1."); }),borderWidth:1}]},
+    options:{responsive:true,plugins:{legend:{labels:{color:"#888884",font:{size:10},pointStyle:"line",usePointStyle:true}}},scales:{x:{ticks:{color:"#888884",font:{size:8},maxRotation:45},grid:{color:"#2e2e30"}},y:{min:0,max:100,ticks:{color:"#888884",font:{size:9},callback:function(v){ return v+"%"; }},grid:{color:"#2e2e30"}}}}
+  });
+}
+
+function buildPRTable(){
+  var el = document.getElementById("pr-table");
+  if(!el) return;
+  var data = loadData();
+  var history = data.history || {};
+  var prs = [];
+  Object.keys(history).forEach(function(exId){
+    var entries = history[exId];
+    var exName = getExName(exId);
+    var maxWt = 0;
+    entries.forEach(function(e){
+      [e.s1,e.s2,e.s3].forEach(function(v){
+        var n = parseFloat(v);
+        if(!isNaN(n) && n > maxWt) maxWt = n;
+      });
+    });
+    if(maxWt > 0) prs.push({name:exName, weight:maxWt});
+  });
+  if(prs.length === 0){ el.innerHTML = "<div class='hist-loading'>No exercise data logged yet</div>"; return; }
+  prs.sort(function(a,b){ return b.weight - a.weight; });
+  var html = "<div class='pr-card'>";
+  prs.forEach(function(p){
+    html += "<div class='pr-row'><span class='pr-name'>" + p.name + "</span><span class='pr-val'>" + p.weight + " lbs</span></div>";
+  });
+  html += "</div>";
+  el.innerHTML = html;
+}
+
 // ── Stats panel (updated with weekly + all-time graphs) ───────
 var _weeklyChart = null;
 var _allTimeChart = null;
@@ -1466,6 +1527,8 @@ async function loadStats(){
     buildMonthlyCount(rows);
     buildDayTypeDistribution(rows);
     buildAvgDurByDay(rows);
+    buildConsistencyChart(rows);
+    buildPRTable();
 
   }catch(err){
     if(weekEl) weekEl.innerHTML = "<div style='color:var(--muted);font-size:13px;'>Could not load stats.</div>";

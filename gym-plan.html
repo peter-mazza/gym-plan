@@ -127,6 +127,7 @@
   .streak-col{flex:1;text-align:center;}
   .streak-num{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;color:var(--accent);line-height:1;}
   .streak-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:3px;}
+  .edit-entry-btn{background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;padding:3px 9px;border-radius:12px;cursor:pointer;margin-left:6px;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
@@ -560,6 +561,13 @@ function buildCard(container, ex, dayId, data){
   infoBtn.className = "info-btn";
   infoBtn.textContent = "i";
   infoBtn.onclick = (function(eid, ename, btn){ return function(){ toggleTip(btn, eid, ename); }; })(ex.id, ex.name, infoBtn);
+  if(isDone){
+    var editBtn = document.createElement("button");
+    editBtn.className = "edit-entry-btn";
+    editBtn.textContent = "Edit";
+    editBtn.onclick = (function(eid){ return function(e){ e.stopPropagation(); openEditMode(eid); }; })(ex.id);
+    mainDiv.appendChild(editBtn);
+  }
   mainDiv.appendChild(infoBtn);
   card.appendChild(mainDiv);
 
@@ -669,6 +677,27 @@ function toggleTip(btn, exId, exName){
   btn.classList.toggle("open", open);
   btn.textContent = open ? "x" : "i";
   if(open && exId && exName) fetchLiveHistory(exId, exName);
+}
+
+function openEditMode(exId){
+  var card = document.getElementById("card-" + exId);
+  if(!card) return;
+  var detail = card.querySelector(".exercise-detail");
+  var infoBtn = card.querySelector(".info-btn");
+  if(detail) detail.classList.add("open");
+  if(infoBtn){ infoBtn.classList.add("open"); infoBtn.textContent = "x"; }
+  var data = loadData();
+  var history = (data.history && data.history[exId]) || [];
+  var last = history.length ? history[history.length-1] : null;
+  if(last){
+    ["s1","s2","s3"].forEach(function(s,i){
+      var inp = document.getElementById("input-" + exId + "-" + s);
+      if(inp){ inp.value = last[s] || ""; }
+    });
+  }
+  var saveBtn = card.querySelector(".save-btn");
+  if(saveBtn) saveBtn.textContent = "Update Sets";
+  card.scrollIntoView({behavior:"smooth", block:"nearest"});
 }
 
 // ── Live history from Sheets ─────────────────────────────────
@@ -855,6 +884,10 @@ async function saveWeight(exId, dayId){
   if(!data.history) data.history = {};
   if(!data.history[exId]) data.history[exId] = [];
   data.history[exId].push({date:dateStr, dayLabel:dayTitle, s1:s1, s2:s2, s3:s3});
+  var hist = data.history[exId];
+  if(hist.length >= 2 && hist[hist.length-2].date === dateStr){
+    hist.splice(hist.length-2, 1);
+  }
   saveData(data);
 
   // Update card display in-place without full re-render
@@ -902,6 +935,8 @@ async function saveWeight(exId, dayId){
       var infoBtn2 = card2.querySelector(".info-btn");
       if(detail2){ detail2.classList.remove("open"); }
       if(infoBtn2){ infoBtn2.classList.remove("open"); infoBtn2.textContent = "i"; }
+      var saveBtnR = card2.querySelector(".save-btn");
+      if(saveBtnR) saveBtnR.textContent = "Save Sets";
       // Mark complete
       var data2 = loadData();
       if(!data2.checks) data2.checks = {};

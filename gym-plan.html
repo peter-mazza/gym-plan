@@ -446,7 +446,8 @@ function buildPanels(){
     html += "</div>";
     html += "<div class='notes-block'><div class='notes-label'>Notes (optional)</div>";
     html += "<textarea class='notes-textarea' id='notes-" + day.id + "' placeholder='How did it feel? Energy level, PRs, anything notable...'></textarea></div>";
-    html += "<button class='stats-save-btn' style='margin-top:10px;' onclick='saveWorkout(\"" + day.id + "\")'>Save Workout</button>";
+    html += "<button class='stats-save-btn' style='margin-top:10px;' id='wrap-save-btn-" + day.id + "' onclick='saveWorkout(\"" + day.id + "\")'>Save Workout</button>";
+    html += "<button class='reset-btn' id='wrap-edit-btn-" + day.id + "' style='display:none;margin-top:6px;' onclick='editWrapUp(\"" + day.id + "\")'>Edit last saved</button>";
     html += "</div>";
 
     html += "<button class='reset-btn' onclick='if(confirm(\"Reset all checkmarks for today?\")) resetDay(\"" + day.id + "\")'>↺ Reset checkmarks for today</button>";
@@ -985,8 +986,32 @@ async function saveWorkout(dayId){
     if(cardioEl) cardioEl.value = "";
     if(notesEl) notesEl.value = "";
     markDayComplete(dayId);
+    try{ localStorage.setItem("pgymplan_lastwrap_" + dayId, JSON.stringify({dur:dur,cal:cal,hr:hr,cardio:cardio,notes:notes})); }catch(e){}
+    var editBtn = document.getElementById("wrap-edit-btn-" + dayId);
+    if(editBtn) editBtn.style.display = "block";
+    var saveBtn2 = document.getElementById("wrap-save-btn-" + dayId);
+    if(saveBtn2) saveBtn2.textContent = "Save Workout";
     showToast("Workout saved to Sheets");
   }catch(e){ showToast("Failed to save", "var(--accent2)"); }
+}
+
+function editWrapUp(dayId){
+  try{
+    var saved = JSON.parse(localStorage.getItem("pgymplan_lastwrap_" + dayId));
+    if(!saved) return;
+    var fields = {dur:"stat-dur-",cal:"stat-cal-",hr:"stat-hr-"};
+    Object.keys(fields).forEach(function(k){
+      var el = document.getElementById(fields[k] + dayId);
+      if(el) el.value = saved[k] || "";
+    });
+    var cardioEl = document.getElementById("cardio-" + dayId);
+    if(cardioEl) cardioEl.value = saved.cardio || "";
+    var notesEl = document.getElementById("notes-" + dayId);
+    if(notesEl) notesEl.value = saved.notes || "";
+    var saveBtn = document.getElementById("wrap-save-btn-" + dayId);
+    if(saveBtn) saveBtn.textContent = "Update Workout";
+    showToast("Editing last saved workout", "var(--accent2)");
+  }catch(e){}
 }
 
 // ── Week utilities ───────────────────────────────────────────
@@ -1275,6 +1300,14 @@ updateDayTabColors();
     if(lastDay && document.getElementById(lastDay)) showDay(lastDay);
     else showDay("d1");
   }catch(e){ showDay("d1"); }
+  ["d1","d2","d3","d4","d5"].forEach(function(did){
+    try{
+      if(localStorage.getItem("pgymplan_lastwrap_" + did)){
+        var btn = document.getElementById("wrap-edit-btn-" + did);
+        if(btn) btn.style.display = "block";
+      }
+    }catch(e){}
+  });
 })();
 </script>
 </body>

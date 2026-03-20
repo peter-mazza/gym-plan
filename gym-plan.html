@@ -28,6 +28,17 @@
   .exercise-main{display:flex;align-items:center;padding:11px 12px;gap:8px;}
   .check-btn{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;color:transparent;}
   .check-btn.done{background:var(--green);border-color:var(--green);color:white;}
+  .set-check-btn{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);background:transparent;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:10px;transition:all .15s;color:transparent;}
+  .set-check-btn.done{background:var(--green);border-color:var(--green);color:white;}
+  .set-checks{display:flex;align-items:center;gap:10px;padding:6px 12px 8px;border-top:1px solid var(--border);}
+  .set-check-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
+  .set-check-lbl{font-size:9px;color:var(--muted);font-weight:600;letter-spacing:0.5px;}
+  .heatmap-period-pills{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
+  .heatmap-period-pill{background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;cursor:pointer;}
+  .heatmap-period-pill.active{background:var(--accent);color:#0e0e0f;border-color:var(--accent);}
+  .cardio-done-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer;flex-shrink:0;transition:all .15s;}
+  .cardio-done-btn.done{background:var(--green);border-color:var(--green);color:white;}
+  .finisher.done{border-color:var(--green);}
   .exercise-info{flex:1;min-width:0;}
   .exercise-name{font-weight:500;font-size:14px;}
   .exercise-meta{display:flex;align-items:center;gap:8px;margin-top:2px;flex-wrap:wrap;}
@@ -191,10 +202,10 @@ var DAYS = [
 var EXERCISES = {
   d1: {
     "exercises-d1": [
-      { id:"d1_incline_db_press", name:"Incline Dumbbell Press", sets:"3x10",
+      { id:"d1_incline_db_press", name:"Incline Dumbbell Press", sets:"3x10", isDumbbell:true,
         tip:"Start weight: 25-35 lb dumbbells. Last 2 reps should feel hard without losing form.",
         form:"Keep shoulder blades pinched back into the bench. No elbow flare past 45 degrees." },
-      { id:"d1_seated_db_press", name:"Seated DB Shoulder Press", sets:"3x10",
+      { id:"d1_seated_db_press", name:"Seated DB Shoulder Press", sets:"3x10", isDumbbell:true,
         tip:"Start weight: 20-30 lb dumbbells.",
         form:"Press in a slight forward arc. Stop just before lockout to keep tension." },
       { id:"d1_cable_lateral", name:"Cable Lateral Raise", sets:"3x12",
@@ -225,7 +236,7 @@ var EXERCISES = {
       { id:"d2_lat_pulldown", name:"Lat Pulldown (wide grip)", sets:"3x10",
         tip:"Start weight: 60-80 lbs.",
         form:"Lean back slightly, pull bar to upper chest, lead with elbows. No jerking or momentum." },
-      { id:"d2_db_row", name:"Single-Arm Dumbbell Row", sets:"3x10 each",
+      { id:"d2_db_row", name:"Single-Arm Dumbbell Row", sets:"3x10 each", isDumbbell:true,
         tip:"Start weight: 30-40 lbs.",
         form:"Brace with opposite hand on bench. Pull elbow straight back past hip. Elbow to ceiling." },
       { id:"d2_face_pull", name:"Face Pulls (cable)", sets:"3x15",
@@ -234,7 +245,7 @@ var EXERCISES = {
       { id:"d2_ez_curl", name:"EZ Bar Curl", sets:"3x12",
         tip:"Start weight: 40-55 lbs. Angled grip is easier on wrists than a straight bar.",
         form:"Keep elbows pinned at sides. Full stretch at bottom, squeeze at top." },
-      { id:"d2_hammer_curl", name:"Hammer Curl", sets:"3x12",
+      { id:"d2_hammer_curl", name:"Hammer Curl", sets:"3x12", isDumbbell:true,
         tip:"Start weight: 20-30 lbs.",
         form:"Palms facing each other, curl straight up. Hits brachialis and forearm - adds thickness and grip." }
     ],
@@ -245,7 +256,7 @@ var EXERCISES = {
   },
   d3: {
     "exercises-d3": [
-      { id:"d3_goblet_squat", name:"Goblet Squat", sets:"3x12",
+      { id:"d3_goblet_squat", name:"Goblet Squat", sets:"3x12", isDumbbell:true,
         tip:"Start weight: 25-35 lb dumbbell.",
         form:"Hold dumbbell vertically at chest. Squat deep, elbows inside knees at bottom." },
       { id:"d3_sl_rdl", name:"Single-Leg RDL (kettlebell)", sets:"3x10 each",
@@ -257,7 +268,7 @@ var EXERCISES = {
       { id:"d3_leg_press", name:"Leg Press", sets:"3x12",
         tip:"Start weight: 90-135 lbs. Lower and wider foot placement = more glute and hamstring.",
         form:"No knee lockout at top. Lower until hips start to tuck - stop there." },
-      { id:"d3_lunges", name:"Walking Lunges", sets:"3x10 each leg",
+      { id:"d3_lunges", name:"Walking Lunges", sets:"3x10 each leg", isDumbbell:true,
         tip:"Start weight: Bodyweight or 15-20 lb dumbbells. Use the turf area at Southrac.",
         form:"Big step forward, back knee drops toward (not to) floor. Keep torso upright." },
       { id:"d3_leg_curl", name:"Leg Curl Machine", sets:"3x12",
@@ -274,22 +285,22 @@ var EXERCISES = {
   d4: {
     "exercises-d4": [
       { id:"d4_db_bench", name:"Dumbbell Bench Press", sets:"3x10",
-        tip:"Start weight: 30-40 lbs each dumbbell.",
+        tip:"Start weight: 30-40 lbs each dumbbell.", isDumbbell:true,
         form:"Flat bench. Horizontal press to balance Day 1 incline work. Lower to chest, press up. Shoulder blades retracted." },
-      { id:"d4_pull_through", name:"Cable Pull-Through", sets:"3x15",
-        tip:"Replaces kettlebell swing - same pattern, easier to learn. Start weight: 30-40 lbs.",
-        form:"Low cable, rope, face away from machine. Hinge at hips, rope between legs, drive hips forward to stand. All power from glute squeeze at top." },
+      { id:"d4_kb_swing", name:"Kettlebell Swing", sets:"3x15",
+        tip:"Start weight: 35-45 lb kettlebell. Hip-hinge explosive movement.",
+        form:"Hinge at hips, soft knee bend. Drive hips forward explosively — bell swings to shoulder height. Power is all from the hip snap, not the arms. Reset with control on the way back down." },
       { id:"d4_pushup", name:"Standard Push-Up", sets:"3x12", noWeight:true,
         form:"Body in straight line, core tight. Lower until chest nearly touches floor. Elevate feet on bench to increase difficulty." },
       { id:"d4_cable_row", name:"Seated Cable Row (V-bar, narrow)", sets:"3x10",
-        tip:"Same as Day 2.",
-        form:"See Day 2 for full form cues." },
+        tip:"Use the V-bar narrow grip. Start weight: 50-70 lbs.",
+        form:"Sit tall, pull to lower sternum, squeeze shoulder blades together. Minimal lean back." },
       { id:"d4_arnold_press", name:"Arnold Press", sets:"3x10",
-        tip:"Start weight: 20-25 lbs each dumbbell.",
+        tip:"Start weight: 20-25 lbs each dumbbell.", isDumbbell:true,
         form:"Start with palms facing you, rotate outward as you press up. Hits all three heads of the shoulder." },
       { id:"d4_face_pull", name:"Face Pulls", sets:"3x15",
-        tip:"Repeated from Day 2 intentionally - shoulder health investment.",
-        form:"See Day 2 for form cues." }
+        tip:"Repeated from Day 2 intentionally — shoulder health investment. Start weight: 20-30 lbs. Keep it light.",
+        form:"Cable at face height, rope attachment. Pull to ears, elbows high, wrists behind elbows. Slow and controlled." }
     ],
     "core-d4": [
       { id:"d4_core_circuit", name:"Plank / Dead Bug / Bird Dog", sets:"3 rounds", noWeight:true,
@@ -299,33 +310,33 @@ var EXERCISES = {
   d5: {
     "shoulders-d5": [
       { id:"d5_cable_lateral", name:"Cable Lateral Raise", sets:"3x15",
-        tip:"Higher rep range today - lighter weight, more pump.",
-        form:"See Day 1 for form cues." },
+        tip:"Higher rep range today — lighter weight, more pump. Start weight: 5-10 lbs.",
+        form:"Stand sideways to cable. Lead with elbow, not wrist. No shrugging at the top." },
       { id:"d5_face_pull", name:"Face Pulls", sets:"3x15",
-        tip:"Third time this week intentionally. Cheap investment in shoulder longevity.",
-        form:"See Day 2 for form cues." }
+        tip:"Third time this week intentionally. Cheap investment in shoulder longevity. Start weight: 20-30 lbs. Keep it light.",
+        form:"Cable at face height, rope attachment. Pull to ears, elbows high, wrists behind elbows. Slow and controlled." }
     ],
     "biceps-d5": [
       { id:"d5_ez_curl", name:"EZ Bar Curl", sets:"3x12",
-        tip:null,
-        form:"See Day 2 for form cues." },
+        tip:"Start weight: 40-55 lbs. Angled grip is easier on wrists than a straight bar.",
+        form:"Keep elbows pinned at sides. Full stretch at bottom, squeeze at top." },
       { id:"d5_cable_curl", name:"Cable Curl (straight bar or rope)", sets:"3x12",
         tip:"Start weight: 25-35 lbs. Cable keeps constant tension throughout the movement.",
         form:"Stand at low pulley, elbows stay at sides, curl all the way up, slow on the way down." }
     ],
     "triceps-d5": [
       { id:"d5_rope_pushdown", name:"Tricep Rope Pushdown", sets:"3x12",
-        tip:null,
-        form:"See Day 1 for form cues." },
+        tip:"Start weight: 30-40 lbs.",
+        form:"Spread rope handles apart at the bottom to fully contract. Keep elbows pinned to sides." },
       { id:"d5_skull_crushers", name:"Skull Crushers (light EZ bar)", sets:"3x12",
         tip:"Start weight: 30-40 lbs. Keep it light.",
         form:"Lie flat, lower bar toward forehead bending only at elbows. Elbows point at ceiling. No elbow flare." }
     ],
     "core-d5": [
       { id:"d5_plank", name:"Plank", sets:"3x45 sec", noWeight:true,
-        form:"See Day 1. Slightly longer hold today." },
+        form:"Squeeze glutes and abs simultaneously. Hips stay level, no sagging or piking. Slightly longer hold than Day 1." },
       { id:"d5_ab_wheel", name:"Ab Wheel", sets:"3x10", noWeight:true,
-        form:"See Day 3 for form cues." },
+        form:"Start kneeling. Keep core tight, do not let lower back sag as you roll out. Only go as far as you can control." },
       { id:"d5_sl_rdl_bw", name:"Single-Leg RDL (bodyweight)", sets:"3x10 each", noWeight:true,
         form:"No weight - balance and glute activation only. Same form as Day 3." }
     ]
@@ -418,7 +429,7 @@ function buildPanels(){
     }
 
     // Finisher
-    html += "<div class='finisher'>";
+    html += "<div class='finisher' id='finisher-" + day.id + "'>";
     html += "<div class='finisher-title'>🔥 CARDIO FINISHER</div>";
     html += "<div class='finisher-detail'><strong>" + day.finisherZone + "</strong><br>" + day.finisherNote + "</div>";
     html += "<div style='margin-top:10px;'>";
@@ -428,7 +439,11 @@ function buildPanels(){
       html += "<button class='cardio-pill' onclick='toggleCardioPill(this,\"cardio-" + day.id + "\",\"" + t + "\")'>" + t + "</button>";
     });
     html += "</div>";
-    html += "<input class='stat-input' type='text' placeholder='or type here...' id='cardio-" + day.id + "' style='width:100%;text-align:left;'>";
+    html += "<input class='stat-input' type='text' placeholder='or type here...' id='cardio-" + day.id + "' style='width:100%;text-align:left;' oninput='saveCardioPersist(\"" + day.id + "\")'>";
+    html += "<div style='display:flex;gap:8px;margin-top:8px;align-items:center;'>";
+    html += "<input class='stat-input' type='text' inputmode='decimal' placeholder='Duration (min)' id='cardio-dur-" + day.id + "' style='flex:1;' oninput='saveCardioPersist(\"" + day.id + "\")'>";
+    html += "<button class='cardio-done-btn' id='finisher-done-" + day.id + "' onclick='toggleFinisherDone(\"" + day.id + "\")'>Mark Done</button>";
+    html += "</div>";
     html += "</div>";
     html += "<div class='hist-block' style='margin-top:10px;background:rgba(0,0,0,0.2);border:none;'>";
     html += "<div class='hist-block-title'>Last 3 Cardio Sessions</div>";
@@ -447,12 +462,6 @@ function buildPanels(){
       html += "</div>";
     }
 
-    // Last day workout history
-    html += "<div class='hist-block' style='margin-top:20px;'>";
-    html += "<div class='hist-block-title'>Last " + day.title + " Workout</div>";
-    html += "<div id='day-hist-" + day.id + "'><div class='hist-loading'>Loading...</div></div>";
-    html += "</div>";
-
     // Wrap-up stats
     html += "<div class='stats-block'>";
     html += "<div class='stats-title'>📊 WRAP UP WORKOUT</div>";
@@ -464,7 +473,12 @@ function buildPanels(){
     html += "<div class='notes-block'><div class='notes-label'>Notes (optional)</div>";
     html += "<textarea class='notes-textarea' id='notes-" + day.id + "' placeholder='How did it feel? Energy level, PRs, anything notable...'></textarea></div>";
     html += "<button class='stats-save-btn' style='margin-top:10px;' id='wrap-save-btn-" + day.id + "' onclick='saveWorkout(\"" + day.id + "\")'>Save Workout</button>";
-    html += "<button class='reset-btn' id='wrap-edit-btn-" + day.id + "' style='display:none;margin-top:6px;' onclick='editWrapUp(\"" + day.id + "\")'>Edit last saved</button>";
+    html += "</div>";
+
+    // Last day workout history (moved below wrap-up)
+    html += "<div class='hist-block' style='margin-top:20px;'>";
+    html += "<div class='hist-block-title'>Last " + day.title + " Workout</div>";
+    html += "<div id='day-hist-" + day.id + "'><div class='hist-loading'>Loading...</div></div>";
     html += "</div>";
 
     html += "<button class='reset-btn' onclick='if(confirm(\"Reset all checkmarks for today?\")) resetDay(\"" + day.id + "\")'>↺ Reset checkmarks for today</button>";
@@ -493,7 +507,7 @@ function buildActivityHTML(){
     + "</div>"
     + "<div class='notes-block' style='margin-top:10px;'><div class='notes-label'>Notes (optional)</div>"
     + "<textarea class='notes-textarea' id='activity-notes' placeholder='Distance, route, how it felt...'></textarea></div>"
-    + "<div class='stat-col' style='margin-top:10px;'><div class='stat-col-label'>Date</div><input class='stat-input' type='text' placeholder='Mar 19, 2026' id='activity-date' style='text-align:left;'></div>"
+    + "<div class='stat-col' style='margin-top:10px;'><div class='stat-col-label'>Date</div><input class='stat-input' type='date' id='activity-date'></div>"
     + "<button class='stats-save-btn' style='margin-top:12px;' onclick='saveActivity()'>Log Activity</button>"
     + "<div class='section-label' style='margin-top:20px;'>Recent Activities</div>"
     + "<div id='activity-history'></div>";
@@ -504,10 +518,6 @@ function buildStatsHTML(){
     + "<div class='day-subtitle' style='margin-bottom:18px;'>Live from Google Sheets</div>"
     + "<div class='section-label'>Streak</div>"
     + "<div class='streak-card'><div class='streak-col'><div class='streak-num' id='streak-current'>-</div><div class='streak-label'>Current Streak</div></div><div class='streak-col'><div class='streak-num' id='streak-best'>-</div><div class='streak-label'>Best Streak</div></div></div>"
-    + "<div class='section-label'>12-Week Heatmap</div>"
-    + "<div class='graph-container' style='padding:12px 14px;'><div id='heatmap-grid'></div><div class='heatmap-labels'><span id='heatmap-start'></span><span>Today</span></div></div>"
-    + "<div class='section-label' style='margin-top:20px;'>Cardio Type Breakdown</div>"
-    + "<div class='graph-container'><canvas id='cardioDonutChart' height='200'></canvas></div>"
     + "<div class='section-label'>This Week</div>"
     + "<div id='stats-week'><button class='load-link' onclick='loadStats()'>Load stats</button></div>"
     + "<div class='section-label' style='margin-top:20px;'>Weekly Workout History</div>"
@@ -533,7 +543,20 @@ function buildStatsHTML(){
     + "<div class='graph-container'><canvas id='strengthIndexChart' height='160'></canvas></div>"
     + "<div class='section-label' style='margin-top:20px;'>Top 3 Progressions</div>"
     + "<div id='top3-progressions'></div>"
-    + "<div style='color:var(--muted);font-size:11px;text-align:center;margin-top:20px;'>Last updated: Mar 19, 2026</div>";
+    + "<div class='section-label' style='margin-top:20px;'>Cardio Type Breakdown</div>"
+    + "<div class='graph-container'><canvas id='cardioDonutChart' height='200'></canvas></div>"
+    + "<div class='section-label' style='margin-top:20px;'>Workout Heatmap</div>"
+    + "<div class='graph-container' style='padding:12px 14px;'>"
+    + "<div class='heatmap-period-pills'>"
+    + "<button class='heatmap-period-pill' onclick='setHeatmapPeriod(\"2wk\",this)'>2 Weeks</button>"
+    + "<button class='heatmap-period-pill active' onclick='setHeatmapPeriod(\"1mo\",this)'>1 Month</button>"
+    + "<button class='heatmap-period-pill' onclick='setHeatmapPeriod(\"3mo\",this)'>3 Months</button>"
+    + "<button class='heatmap-period-pill' onclick='setHeatmapPeriod(\"all\",this)'>All Time</button>"
+    + "</div>"
+    + "<div id='heatmap-grid'></div>"
+    + "<div class='heatmap-labels'><span id='heatmap-start'></span><span>Today</span></div>"
+    + "</div>"
+    + "<div style='color:var(--muted);font-size:11px;text-align:center;margin-top:20px;'>Last updated: Mar 20, 2026</div>";
 }
 
 function buildMacrosHTML(){
@@ -632,6 +655,29 @@ function buildCard(container, ex, dayId, data){
   }
   mainDiv.appendChild(infoBtn);
   card.appendChild(mainDiv);
+
+  // Per-set check buttons for bodyweight exercises
+  if(ex.noWeight){
+    var setBtns = document.createElement("div");
+    setBtns.className = "set-checks";
+    var savedChecks = (data.setBChecks && data.setBChecks[ex.id]) || [false,false,false];
+    ["S1","S2","S3"].forEach(function(lbl, si){
+      var wrap = document.createElement("div");
+      wrap.className = "set-check-wrap";
+      var sbtn = document.createElement("button");
+      sbtn.className = "set-check-btn" + (savedChecks[si] ? " done" : "");
+      sbtn.id = "setcheck-" + ex.id + "-" + si;
+      sbtn.textContent = savedChecks[si] ? "\u2713" : "";
+      sbtn.onclick = (function(eid, idx){ return function(e){ e.stopPropagation(); toggleSetCheck(eid, idx); }; })(ex.id, si);
+      var slbl = document.createElement("div");
+      slbl.className = "set-check-lbl";
+      slbl.textContent = lbl;
+      wrap.appendChild(sbtn);
+      wrap.appendChild(slbl);
+      setBtns.appendChild(wrap);
+    });
+    card.appendChild(setBtns);
+  }
 
   // Detail panel
   var detailDiv = document.createElement("div");
@@ -806,10 +852,13 @@ async function fetchLiveHistory(exId, exName){
     var nudgeNums = [lastRow.set1, lastRow.set2, lastRow.set3].filter(function(v){ return v && !isNaN(parseFloat(v)); });
     if(nudgeNums.length > 0){
       var avgLast = nudgeNums.reduce(function(a,b){ return a + parseFloat(b); }, 0) / nudgeNums.length;
-      var suggested = Math.round((avgLast + 2.5) * 2) / 2;
+      var exObj = null;
+      Object.keys(EXERCISES).forEach(function(d){ Object.keys(EXERCISES[d]).forEach(function(s){ EXERCISES[d][s].forEach(function(ex){ if(ex.id === exId) exObj = ex; }); }); });
+      var increment = (exObj && exObj.isDumbbell) ? 2.5 : 5;
+      var suggested = Math.ceil(avgLast / increment) * increment + increment;
       var nudgeDiv = document.createElement("div");
       nudgeDiv.className = "overload-nudge";
-      nudgeDiv.textContent = "\u2191 Try " + suggested + " lbs today (+2.5 from last session)";
+      nudgeDiv.textContent = "\u2191 Try " + suggested + " lbs today (+" + increment + " from last session)";
       liveEl.appendChild(nudgeDiv);
     }
   }catch(err){
@@ -909,7 +958,10 @@ function resetDay(dayId){
   var sections = EXERCISES[dayId];
   if(!sections) return;
   Object.keys(sections).forEach(function(k){
-    sections[k].forEach(function(ex){ delete data.checks[ex.id]; });
+    sections[k].forEach(function(ex){
+      delete data.checks[ex.id];
+      if(data.setBChecks) delete data.setBChecks[ex.id];
+    });
   });
   saveData(data);
   renderAll();
@@ -1027,52 +1079,54 @@ async function saveWorkout(dayId){
   var cal = (document.getElementById("stat-cal-" + dayId)||{}).value || "";
   var hr = (document.getElementById("stat-hr-" + dayId)||{}).value || "";
   var cardioEl = document.getElementById("cardio-" + dayId);
+  var cardioDurEl = document.getElementById("cardio-dur-" + dayId);
   var notesEl = document.getElementById("notes-" + dayId);
   var cardio = cardioEl ? cardioEl.value.trim() : "";
+  var cardioMinutes = cardioDurEl ? cardioDurEl.value.trim() : "";
   var notes = notesEl ? notesEl.value.trim() : "";
   dur = dur.trim(); cal = cal.trim(); hr = hr.trim();
-  if(!dur && !cal && !hr && !cardio && !notes){ showToast("Nothing to save", "var(--accent2)"); return; }
+  if(!dur && !cal && !hr && !cardio && !cardioMinutes && !notes){ showToast("Nothing to save", "var(--accent2)"); return; }
 
   var now = new Date();
   var dateStr = now.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
   var dayTitle = "";
   DAYS.forEach(function(d){ if(d.id === dayId) dayTitle = d.title; });
 
-  try{
-    var params = "type=workout&date=" + encodeURIComponent(dateStr) + "&day=" + encodeURIComponent(dayTitle) + "&cardio=" + encodeURIComponent(cardio) + "&duration=" + encodeURIComponent(dur) + "&calories=" + encodeURIComponent(cal) + "&heartRate=" + encodeURIComponent(hr) + "&notes=" + encodeURIComponent(notes);
-    await fetch(SHEETS_URL + "?" + params, {method:"GET", mode:"no-cors"});
-    ["stat-dur-","stat-cal-","stat-hr-"].forEach(function(p){
-      var el = document.getElementById(p + dayId); if(el) el.value = "";
-    });
-    if(cardioEl) cardioEl.value = "";
-    if(notesEl) notesEl.value = "";
-    markDayComplete(dayId);
-    try{ localStorage.setItem("pgymplan_lastwrap_" + dayId, JSON.stringify({dur:dur,cal:cal,hr:hr,cardio:cardio,notes:notes})); }catch(e){}
-    var editBtn = document.getElementById("wrap-edit-btn-" + dayId);
-    if(editBtn) editBtn.style.display = "block";
-    var saveBtn2 = document.getElementById("wrap-save-btn-" + dayId);
-    if(saveBtn2) saveBtn2.textContent = "Save Workout";
-    showToast("Workout saved to Sheets");
-  }catch(e){ showToast("Failed to save", "var(--accent2)"); }
-}
+  // Detect if editing an existing entry this week
+  var existingSaved = null;
+  try{ existingSaved = JSON.parse(localStorage.getItem("pgymplan_lastwrap_" + dayId)); }catch(e){}
+  var isEdit = existingSaved && existingSaved.weekKey === getPacificWeekKey();
+  var origDate = isEdit ? (existingSaved.date || dateStr) : dateStr;
+  var type = isEdit ? "edit_workout" : "workout";
 
-function editWrapUp(dayId){
   try{
-    var saved = JSON.parse(localStorage.getItem("pgymplan_lastwrap_" + dayId));
-    if(!saved) return;
-    var fields = {dur:"stat-dur-",cal:"stat-cal-",hr:"stat-hr-"};
-    Object.keys(fields).forEach(function(k){
-      var el = document.getElementById(fields[k] + dayId);
-      if(el) el.value = saved[k] || "";
-    });
-    var cardioEl = document.getElementById("cardio-" + dayId);
-    if(cardioEl) cardioEl.value = saved.cardio || "";
-    var notesEl = document.getElementById("notes-" + dayId);
-    if(notesEl) notesEl.value = saved.notes || "";
+    var params = "type=" + type
+      + "&date=" + encodeURIComponent(dateStr)
+      + "&originalDate=" + encodeURIComponent(origDate)
+      + "&day=" + encodeURIComponent(dayTitle)
+      + "&cardio=" + encodeURIComponent(cardio)
+      + "&cardioMinutes=" + encodeURIComponent(cardioMinutes)
+      + "&duration=" + encodeURIComponent(dur)
+      + "&calories=" + encodeURIComponent(cal)
+      + "&heartRate=" + encodeURIComponent(hr)
+      + "&notes=" + encodeURIComponent(notes);
+    await fetch(SHEETS_URL + "?" + params, {method:"GET", mode:"no-cors"});
+
+    // Persist to localStorage — fields stay filled
+    try{
+      localStorage.setItem("pgymplan_lastwrap_" + dayId, JSON.stringify({
+        weekKey: getPacificWeekKey(),
+        date: origDate,
+        day: dayTitle,
+        dur:dur, cal:cal, hr:hr, cardio:cardio, cardioMinutes:cardioMinutes, notes:notes
+      }));
+    }catch(e){}
+
+    markDayComplete(dayId);
     var saveBtn = document.getElementById("wrap-save-btn-" + dayId);
     if(saveBtn) saveBtn.textContent = "Update Workout";
-    showToast("Editing last saved workout", "var(--accent2)");
-  }catch(e){}
+    showToast(isEdit ? "Workout updated in Sheets" : "Workout saved to Sheets");
+  }catch(e){ showToast("Failed to save", "var(--accent2)"); }
 }
 
 async function saveActivity(){
@@ -1087,7 +1141,16 @@ async function saveActivity(){
   var cal = calEl ? calEl.value.trim() : "";
   var hr = hrEl ? hrEl.value.trim() : "";
   var notes = notesEl ? notesEl.value.trim() : "";
-  var dateStr = (dateEl && dateEl.value.trim()) ? dateEl.value.trim() : new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+  var rawDate = dateEl ? dateEl.value.trim() : "";
+  var dateStr;
+  if(rawDate && rawDate.indexOf("-") > 0){
+    var dp = new Date(rawDate + "T12:00:00");
+    dateStr = dp.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+  } else if(rawDate){
+    dateStr = rawDate;
+  } else {
+    dateStr = new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+  }
   if(!actType){ showToast("Enter activity type", "var(--accent2)"); return; }
   var dayLabel = actType.toUpperCase();
 
@@ -1245,12 +1308,15 @@ async function toggleExGraph(exId, exName, linkEl){
   }
 }
 
-function buildHeatmap(rows){
+var _heatmapRows = [];
+function buildHeatmap(rows, period){
+  if(rows) _heatmapRows = rows;
+  period = period || "1mo";
   var grid = document.getElementById("heatmap-grid");
   var startLabel = document.getElementById("heatmap-start");
   if(!grid) return;
   var gymDates = {}, actDates = {};
-  rows.forEach(function(r){
+  _heatmapRows.forEach(function(r){
     if(!r.date) return;
     var key = new Date(r.date).toDateString();
     if(r.day && r.day.indexOf("DAY") === 0) gymDates[key] = true;
@@ -1258,9 +1324,21 @@ function buildHeatmap(rows){
   });
   grid.innerHTML = "";
   var today = new Date(); today.setHours(0,0,0,0);
-  var start = new Date(today); start.setDate(today.getDate() - 83);
+  var daysBack;
+  if(period === "2wk") daysBack = 13;
+  else if(period === "3mo") daysBack = 89;
+  else if(period === "all"){
+    var earliest = new Date(today);
+    _heatmapRows.forEach(function(r){
+      if(r.date){ var d = new Date(r.date); if(!isNaN(d) && d < earliest) earliest = d; }
+    });
+    daysBack = Math.max(Math.floor((today - earliest) / 86400000), 13);
+  } else {
+    daysBack = 29;
+  }
+  var start = new Date(today); start.setDate(today.getDate() - daysBack);
   if(startLabel) startLabel.textContent = start.toLocaleDateString("en-US",{month:"short",day:"numeric"});
-  for(var i=0; i<84; i++){
+  for(var i=0; i<=daysBack; i++){
     var d = new Date(start); d.setDate(start.getDate() + i);
     var key = d.toDateString();
     var cell = document.createElement("div");
@@ -1610,7 +1688,7 @@ async function loadStats(){
       atCanvas.parentElement.innerHTML = "<div style='color:var(--muted);font-size:13px;padding:10px 0;'>Log more workouts with HR data to see this graph.</div>";
     }
 
-    buildHeatmap(rows);
+    buildHeatmap(rows, "1mo");
     buildCardioDonut(rows);
     buildMonthlyCount(rows);
     buildDayTypeDistribution(rows);
@@ -1637,6 +1715,10 @@ function toggleCardioPill(btn, inputId, value){
   } else {
     if(inp) inp.value = "";
   }
+  // Auto-save if this is a finisher cardio input (not the activity panel)
+  if(inputId && inputId.indexOf("cardio-d") === 0){
+    saveCardioPersist(inputId.replace("cardio-",""));
+  }
 }
 
 // ── Tab navigation ───────────────────────────────────────────
@@ -1661,13 +1743,119 @@ function showDay(id){
       loadDayHistory(id, dayObj.title);
       loadCardioHistory(id);
     }
+    loadWrapPersist(id);
+    loadCardioPersist(id);
   }
   if(id === "stats") loadStats();
   if(id === "activity"){
     loadActivityHistory();
     var dateEl = document.getElementById("activity-date");
-    if(dateEl && !dateEl.value) dateEl.value = new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+    if(dateEl && !dateEl.value){
+      var today = new Date();
+      dateEl.value = today.getFullYear() + "-" + String(today.getMonth()+1).padStart(2,"0") + "-" + String(today.getDate()).padStart(2,"0");
+    }
   }
+}
+
+// ── Set checks for bodyweight exercises ──────────────────────
+function toggleSetCheck(exId, setIdx){
+  var data = loadData();
+  if(!data.setBChecks) data.setBChecks = {};
+  if(!data.setBChecks[exId]) data.setBChecks[exId] = [false,false,false];
+  data.setBChecks[exId][setIdx] = !data.setBChecks[exId][setIdx];
+  saveData(data);
+  var btn = document.getElementById("setcheck-" + exId + "-" + setIdx);
+  if(btn){ btn.classList.toggle("done", data.setBChecks[exId][setIdx]); btn.textContent = data.setBChecks[exId][setIdx] ? "\u2713" : ""; }
+  var allDone = data.setBChecks[exId].every(function(v){ return v; });
+  if(allDone && !(data.checks && data.checks[exId])){
+    if(!data.checks) data.checks = {};
+    data.checks[exId] = true; saveData(data);
+    var card = document.getElementById("card-" + exId);
+    if(card){ card.classList.add("done"); var cb = card.querySelector(".check-btn"); if(cb){ cb.classList.add("done"); cb.textContent = "\u2713"; } }
+  } else if(!allDone && data.checks && data.checks[exId]){
+    data.checks[exId] = false; saveData(data);
+    var card2 = document.getElementById("card-" + exId);
+    if(card2){ card2.classList.remove("done"); var cb2 = card2.querySelector(".check-btn"); if(cb2){ cb2.classList.remove("done"); cb2.textContent = ""; } }
+  }
+}
+
+// ── Cardio finisher persist ───────────────────────────────────
+function saveCardioPersist(dayId){
+  var typeEl = document.getElementById("cardio-" + dayId);
+  var durEl = document.getElementById("cardio-dur-" + dayId);
+  var doneBtn = document.getElementById("finisher-done-" + dayId);
+  try{
+    localStorage.setItem("pgymplan_cardio_" + dayId, JSON.stringify({
+      weekKey: getPacificWeekKey(),
+      type: typeEl ? typeEl.value : "",
+      duration: durEl ? durEl.value : "",
+      done: doneBtn ? doneBtn.classList.contains("done") : false
+    }));
+  }catch(e){}
+}
+
+function loadCardioPersist(dayId){
+  try{
+    var saved = JSON.parse(localStorage.getItem("pgymplan_cardio_" + dayId));
+    if(!saved) return;
+    if(saved.weekKey !== getPacificWeekKey()){ localStorage.removeItem("pgymplan_cardio_" + dayId); return; }
+    var typeEl = document.getElementById("cardio-" + dayId);
+    var durEl = document.getElementById("cardio-dur-" + dayId);
+    if(typeEl && saved.type) typeEl.value = saved.type;
+    if(durEl && saved.duration) durEl.value = saved.duration;
+    if(saved.type){
+      var finEl = document.getElementById("finisher-" + dayId);
+      if(finEl){ finEl.querySelectorAll(".cardio-pill").forEach(function(p){ if(p.textContent === saved.type) p.classList.add("active"); }); }
+    }
+    if(saved.done){
+      var doneBtn = document.getElementById("finisher-done-" + dayId);
+      var finEl2 = document.getElementById("finisher-" + dayId);
+      if(doneBtn){ doneBtn.classList.add("done"); doneBtn.textContent = "\u2713 Done"; }
+      if(finEl2) finEl2.classList.add("done");
+    }
+  }catch(e){}
+}
+
+// ── Wrap-up persist ───────────────────────────────────────────
+function loadWrapPersist(dayId){
+  try{
+    var saved = JSON.parse(localStorage.getItem("pgymplan_lastwrap_" + dayId));
+    if(!saved) return;
+    if(saved.weekKey && saved.weekKey !== getPacificWeekKey()){
+      localStorage.removeItem("pgymplan_lastwrap_" + dayId);
+      var saveBtn0 = document.getElementById("wrap-save-btn-" + dayId);
+      if(saveBtn0) saveBtn0.textContent = "Save Workout";
+      return;
+    }
+    var durEl = document.getElementById("stat-dur-" + dayId);
+    var calEl = document.getElementById("stat-cal-" + dayId);
+    var hrEl = document.getElementById("stat-hr-" + dayId);
+    var notesEl = document.getElementById("notes-" + dayId);
+    if(durEl && saved.dur) durEl.value = saved.dur;
+    if(calEl && saved.cal) calEl.value = saved.cal;
+    if(hrEl && saved.hr) hrEl.value = saved.hr;
+    if(notesEl && saved.notes) notesEl.value = saved.notes;
+    var saveBtn = document.getElementById("wrap-save-btn-" + dayId);
+    if(saveBtn) saveBtn.textContent = "Update Workout";
+  }catch(e){}
+}
+
+// ── Finisher done toggle ──────────────────────────────────────
+function toggleFinisherDone(dayId){
+  var btn = document.getElementById("finisher-done-" + dayId);
+  if(!btn) return;
+  var isDone = btn.classList.toggle("done");
+  var finEl = document.getElementById("finisher-" + dayId);
+  if(finEl) finEl.classList.toggle("done", isDone);
+  btn.textContent = isDone ? "\u2713 Done" : "Mark Done";
+  saveCardioPersist(dayId);
+}
+
+// ── Heatmap period selector ───────────────────────────────────
+function setHeatmapPeriod(period, btn){
+  document.querySelectorAll(".heatmap-period-pill").forEach(function(p){ p.classList.remove("active"); });
+  if(btn) btn.classList.add("active");
+  buildHeatmap(null, period);
 }
 
 // ── Init ─────────────────────────────────────────────────────
@@ -1682,12 +1870,8 @@ updateDayTabColors();
     else showDay("d1");
   }catch(e){ showDay("d1"); }
   ["d1","d2","d3","d4","d5"].forEach(function(did){
-    try{
-      if(localStorage.getItem("pgymplan_lastwrap_" + did)){
-        var btn = document.getElementById("wrap-edit-btn-" + did);
-        if(btn) btn.style.display = "block";
-      }
-    }catch(e){}
+    loadWrapPersist(did);
+    loadCardioPersist(did);
   });
 })();
 </script>

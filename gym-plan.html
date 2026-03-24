@@ -161,6 +161,7 @@
 <header>
   <h1>PETER'S GYM PLAN</h1>
   <p>4-day split · Southrac · 2026</p>
+  <div id="pending-sync-badge" style="display:none;background:var(--accent2);color:white;font-size:11px;font-weight:600;padding:3px 0;border-radius:4px;margin-top:4px;text-align:center;"></div>
 </header>
 <div class="day-nav" id="dayNav"></div>
 <div id="dayPanels"></div>
@@ -347,6 +348,49 @@ var EXERCISES = {
 var LS_KEY = "pgymplan_v5";
 function loadData(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||{}; }catch(e){ return {}; } }
 function saveData(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
+function clearStaleChecks(){
+  var data = loadData();
+  var curWeek = getPacificWeekKey();
+  if(data.checksWeekKey && data.checksWeekKey !== curWeek){
+    data.checks = {};
+    data.setBChecks = {};
+    data.warmupChecks = {};
+  }
+  data.checksWeekKey = curWeek;
+  saveData(data);
+}
+
+// ── Pending sync queue ────────────────────────────────────────
+var PENDING_KEY = "pgymplan_pending_v1";
+function loadPending(){ try{ return JSON.parse(localStorage.getItem(PENDING_KEY))||[]; }catch(e){ return []; } }
+function savePending(q){ try{ localStorage.setItem(PENDING_KEY, JSON.stringify(q)); }catch(e){} }
+function queuePending(params){
+  var q = loadPending();
+  q.push({params:params, ts:Date.now()});
+  savePending(q);
+}
+function dequeuePending(params){
+  savePending(loadPending().filter(function(item){ return item.params !== params; }));
+}
+function updatePendingIndicator(){
+  var q = loadPending();
+  var el = document.getElementById("pending-sync-badge");
+  if(el){ el.style.display = q.length > 0 ? "block" : "none"; el.textContent = q.length + " exercise(s) pending sync"; }
+}
+async function flushPending(){
+  var q = loadPending();
+  if(q.length === 0) return;
+  var remaining = [];
+  for(var i=0; i<q.length; i++){
+    try{
+      await fetch(SHEETS_URL + "?" + q[i].params, {method:"GET", mode:"no-cors"});
+    }catch(e){
+      remaining.push(q[i]);
+    }
+  }
+  savePending(remaining);
+  updatePendingIndicator();
+}
 
 // ── Toast ────────────────────────────────────────────────────
 var _toastTimer;
@@ -410,7 +454,10 @@ function buildPanels(){
 
     // Warmup
     html += "<div class='section-label'>Warm-Up</div>";
-    html += "<div class='warmup-block'><div class='w-title'>Incline Ramp (or substitute)</div><div class='warmup-item'>" + day.warmup + "</div></div>";
+    html += "<div class='warmup-block' id='warmup-block-" + day.id + "' style='display:flex;align-items:flex-start;gap:10px;'>";
+    html += "<button class='check-btn' id='warmup-check-" + day.id + "' onclick='toggleWarmup(\"" + day.id + "\")'></button>";
+    html += "<div style='flex:1;'><div class='w-title'>Incline Ramp (or substitute)</div><div class='warmup-item'>" + day.warmup + "</div></div>";
+    html += "</div>";
 
     // Exercise sections
     var sections = EXERCISES[day.id];
@@ -442,7 +489,10 @@ function buildPanels(){
     html += "<input class='stat-input' type='text' placeholder='or type here...' id='cardio-" + day.id + "' style='width:100%;text-align:left;' oninput='saveCardioPersist(\"" + day.id + "\")'>";
     html += "<div style='display:flex;gap:8px;margin-top:8px;align-items:center;'>";
     html += "<input class='stat-input' type='text' inputmode='decimal' placeholder='Duration (min)' id='cardio-dur-" + day.id + "' style='flex:1;' oninput='saveCardioPersist(\"" + day.id + "\")'>";
-    html += "<button class='cardio-done-btn' id='finisher-done-" + day.id + "' onclick='toggleFinisherDone(\"" + day.id + "\")'>Mark Done</button>";
+    html += "</div>";
+    html += "<div style='display:flex;align-items:center;gap:8px;margin-top:8px;'>";
+    html += "<button class='check-btn' id='finisher-done-" + day.id + "' onclick='toggleFinisherDone(\"" + day.id + "\")'></button>";
+    html += "<span style='font-size:12px;color:var(--muted);font-weight:600;'>Mark cardio done</span>";
     html += "</div>";
     html += "</div>";
     html += "<div class='hist-block' style='margin-top:10px;background:rgba(0,0,0,0.2);border:none;'>";
@@ -464,7 +514,10 @@ function buildPanels(){
 
     // Wrap-up stats
     html += "<div class='stats-block'>";
-    html += "<div class='stats-title'>📊 WRAP UP WORKOUT</div>";
+    html += "<div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;'>";
+    html += "<div class='stats-title' style='margin-bottom:0;'>📊 WRAP UP WORKOUT</div>";
+    html += "<div id='wrap-logged-" + day.id + "' style='display:none;font-size:11px;font-weight:600;color:var(--green);'>✓ Logged</div>";
+    html += "</div>";
     html += "<div class='stats-grid'>";
     html += "<div class='stat-col'><div class='stat-col-label'>Duration (min)</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 55' id='stat-dur-" + day.id + "'></div>";
     html += "<div class='stat-col'><div class='stat-col-label'>Calories</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 420' id='stat-cal-" + day.id + "'></div>";
@@ -555,6 +608,11 @@ function buildStatsHTML(){
     + "</div>"
     + "<div id='heatmap-grid'></div>"
     + "<div class='heatmap-labels'><span id='heatmap-start'></span><span>Today</span></div>"
+    + "<div style='display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;'>"
+    + "<div style='display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);'><div style='width:12px;height:12px;border-radius:3px;background:var(--accent);flex-shrink:0;'></div>Gym workout</div>"
+    + "<div style='display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);'><div style='width:12px;height:12px;border-radius:3px;background:var(--accent2);flex-shrink:0;'></div>Outdoor activity</div>"
+    + "<div style='display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);'><div style='width:12px;height:12px;border-radius:3px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;'></div>Rest day</div>"
+    + "</div>"
     + "</div>"
     + "<div style='color:var(--muted);font-size:11px;text-align:center;margin-top:20px;'>Last updated: Mar 20, 2026</div>";
 }
@@ -591,6 +649,7 @@ function renderAll(){
       });
     });
   });
+  restoreWarmupStates();
 }
 
 function buildCard(container, ex, dayId, data){
@@ -686,7 +745,7 @@ function buildCard(container, ex, dayId, data){
   if(ex.tip){
     var tipP = document.createElement("p");
     tipP.className = "tip-text";
-    tipP.innerHTML = "<strong>Tip: </strong>" + ex.tip;
+    tipP.innerHTML = "<strong>Starting ref: </strong>" + ex.tip;
     detailDiv.appendChild(tipP);
   }
   if(ex.form){
@@ -858,7 +917,7 @@ async function fetchLiveHistory(exId, exName){
       var suggested = Math.ceil(avgLast / increment) * increment + increment;
       var nudgeDiv = document.createElement("div");
       nudgeDiv.className = "overload-nudge";
-      nudgeDiv.textContent = "\u2191 Try " + suggested + " lbs today (+" + increment + " from last session)";
+      nudgeDiv.textContent = "\uD83C\uDFCB\uFE0F Today\u2019s target: " + suggested + " lbs (+" + increment + " progression)";
       liveEl.appendChild(nudgeDiv);
     }
   }catch(err){
@@ -963,9 +1022,33 @@ function resetDay(dayId){
       if(data.setBChecks) delete data.setBChecks[ex.id];
     });
   });
+  if(data.warmupChecks) delete data.warmupChecks[dayId];
   saveData(data);
   renderAll();
   showToast("Checkmarks reset", "#555");
+}
+
+function toggleWarmup(dayId){
+  var data = loadData();
+  if(!data.warmupChecks) data.warmupChecks = {};
+  data.warmupChecks[dayId] = !data.warmupChecks[dayId];
+  saveData(data);
+  var isDone = data.warmupChecks[dayId];
+  var btn = document.getElementById("warmup-check-" + dayId);
+  var block = document.getElementById("warmup-block-" + dayId);
+  if(btn){ btn.className = "check-btn" + (isDone ? " done" : ""); btn.textContent = isDone ? "\u2713" : ""; }
+  if(block){ block.style.opacity = isDone ? "0.65" : "1"; block.style.borderColor = isDone ? "var(--green)" : "var(--border)"; }
+}
+
+function restoreWarmupStates(){
+  var data = loadData();
+  ["d1","d2","d3","d4","d5"].forEach(function(dayId){
+    var isDone = !!(data.warmupChecks && data.warmupChecks[dayId]);
+    var btn = document.getElementById("warmup-check-" + dayId);
+    var block = document.getElementById("warmup-block-" + dayId);
+    if(btn){ btn.className = "check-btn" + (isDone ? " done" : ""); btn.textContent = isDone ? "\u2713" : ""; }
+    if(block){ block.style.opacity = isDone ? "0.65" : "1"; block.style.borderColor = isDone ? "var(--green)" : "var(--border)"; }
+  });
 }
 
 function getExName(exId){
@@ -1064,13 +1147,19 @@ async function saveWeight(exId, dayId){
     }
   }, 400);
 
-  // Post to Sheets
+  // Post to Sheets with pending queue for reliability
+  var exName = getExName(exId);
+  var params = "type=exercise&date=" + encodeURIComponent(dateStr) + "&day=" + encodeURIComponent(dayTitle) + "&exercise=" + encodeURIComponent(exName) + "&set1=" + encodeURIComponent(s1) + "&set2=" + encodeURIComponent(s2) + "&set3=" + encodeURIComponent(s3);
+  queuePending(params);
+  updatePendingIndicator();
   try{
-    var exName = getExName(exId);
-    var params = "type=exercise&date=" + encodeURIComponent(dateStr) + "&day=" + encodeURIComponent(dayTitle) + "&exercise=" + encodeURIComponent(exName) + "&set1=" + encodeURIComponent(s1) + "&set2=" + encodeURIComponent(s2) + "&set3=" + encodeURIComponent(s3);
     await fetch(SHEETS_URL + "?" + params, {method:"GET", mode:"no-cors"});
+    dequeuePending(params);
     showToast("Saved to Sheets");
-  }catch(e){ showToast("Saved locally", "var(--accent2)"); }
+  }catch(e){
+    showToast("Queued — will retry on next load", "var(--accent2)");
+  }
+  updatePendingIndicator();
 }
 
 // ── Save workout ─────────────────────────────────────────────
@@ -1125,6 +1214,8 @@ async function saveWorkout(dayId){
     markDayComplete(dayId);
     var saveBtn = document.getElementById("wrap-save-btn-" + dayId);
     if(saveBtn) saveBtn.textContent = "Update Workout";
+    var loggedBadge = document.getElementById("wrap-logged-" + dayId);
+    if(loggedBadge) loggedBadge.style.display = "block";
     showToast(isEdit ? "Workout updated in Sheets" : "Workout saved to Sheets");
   }catch(e){ showToast("Failed to save", "var(--accent2)"); }
 }
@@ -1216,6 +1307,15 @@ function weekDateRange(weekKey){
   var sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
   var opts = {month:"short", day:"numeric"};
   return "Week of " + monday.toLocaleDateString("en-US", opts) + " - " + sunday.toLocaleDateString("en-US", opts);
+}
+
+function weekStartDate(weekKey){
+  var parts = weekKey.split("-W");
+  var year = parseInt(parts[0]), wn = parseInt(parts[1]);
+  var jan4 = new Date(year, 0, 4);
+  var monday = new Date(jan4);
+  monday.setDate(jan4.getDate() - (jan4.getDay()+6)%7 + (wn-1)*7);
+  return monday.toLocaleDateString("en-US",{month:"short",day:"numeric"});
 }
 
 function isAdjacentWeek(wk1, wk2){
@@ -1399,11 +1499,19 @@ var _dayTypeChart = null;
 function buildDayTypeDistribution(rows){
   var canvas = document.getElementById("dayTypeChart");
   if(!canvas) return;
+  var dayLabelMap = {
+    "DAY 1": "Push (Chest/Shoulders/Triceps)",
+    "DAY 2": "Pull (Back/Biceps)",
+    "DAY 3": "Legs + Glutes",
+    "DAY 4": "Upper + Conditioning",
+    "DAY 5": "Arms + Shoulders"
+  };
   var counts = {};
   rows.forEach(function(r){
     if(!r.day) return;
-    var key = r.day.split(" - ")[0].trim();
-    counts[key] = (counts[key]||0) + 1;
+    var rawKey = r.day.split(" - ")[0].trim();
+    var displayKey = dayLabelMap[rawKey] || rawKey;
+    counts[displayKey] = (counts[displayKey]||0) + 1;
   });
   var keys = Object.keys(counts);
   if(keys.length === 0) return;
@@ -1455,7 +1563,7 @@ function buildConsistencyChart(rows){
   if(_consistencyChart){ _consistencyChart.destroy(); }
   _consistencyChart = new Chart(canvas, {
     type:"bar",
-    data:{labels:uniqueWeeks,datasets:[{label:"% of target (4 sessions)",data:pcts,backgroundColor:colors,borderColor:colors.map(function(c){ return c.replace("0.","1."); }),borderWidth:1}]},
+    data:{labels:uniqueWeeks.map(function(w){ return weekStartDate(w); }),datasets:[{label:"% of target (4 sessions)",data:pcts,backgroundColor:colors,borderColor:colors.map(function(c){ return c.replace("0.","1."); }),borderWidth:1}]},
     options:{responsive:true,plugins:{legend:{labels:{color:"#888884",font:{size:10},pointStyle:"line",usePointStyle:true}}},scales:{x:{ticks:{color:"#888884",font:{size:8},maxRotation:45},grid:{color:"#2e2e30"}},y:{min:0,max:100,ticks:{color:"#888884",font:{size:9},callback:function(v){ return v+"%"; }},grid:{color:"#2e2e30"}}}}
   });
 }
@@ -1810,7 +1918,7 @@ function loadCardioPersist(dayId){
     if(saved.done){
       var doneBtn = document.getElementById("finisher-done-" + dayId);
       var finEl2 = document.getElementById("finisher-" + dayId);
-      if(doneBtn){ doneBtn.classList.add("done"); doneBtn.textContent = "\u2713 Done"; }
+      if(doneBtn){ doneBtn.classList.add("done"); doneBtn.textContent = "\u2713"; }
       if(finEl2) finEl2.classList.add("done");
     }
   }catch(e){}
@@ -1837,6 +1945,8 @@ function loadWrapPersist(dayId){
     if(notesEl && saved.notes) notesEl.value = saved.notes;
     var saveBtn = document.getElementById("wrap-save-btn-" + dayId);
     if(saveBtn) saveBtn.textContent = "Update Workout";
+    var loggedBadge = document.getElementById("wrap-logged-" + dayId);
+    if(loggedBadge) loggedBadge.style.display = "block";
   }catch(e){}
 }
 
@@ -1847,7 +1957,7 @@ function toggleFinisherDone(dayId){
   var isDone = btn.classList.toggle("done");
   var finEl = document.getElementById("finisher-" + dayId);
   if(finEl) finEl.classList.toggle("done", isDone);
-  btn.textContent = isDone ? "\u2713 Done" : "Mark Done";
+  btn.textContent = isDone ? "\u2713" : "";
   saveCardioPersist(dayId);
 }
 
@@ -1864,6 +1974,8 @@ buildPanels();
 renderAll();
 updateDayTabColors();
 (function(){
+  clearStaleChecks();
+  flushPending();
   try{
     var lastDay = localStorage.getItem("pgymplan_lastday");
     if(lastDay && document.getElementById(lastDay)) showDay(lastDay);

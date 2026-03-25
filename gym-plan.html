@@ -614,7 +614,7 @@ function buildStatsHTML(){
     + "<div style='display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);'><div style='width:12px;height:12px;border-radius:3px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;'></div>Rest day</div>"
     + "</div>"
     + "</div>"
-    + "<div style='color:var(--muted);font-size:11px;text-align:center;margin-top:20px;'>Last updated: Mar 20, 2026</div>";
+    + "<div style='color:var(--muted);font-size:11px;text-align:center;margin-top:20px;'>Last updated: " + new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) + "</div>";
 }
 
 function buildMacrosHTML(){

@@ -444,11 +444,14 @@ function buildPanels(){
     // Glute activation for d3
     if(day.activation){
       html += "<div class='section-label'>Glute Activation (band) - Do BEFORE loading weight</div>";
-      html += "<div class='warmup-block'>";
+      html += "<div class='warmup-block' id='warmup-block-" + day.id + "-act' style='display:flex;align-items:flex-start;gap:10px;'>";
+      html += "<button class='check-btn' id='warmup-check-" + day.id + "-act' onclick='toggleWarmup(\"" + day.id + "-act\")'></button>";
+      html += "<div style='flex:1;'>";
       html += "<div class='w-title'>Band warm-up</div>";
       html += "<div class='warmup-item'>Clamshells - 2x15 each side</div>";
       html += "<div class='warmup-item'>Glute Bridge with band - 2x15</div>";
       html += "<div class='warmup-item' style='font-size:12px;margin-top:6px;'>Fires up the glutes so they do the work during heavy lifts instead of your lower back compensating.</div>";
+      html += "</div>";
       html += "</div>";
     }
 
@@ -490,9 +493,8 @@ function buildPanels(){
     html += "<div style='display:flex;gap:8px;margin-top:8px;align-items:center;'>";
     html += "<input class='stat-input' type='text' inputmode='decimal' placeholder='Duration (min)' id='cardio-dur-" + day.id + "' style='flex:1;' oninput='saveCardioPersist(\"" + day.id + "\")'>";
     html += "</div>";
-    html += "<div style='display:flex;align-items:center;gap:8px;margin-top:8px;'>";
+    html += "<div style='margin-top:8px;'>";
     html += "<button class='check-btn' id='finisher-done-" + day.id + "' onclick='toggleFinisherDone(\"" + day.id + "\")'></button>";
-    html += "<span style='font-size:12px;color:var(--muted);font-weight:600;'>Mark cardio done</span>";
     html += "</div>";
     html += "</div>";
     html += "<div class='hist-block' style='margin-top:10px;background:rgba(0,0,0,0.2);border:none;'>";
@@ -1022,7 +1024,7 @@ function resetDay(dayId){
       if(data.setBChecks) delete data.setBChecks[ex.id];
     });
   });
-  if(data.warmupChecks) delete data.warmupChecks[dayId];
+  if(data.warmupChecks){ delete data.warmupChecks[dayId]; delete data.warmupChecks[dayId + "-act"]; }
   saveData(data);
   renderAll();
   showToast("Checkmarks reset", "#555");
@@ -1042,7 +1044,7 @@ function toggleWarmup(dayId){
 
 function restoreWarmupStates(){
   var data = loadData();
-  ["d1","d2","d3","d4","d5"].forEach(function(dayId){
+  ["d1","d2","d3","d4","d5","d3-act"].forEach(function(dayId){
     var isDone = !!(data.warmupChecks && data.warmupChecks[dayId]);
     var btn = document.getElementById("warmup-check-" + dayId);
     var block = document.getElementById("warmup-block-" + dayId);
@@ -1971,10 +1973,10 @@ function setHeatmapPeriod(period, btn){
 // ── Init ─────────────────────────────────────────────────────
 buildNav();
 buildPanels();
+clearStaleChecks();
 renderAll();
 updateDayTabColors();
 (function(){
-  clearStaleChecks();
   flushPending();
   try{
     var lastDay = localStorage.getItem("pgymplan_lastday");

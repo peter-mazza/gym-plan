@@ -351,7 +351,7 @@ function saveData(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
 function clearStaleChecks(){
   var data = loadData();
   var curWeek = getPacificWeekKey();
-  if(data.checksWeekKey && data.checksWeekKey !== curWeek){
+  if(!data.checksWeekKey || data.checksWeekKey !== curWeek){
     data.checks = {};
     data.setBChecks = {};
     data.warmupChecks = {};
@@ -1931,7 +1931,7 @@ function loadWrapPersist(dayId){
   try{
     var saved = JSON.parse(localStorage.getItem("pgymplan_lastwrap_" + dayId));
     if(!saved) return;
-    if(saved.weekKey && saved.weekKey !== getPacificWeekKey()){
+    if(!saved.weekKey || saved.weekKey !== getPacificWeekKey()){
       localStorage.removeItem("pgymplan_lastwrap_" + dayId);
       var saveBtn0 = document.getElementById("wrap-save-btn-" + dayId);
       if(saveBtn0) saveBtn0.textContent = "Save Workout";

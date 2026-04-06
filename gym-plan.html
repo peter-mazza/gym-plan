@@ -210,6 +210,115 @@ var WEEK_BANNERS = {
 // Maps JS day-of-week (1=Mon...5=Fri) to workout panel ID
 var DOW_TO_PANEL = { 1:'d1', 2:'d2', 3:'d3', 4:'d4', 5:'d5' };
 
+// ── Schedule logic ────────────────────────────────────────────
+function toDateKey(date){
+  var d = new Date(date);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function getMondayOf(date){
+  var d = new Date(date); d.setHours(0,0,0,0);
+  var dow = d.getDay();
+  d.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
+  return d;
+}
+
+function getWeekNum(date){
+  var d = new Date(date); d.setHours(0,0,0,0);
+  var s = new Date(PROGRAM_START); s.setHours(0,0,0,0);
+  var diff = Math.floor((d - s) / 86400000);
+  return diff < 0 ? null : Math.floor(diff / 7) + 1;
+}
+
+function getProgramState(date){
+  var d = new Date(date); d.setHours(0,0,0,0);
+  var dow = d.getDay();
+  var s = new Date(PROGRAM_START); s.setHours(0,0,0,0);
+
+  if(d < s){
+    return { preProgram:true, isRest:true, restNote:'Program starts Apr 7, 2026',
+             dayOfWeek:dow, isOptional:false, panelId:null, weekNum:0,
+             phase:'accumulation', phaseName:'', weekInPhase:0, phaseLength:0,
+             isDeload:false, repScheme:'', banner:null, dayName:'', workoutType:'' };
+  }
+
+  var weekNum = getWeekNum(d);
+  var isWeekend = dow === 0 || dow === 6;
+  var dateKey = toDateKey(d);
+  var exception = EXCEPTION_DATES[dateKey] || null;
+  var isRest = isWeekend || !!(exception && exception.rest);
+  var restNote = exception ? exception.note : (isWeekend ? 'Rest day \u2014 recovery is part of the program.' : null);
+
+  var phaseKey = 'accumulation', phaseBlock = SCHEDULE_WEEKS[0];
+  for(var i=0; i<SCHEDULE_WEEKS.length; i++){
+    if(weekNum >= SCHEDULE_WEEKS[i].start && weekNum <= SCHEDULE_WEEKS[i].end){
+      phaseKey = SCHEDULE_WEEKS[i].phase; phaseBlock = SCHEDULE_WEEKS[i]; break;
+    }
+  }
+  var weekInPhase = weekNum - phaseBlock.start + 1;
+  var phaseLength = phaseBlock.end >= 999 ? null : (phaseBlock.end - phaseBlock.start + 1);
+
+  var monday = getMondayOf(d);
+  var banner = WEEK_BANNERS[toDateKey(monday)] || null;
+
+  var repScheme;
+  if(phaseKey === 'deload')               repScheme = '2 \xd7 10-12 all exercises \xb7 reduce load ~40%';
+  else if(phaseKey === 'intensification') repScheme = '4-5 \xd7 5-6 compounds \xb7 3 \xd7 8-10 accessories';
+  else                                    repScheme = '3 \xd7 10-12 compounds \xb7 3 \xd7 12-15 isolation';
+
+  var dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var workoutNames = {1:'Push', 2:'Pull', 3:'Legs + Glutes', 4:'Upper', 5:'Arms (Optional)'};
+
+  return {
+    preProgram:false, weekNum:weekNum, phase:phaseKey,
+    phaseName:PHASES[phaseKey].name, weekInPhase:weekInPhase, phaseLength:phaseLength,
+    isRest:isRest, restNote:restNote, banner:banner, isDeload:phaseKey==='deload',
+    repScheme:repScheme, dayOfWeek:dow, isOptional:dow===5,
+    panelId:DOW_TO_PANEL[dow]||null,
+    dayName:dayNames[dow], workoutType:workoutNames[dow]||''
+  };
+}
+
+function getSetsForExercise(ex, phase){
+  if(ex.fixedSets) return { display:ex.fixedSets };
+  if(ex.noWeight){
+    var s = phase === 'deload' ? 2 : 3;
+    if(ex.setsFormat === 'rounds') return { display:s+' rounds' };
+    return { display:s+' \xd7 '+(ex.coreSets||'') };
+  }
+  if(phase === 'deload')          return { display:'2 \xd7 10-12' };
+  if(phase === 'intensification') return { display:(ex.type==='compound'?'4-5 \xd7 5-6':'3 \xd7 8-10') };
+  return { display:(ex.type==='compound'?'3 \xd7 10-12':'3 \xd7 12-15') };
+}
+
+function getExerciseName(ex, phase){
+  if(ex.nameByPhase) return ex.nameByPhase[phase] || ex.nameByPhase.accumulation || ex.name;
+  return ex.name;
+}
+
+function findExercise(exId){
+  var found = null;
+  Object.keys(EXERCISES).forEach(function(did){
+    Object.keys(EXERCISES[did]).forEach(function(sk){
+      EXERCISES[did][sk].forEach(function(ex){ if(ex.id===exId) found=ex; });
+    });
+  });
+  return found;
+}
+
+function updateSetsDisplay(panelId, phase){
+  var panel = document.getElementById(panelId);
+  if(!panel) return;
+  panel.querySelectorAll('.exercise-sets[data-ex-id]').forEach(function(span){
+    var ex = findExercise(span.dataset.exId);
+    if(ex) span.textContent = getSetsForExercise(ex, phase).display;
+  });
+  panel.querySelectorAll('.exercise-name[data-ex-id]').forEach(function(el){
+    var ex = findExercise(el.dataset.exId);
+    if(ex && ex.nameByPhase) el.textContent = getExerciseName(ex, phase);
+  });
+}
+
 var DAYS = [
   { id:"d1", label:"Day 1", title:"DAY 1 - PUSH", subtitle:"Chest - Shoulders - Triceps - Core",
     skipNote:"Only 3 days this week? Drop Day 4, keep Days 1-3.",

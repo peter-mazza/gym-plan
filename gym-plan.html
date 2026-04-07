@@ -1634,16 +1634,15 @@ function markDayComplete(dayId){
 
 function updateDayTabColors(){
   var data = loadData();
-  var weekKey = getPacificWeekKey();
-  var done = (data.weekDone && data.weekDone[weekKey]) || {};
-  var dayIds = ["d1","d2","d3","d4","d5"];
-  var btnArr = [];
-  document.querySelectorAll(".day-btn").forEach(function(b){ btnArr.push(b); });
-  DAYS.forEach(function(d, i){
-    if(dayIds.indexOf(d.id) !== -1 && btnArr[i]){
-      if(done[d.id]){ btnArr[i].classList.add("week-done"); }
-      else { btnArr[i].classList.remove("week-done"); }
-    }
+  var monday = getMondayOf(viewedDate);
+  var panelIds = ['d1','d2','d3','d4','d5'];
+  var pills = document.querySelectorAll('.day-pill');
+  pills.forEach(function(pill, i){
+    if(i >= panelIds.length) return;
+    var dayDate = new Date(monday); dayDate.setDate(monday.getDate()+i);
+    var weekKey = _isoWeekKey(dayDate);
+    var done = !!(data.weekDone && data.weekDone[weekKey] && data.weekDone[weekKey][panelIds[i]]);
+    pill.classList.toggle('week-done', done && !pill.classList.contains('rest'));
   });
 }
 
@@ -2409,12 +2408,29 @@ renderAll();
 updateDayTabColors();
 (function(){
   flushPending();
-  try{
-    var lastDay = localStorage.getItem("pgymplan_lastday");
-    if(lastDay && document.getElementById(lastDay)) showDay(lastDay);
-    else showDay("d1");
-  }catch(e){ showDay("d1"); }
-  ["d1","d2","d3","d4","d5"].forEach(function(did){
+
+  var today = new Date();
+  var state = getProgramState(today);
+  renderPhaseHeader(state);
+
+  var lastDay = null;
+  try{ lastDay = localStorage.getItem('pgymplan_lastday'); }catch(e){}
+
+  if(state.isRest || state.preProgram){
+    showRestScreen(state);
+  } else if(lastDay && ['d1','d2','d3','d4','d5','activity','stats','macros'].indexOf(lastDay)!==-1){
+    if(['d1','d2','d3','d4','d5'].indexOf(lastDay)!==-1){
+      showDayForDate(lastDay, today);
+    } else {
+      showDay(lastDay);
+    }
+  } else if(state.panelId){
+    showDayForDate(state.panelId, today);
+  } else {
+    showDay('d1');
+  }
+
+  ['d1','d2','d3','d4','d5'].forEach(function(did){
     loadWrapPersist(did);
     loadCardioPersist(did);
   });

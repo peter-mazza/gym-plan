@@ -202,8 +202,11 @@
   <h1>PETER'S GYM PLAN</h1>
   <p>4-day split · Southrac · 2026</p>
   <div id="pending-sync-badge" style="display:none;background:var(--accent2);color:white;font-size:11px;font-weight:600;padding:3px 0;border-radius:4px;margin-top:4px;text-align:center;"></div>
+  <div id="phase-strip"></div>
 </header>
-<div class="day-nav" id="dayNav"></div>
+<div class="week-nav-row" id="dayNav"></div>
+<div class="secondary-nav-row" id="secondaryNav"></div>
+<div id="rest-screen" class="rest-screen"></div>
 <div id="dayPanels"></div>
 <div class="toast" id="toast"></div>
 <script>
@@ -539,6 +542,9 @@ var EXERCISES = {
   }
 };
 
+// ── Viewed date (current or browsed week) ────────────────────
+var viewedDate = new Date();
+
 // ── Storage ──────────────────────────────────────────────────
 var LS_KEY = "pgymplan_v5";
 function loadData(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||{}; }catch(e){ return {}; } }
@@ -608,14 +614,100 @@ function fmtDate(val){
 
 // ── Build HTML ───────────────────────────────────────────────
 function buildNav(){
-  var nav = document.getElementById("dayNav");
-  DAYS.forEach(function(day, i){
-    var btn = document.createElement("button");
-    btn.className = "day-btn" + (day.optional?" optional":"") + (i===0?" active":"");
-    btn.textContent = day.label;
-    btn.onclick = function(){ showDay(day.id); };
-    nav.appendChild(btn);
+  renderWeekNav();
+  buildSecondaryNav();
+}
+
+function renderWeekNav(){
+  var nav = document.getElementById('dayNav');
+  nav.textContent = ''; // clear safely
+
+  var prevBtn = document.createElement('button');
+  prevBtn.className = 'nav-arrow';
+  prevBtn.textContent = '\u2039';
+  prevBtn.setAttribute('aria-label','Previous week');
+  prevBtn.onclick = function(){ shiftWeek(-1); };
+  nav.appendChild(prevBtn);
+
+  var pillsDiv = document.createElement('div');
+  pillsDiv.className = 'day-pills';
+  nav.appendChild(pillsDiv);
+
+  var nextBtn = document.createElement('button');
+  nextBtn.className = 'nav-arrow';
+  nextBtn.textContent = '\u203a';
+  nextBtn.setAttribute('aria-label','Next week');
+  nextBtn.onclick = function(){ shiftWeek(1); };
+  nav.appendChild(nextBtn);
+
+  var monday = getMondayOf(viewedDate);
+  var todayKey = toDateKey(new Date());
+  var labels = ['Mon','Tue','Wed','Thu','Fri'];
+  var panelIds = ['d1','d2','d3','d4','d5'];
+  var data = loadData();
+
+  for(var i=0; i<5; i++){
+    var dayDate = new Date(monday); dayDate.setDate(monday.getDate()+i);
+    var dateKey = toDateKey(dayDate);
+    var exception = EXCEPTION_DATES[dateKey];
+    var isRestDay = !!(exception && exception.rest);
+    var isFriday = i === 4;
+    var isToday = dateKey === todayKey;
+    var weekKey = _isoWeekKey(dayDate);
+    var isDone = !!(data.weekDone && data.weekDone[weekKey] && data.weekDone[weekKey][panelIds[i]]);
+    var dayState = getProgramState(dayDate);
+
+    var btn = document.createElement('button');
+    var cls = 'day-pill';
+    if(isFriday)  cls += ' optional';
+    if(isRestDay) cls += ' rest';
+    if(isToday)   cls += ' today';
+    if(isDone && !isRestDay) cls += ' week-done';
+    if(dayState.isDeload && !isRestDay) cls += ' is-deload';
+    btn.className = cls;
+
+    var lbl = document.createElement('div');
+    lbl.className = 'day-pill-label';
+    lbl.textContent = labels[i];
+
+    var dt = document.createElement('div');
+    dt.className = 'day-pill-date';
+    dt.textContent = (dayDate.getMonth()+1)+'/'+dayDate.getDate();
+
+    btn.appendChild(lbl);
+    btn.appendChild(dt);
+
+    if(isFriday){
+      var opt = document.createElement('div');
+      opt.className = 'day-pill-opt';
+      opt.textContent = 'opt';
+      btn.appendChild(opt);
+    }
+
+    btn.onclick = (function(pid, dd){ return function(){ showDayForDate(pid, dd); }; })(panelIds[i], dayDate);
+    pillsDiv.appendChild(btn);
+  }
+}
+
+function buildSecondaryNav(){
+  var sec = document.getElementById('secondaryNav');
+  if(!sec) return;
+  sec.textContent = ''; // clear safely
+  [{id:'activity',label:'+ Activity'},{id:'stats',label:'Stats'},{id:'macros',label:'Macros'}].forEach(function(item){
+    var btn = document.createElement('button');
+    btn.className = 'day-btn';
+    btn.textContent = item.label;
+    btn.onclick = function(){ showDay(item.id); };
+    sec.appendChild(btn);
   });
+}
+
+function shiftWeek(delta){
+  viewedDate = new Date(viewedDate);
+  viewedDate.setDate(viewedDate.getDate() + delta*7);
+  renderWeekNav();
+  var monday = getMondayOf(viewedDate);
+  showDayForDate('d1', monday);
 }
 
 function buildPanels(){

@@ -2118,38 +2118,174 @@ function toggleCardioPill(btn, inputId, value){
   }
 }
 
+// ── Phase header ─────────────────────────────────────────────
+function renderPhaseHeader(state){
+  var el = document.getElementById('phase-strip');
+  if(!el) return;
+  while(el.firstChild) el.removeChild(el.firstChild); // clear
+  if(state.isRest || state.preProgram){ el.className='phase-strip'; return; }
+
+  var dc = state.isDeload ? ' deload' : '';
+  el.className = 'phase-strip' + dc;
+
+  var dayDiv = document.createElement('div');
+  dayDiv.className = 'phase-day';
+  dayDiv.textContent = state.dayName + ' \u2014 ' + state.workoutType;
+  el.appendChild(dayDiv);
+
+  var wkLabel = state.phaseLength
+    ? state.phaseName + ' \xb7 Week ' + state.weekInPhase + ' of ' + state.phaseLength
+    : state.phaseName + ' \xb7 Week ' + state.weekInPhase;
+  var infoDiv = document.createElement('div');
+  infoDiv.className = 'phase-info' + dc;
+  infoDiv.textContent = wkLabel;
+  el.appendChild(infoDiv);
+
+  var schemeDiv = document.createElement('div');
+  schemeDiv.className = 'phase-scheme';
+  schemeDiv.textContent = state.repScheme;
+  el.appendChild(schemeDiv);
+}
+
+function updateDeloadBanner(panelId, state){
+  var el = document.getElementById('deload-banner-'+panelId);
+  if(!el) return;
+  while(el.firstChild) el.removeChild(el.firstChild); // clear
+  if(!state.isDeload) return;
+  var banner = document.createElement('div');
+  banner.className = 'deload-banner';
+  banner.textContent = '\uD83D\uDD04 DELOAD WEEK \u2014 Reduce load ~40%, focus on form & recovery';
+  el.appendChild(banner);
+}
+
+function updateWeekBanner(panelId, state){
+  var el = document.getElementById('week-banner-'+panelId);
+  if(!el) return;
+  while(el.firstChild) el.removeChild(el.firstChild); // clear
+  if(!state.banner) return;
+  var banner = document.createElement('div');
+  banner.className = 'week-banner';
+  banner.textContent = state.banner;
+  el.appendChild(banner);
+}
+
+function showRestScreen(state){
+  document.querySelectorAll('.day-panel').forEach(function(p){ p.classList.remove('active'); });
+  var el = document.getElementById('rest-screen');
+  if(!el) return;
+  el.style.display = 'block';
+  while(el.firstChild) el.removeChild(el.firstChild); // clear
+
+  var title = document.createElement('div');
+  title.className = 'rest-screen-title';
+  title.textContent = state.preProgram ? 'NOT STARTED' : 'REST DAY';
+  el.appendChild(title);
+
+  var note = document.createElement('div');
+  note.className = 'rest-screen-note';
+  note.textContent = state.restNote || 'Recovery is part of the program.';
+  el.appendChild(note);
+
+  if(!state.preProgram){
+    var btn = document.createElement('button');
+    btn.className = 'rest-screen-next';
+    btn.textContent = 'See next workout \u2192';
+    btn.onclick = showNextWorkout;
+    el.appendChild(btn);
+  }
+}
+
+function showNextWorkout(){
+  var today = new Date();
+  var dow = today.getDay();
+  var toMon = dow===1 ? 0 : (dow===0 ? 1 : 8-dow);
+  var nextMon = new Date(today); nextMon.setDate(today.getDate()+toMon);
+  var restEl = document.getElementById('rest-screen');
+  if(restEl) restEl.style.display='none';
+  viewedDate = nextMon;
+  renderWeekNav();
+  showDayForDate('d1', nextMon);
+}
+
+// ── Show a specific date's workout ───────────────────────────
+function showDayForDate(panelId, date){
+  viewedDate = new Date(date);
+  var state = getProgramState(date);
+
+  var restEl = document.getElementById('rest-screen');
+  if(restEl) restEl.style.display='none';
+
+  // Mark active pill
+  document.querySelectorAll('.day-pill').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('#secondaryNav .day-btn').forEach(function(b){ b.classList.remove('active'); });
+  var dateKey = toDateKey(date);
+  var monday = getMondayOf(date);
+  for(var i=0; i<5; i++){
+    var d = new Date(monday); d.setDate(monday.getDate()+i);
+    if(toDateKey(d)===dateKey){
+      var pills = document.querySelectorAll('.day-pill');
+      if(pills[i]) pills[i].classList.add('active');
+    }
+  }
+
+  renderPhaseHeader(state);
+
+  if(state.isRest || state.preProgram){
+    showRestScreen(state);
+    return;
+  }
+
+  document.querySelectorAll('.day-panel').forEach(function(p){ p.classList.remove('active'); });
+  var panel = document.getElementById(panelId);
+  if(panel){
+    panel.classList.add('active');
+    updateSetsDisplay(panelId, state.phase);
+    updateDeloadBanner(panelId, state);
+    updateWeekBanner(panelId, state);
+  }
+
+  window.scrollTo(0,0);
+  try{ localStorage.setItem('pgymplan_lastday', panelId); }catch(e){}
+
+  var WDAYS = ['d1','d2','d3','d4','d5'];
+  if(WDAYS.indexOf(panelId)!==-1){
+    var dayObj=null; DAYS.forEach(function(d){ if(d.id===panelId) dayObj=d; });
+    if(dayObj){ loadDayHistory(panelId,dayObj.title); loadCardioHistory(panelId); }
+    loadWrapPersist(panelId); loadCardioPersist(panelId);
+  }
+}
+
 // ── Tab navigation ───────────────────────────────────────────
 var WORKOUT_DAYS = ["d1","d2","d3","d4","d5"];
 function showDay(id){
-  document.querySelectorAll(".day-panel").forEach(function(p){ p.classList.remove("active"); });
-  document.querySelectorAll(".day-btn").forEach(function(b){ b.classList.remove("active"); });
-  var panel = document.getElementById(id);
-  if(panel) panel.classList.add("active");
-  DAYS.forEach(function(d, i){
-    if(d.id === id){
-      var btns = document.querySelectorAll(".day-btn");
-      if(btns[i]) btns[i].classList.add("active");
-    }
-  });
-  window.scrollTo(0, 0);
-  try{ localStorage.setItem("pgymplan_lastday", id); }catch(e){}
-  if(WORKOUT_DAYS.indexOf(id) !== -1){
-    var dayObj = null;
-    DAYS.forEach(function(d){ if(d.id === id) dayObj = d; });
-    if(dayObj){
-      loadDayHistory(id, dayObj.title);
-      loadCardioHistory(id);
-    }
-    loadWrapPersist(id);
-    loadCardioPersist(id);
+  var panelToDow = {d1:1, d2:2, d3:3, d4:4, d5:5};
+  if(panelToDow[id]!==undefined){
+    var monday = getMondayOf(viewedDate);
+    var targetDate = new Date(monday); targetDate.setDate(monday.getDate()+panelToDow[id]-1);
+    showDayForDate(id, targetDate);
+    return;
   }
-  if(id === "stats") loadStats();
-  if(id === "activity"){
+  // Non-workout panels
+  var restEl = document.getElementById('rest-screen');
+  if(restEl) restEl.style.display='none';
+  document.querySelectorAll('.day-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.day-pill').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('#secondaryNav .day-btn').forEach(function(b){ b.classList.remove('active'); });
+  var panel = document.getElementById(id);
+  if(panel) panel.classList.add('active');
+  document.querySelectorAll('#secondaryNav .day-btn').forEach(function(b){
+    if((id==='activity'&&b.textContent.indexOf('Activity')!==-1)||b.textContent.toLowerCase()===id)
+      b.classList.add('active');
+  });
+  window.scrollTo(0,0);
+  try{ localStorage.setItem('pgymplan_lastday', id); }catch(e){}
+  if(id==='stats') loadStats();
+  if(id==='activity'){
     loadActivityHistory();
-    var dateEl = document.getElementById("activity-date");
-    if(dateEl && !dateEl.value){
-      var today = new Date();
-      dateEl.value = today.getFullYear() + "-" + String(today.getMonth()+1).padStart(2,"0") + "-" + String(today.getDate()).padStart(2,"0");
+    var dateEl=document.getElementById('activity-date');
+    if(dateEl&&!dateEl.value){
+      var t=new Date();
+      dateEl.value=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
     }
   }
 }

@@ -926,22 +926,24 @@ function buildMacrosHTML(){
 
 // ── Render exercise cards ────────────────────────────────────
 function renderAll(){
+  var currentPhase = getProgramState(new Date()).phase;
   var data = loadData();
   Object.keys(EXERCISES).forEach(function(dayId){
     var sections = EXERCISES[dayId];
     Object.keys(sections).forEach(function(sectionId){
       var container = document.getElementById(sectionId);
       if(!container) return;
-      container.innerHTML = "";
+      container.textContent = ''; // clear
       sections[sectionId].forEach(function(ex){
-        buildCard(container, ex, dayId, data);
+        buildCard(container, ex, dayId, data, currentPhase);
       });
     });
   });
   restoreWarmupStates();
 }
 
-function buildCard(container, ex, dayId, data){
+function buildCard(container, ex, dayId, data, phase){
+  phase = phase || getProgramState(new Date()).phase;
   var isDone = !!(data.checks && data.checks[ex.id]);
   var history = (data.history && data.history[ex.id]) || [];
   var lastEntry = history.length ? history[history.length-1] : null;
@@ -973,13 +975,15 @@ function buildCard(container, ex, dayId, data){
   infoDiv.className = "exercise-info";
   var nameDiv = document.createElement("div");
   nameDiv.className = "exercise-name";
-  nameDiv.textContent = ex.name;
+  nameDiv.textContent = getExerciseName(ex, phase);
+  nameDiv.dataset.exId = ex.id;
   infoDiv.appendChild(nameDiv);
   var metaDiv = document.createElement("div");
   metaDiv.className = "exercise-meta";
   var setsSpan = document.createElement("span");
   setsSpan.className = "exercise-sets";
-  setsSpan.textContent = ex.sets;
+  setsSpan.textContent = getSetsForExercise(ex, phase).display;
+  setsSpan.dataset.exId = ex.id;
   metaDiv.appendChild(setsSpan);
   if(lastSummary){
     var prevSpan = document.createElement("span");

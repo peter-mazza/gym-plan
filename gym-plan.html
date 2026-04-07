@@ -722,11 +722,15 @@ function buildPanels(){
     if(day.macrosPanel){ panel.innerHTML = buildMacrosHTML(); container.appendChild(panel); return; }
 
     var html = "";
+    html += "<div id='deload-banner-" + day.id + "'></div>";
+    html += "<div id='week-banner-" + day.id + "'></div>";
     html += "<div style='margin-bottom:18px;'>";
     html += "<div class='day-label'>" + day.title + "</div>";
     html += "<div class='day-subtitle'>" + day.subtitle + "</div>";
-    if(day.skipNote) html += "<div class='skip-note'>⚠️ " + day.skipNote + "</div>";
     html += "</div>";
+    if(day.bandPullAparts){
+      html += "<div class='band-pull-callout'>\u26A0\uFE0F Do Band Pull-Aparts as warmup or between sets</div>";
+    }
 
     // Glute activation for d3
     if(day.activation){

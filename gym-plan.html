@@ -509,9 +509,6 @@ var EXERCISES = {
   },
   d5: {
     "exercises-d5": [
-      { id:"d5_ez_curl", name:"EZ Bar Curl", type:"isolation",
-        tip:"Start weight: 40-55 lbs. Angled grip is easier on wrists.",
-        form:"Keep elbows pinned at sides. Full stretch at bottom, squeeze at top." },
       { id:"d5_hammer_curl", name:"Hammer Curl", type:"isolation", isDumbbell:true,
         tip:"Start weight: 20-30 lbs.",
         form:"Palms facing each other, curl straight up. Hits brachialis and forearm \u2014 adds thickness and grip." },
@@ -1001,7 +998,7 @@ function buildCard(container, ex, dayId, data, phase){
   var infoBtn = document.createElement("button");
   infoBtn.className = "info-btn";
   infoBtn.textContent = "i";
-  infoBtn.onclick = (function(eid, ename, btn){ return function(){ toggleTip(btn, eid, ename); }; })(ex.id, ex.name, infoBtn);
+  infoBtn.onclick = (function(eid, ename, btn){ return function(){ toggleTip(btn, eid, ename); }; })(ex.id, getExerciseName(ex, phase), infoBtn);
   if(isDone){
     var editBtn = document.createElement("button");
     editBtn.className = "edit-entry-btn";
@@ -1116,7 +1113,7 @@ function buildCard(container, ex, dayId, data, phase){
     graphLink.className = "show-graph-link";
     graphLink.textContent = "Show progression graph";
     graphLink.id = "graph-link-" + ex.id;
-    graphLink.onclick = (function(eid, ename){ return function(){ toggleExGraph(eid, ename, this); }; })(ex.id, ex.name);
+    graphLink.onclick = (function(eid, ename){ return function(){ toggleExGraph(eid, ename, this); }; })(ex.id, getExerciseName(ex, phase));
     wsDiv.appendChild(graphLink);
 
     var graphContainer = document.createElement("div");
@@ -1352,7 +1349,7 @@ function getExName(exId){
   var found = exId;
   Object.keys(EXERCISES).forEach(function(d){
     Object.keys(EXERCISES[d]).forEach(function(s){
-      EXERCISES[d][s].forEach(function(ex){ if(ex.id === exId) found = ex.name; });
+      EXERCISES[d][s].forEach(function(ex){ if(ex.id === exId) found = getExerciseName(ex, getProgramState(new Date()).phase); });
     });
   });
   return found;

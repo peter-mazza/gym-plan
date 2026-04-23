@@ -444,29 +444,29 @@ var DAYS = [
   { id:"d1", label:"Mon", title:"MONDAY \u2014 PUSH", subtitle:"Chest \xb7 Shoulders \xb7 Triceps",
     warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
     warmupExtra:"Band stretches \u2014 chest opener (2\xd715 each side) + shoulder external rotation (2\xd715)",
-    finisherNote:"Push the pace \u2014 breathing hard but not sprinting. This is where the endorphins kick in.",
-    finisherZone:"10-15 min \u2014 Zone 3 \u2014 HR 135-155" },
+    finisherNote:"Push the pace \u2014 breathing hard but not sprinting. Extend to 20 min if you feel good \u2014 this is where the endorphin window opens.",
+    finisherZone:"15-20 min \u2014 Zone 3 \u2014 HR 135-155" },
   { id:"d2", label:"Tue", title:"TUESDAY \u2014 PULL", subtitle:"Back \xb7 Biceps \xb7 Rear Delts",
     warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
     warmupExtra:"Dead hangs \u2014 2\u20133 sets \xd7 10-15 sec \u2014 decompress spine, activate lats before pulling",
-    finisherNote:"Push the incline or pace. You want to be breathing hard.",
-    finisherZone:"10-15 min \u2014 Zone 3 \u2014 HR 135-155" },
+    finisherNote:"Push the incline or pace. Stay in Zone 3 \u2014 breathing hard but not sprinting.",
+    finisherZone:"15-20 min \u2014 Zone 3 \u2014 HR 135-155" },
   { id:"d3", label:"Wed", title:"WEDNESDAY \u2014 LEGS + GLUTES", subtitle:"Posterior chain priority \u2014 most important day",
     warmup:"5 min Woodway or ramp \u2014 Zone 1-2 \u2014 HR 115-135",
     activation:true,
-    finisherNote:"Legs will be cooked \u2014 moderate incline at strong pace. Stair climber also solid after leg day.",
-    finisherZone:"10-15 min \u2014 Zone 3 \u2014 HR 135-155" },
+    finisherNote:"Legs are spent \u2014 do NOT load them further. Use the ramp at low resistance, bike, or rower. Keep it easy. Zone 2 only.",
+    finisherZone:"15 min \u2014 Zone 2 \u2014 HR 115-130" },
   { id:"d4", label:"Thu", title:"THURSDAY \u2014 UPPER", subtitle:"Push/Pull hybrid",
     warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
     warmupExtra:"Band stretches \u2014 chest opener + shoulder circles (2\xd715 each) before pressing",
     bandPullAparts:true,
-    finisherNote:"Push it. This is your conditioning day \u2014 the finisher matters more here.",
-    finisherZone:"10-15 min \u2014 Zone 3 \u2014 HR 135-155" },
+    finisherNote:"Push it. This is your conditioning day \u2014 the finisher matters more here. Go to 20 min if you have it.",
+    finisherZone:"15-20 min \u2014 Zone 3 \u2014 HR 135-155" },
   { id:"d5", label:"Fri", title:"FRIDAY \u2014 ARMS", subtitle:"Optional \u2014 light on the body",
     optional:true,
     warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
-    finisherNote:"Slightly easier today. Bonus session \u2014 push it but do not bury yourself.",
-    finisherZone:"10-15 min \u2014 Zone 2-3 \u2014 HR 125-150",
+    finisherNote:"Keep it easy \u2014 this is a bonus day. Zone 2 only, recover for next week.",
+    finisherZone:"15-20 min \u2014 Zone 2 \u2014 HR 115-130",
     recovery:true },
   { id:"activity", label:"+ Activity", title:"ACTIVITY LOG", activityPanel:true },
   { id:"stats",    label:"Stats",      title:"STATS",        statsPanel:true },
@@ -481,15 +481,15 @@ var EXERCISES = {
         type:"compound", isDumbbell:true,
         tip:"Accumulation: working weight 50-55 lb DBs. Intensification: barbell bench, start 95-115 lbs. Last 2 reps should feel hard.",
         form:"Keep shoulder blades pinched back. No elbow flare past 45\xb0." },
+      { id:"d1_chest_fly", name:"Chest Fly Machine", type:"isolation",
+        tip:"Working weight: 100-105 lbs on the stack.",
+        form:"Think hugging a tree, not pushing. Full stretch at open position, controlled close." },
       { id:"d1_seated_db_press", name:"Seated DB Shoulder Press", type:"compound", isDumbbell:true,
         tip:"Working weight: 30 lbs each.",
         form:"Press in a slight forward arc. Stop just before lockout to keep tension." },
       { id:"d1_cable_lateral", name:"Cable Lateral Raise", type:"isolation",
         tip:"Working weight: 13 lbs.",
         form:"Stand sideways to cable. Lead with elbow, not wrist. No shrugging at the top." },
-      { id:"d1_chest_fly", name:"Chest Fly Machine", type:"isolation",
-        tip:"Working weight: 100-105 lbs on the stack.",
-        form:"Think hugging a tree, not pushing. Full stretch at open position, controlled close." },
       { id:"d1_rope_pushdown", name:"Tricep Rope Pushdown", type:"isolation",
         tip:"Working weight: 80-90 lbs.",
         form:"Spread rope handles apart at the bottom to fully contract. Keep elbows pinned to sides." },
@@ -512,12 +512,12 @@ var EXERCISES = {
       { id:"d2_lat_pulldown", name:"Lat Pulldown (wide grip)", type:"compound",
         tip:"Working weight: 80-90 lbs.",
         form:"Lean back slightly, pull bar to upper chest, lead with elbows. No jerking or momentum." },
-      { id:"d2_db_row", name:"Single-Arm Dumbbell Row", type:"compound", isDumbbell:true,
-        tip:"Working weight: 45 lbs. Stop 1-2 reps short of failure \u2014 lower back feeds directly into Wednesday\u2019s RDL.",
-        form:"Brace with opposite hand on bench. Pull elbow straight back past hip. Elbow to ceiling." },
       { id:"d2_straight_arm_pulldown", name:"Straight-Arm Pulldown (cable)", type:"isolation",
         tip:"Working weight: 60-70 lbs. High pulley, rope or straight bar.",
         form:"Arms straight with soft elbow bend. Hinge slightly at hip, pull bar down to thighs. Feel lats stretch at top." },
+      { id:"d2_db_row", name:"Single-Arm Dumbbell Row", type:"compound", isDumbbell:true,
+        tip:"Working weight: 45 lbs. Stop 1-2 reps short of failure \u2014 lower back feeds directly into Wednesday\u2019s RDL.",
+        form:"Brace with opposite hand on bench. Pull elbow straight back past hip. Elbow to ceiling." },
       { id:"d2_face_pull", name:"Face Pulls (cable)", type:"isolation",
         tip:"Do not skip this \u2014 best shoulder health exercise available. Working weight: 50 lbs. Keep it controlled.",
         form:"Cable at face height, rope attachment. Pull to ears, elbows high, wrists behind elbows. Slow and controlled." },
@@ -537,18 +537,18 @@ var EXERCISES = {
       { id:"d3_db_rdl", name:"Dumbbell Romanian Deadlift", type:"compound", isDumbbell:true,
         tip:"Primary anchor \u2014 do this first, fresh. Working weight: 45-50 lbs each hand. Dumbbells allow a more natural path and reduce spinal loading vs barbell.",
         form:"Hip hinge, soft knee bend, flat back throughout. Dumbbells hang in front of legs \u2014 keep them close to your body. Feel hamstrings load. Stop well short of lower back rounding \u2014 depth is not the goal, tension is." },
-      { id:"d3_hip_thrust", name:"Hip Thrust (barbell or machine)", type:"compound",
-        tip:"Working weight: 80-100 lbs.",
-        form:"Upper back on bench, feet flat and close to glutes. Drive through heels, squeeze glutes at top. No low back hyperextension." },
       { id:"d3_sl_rdl", name:"Single-Leg RDL (kettlebell)", type:"compound",
-        tip:"Working weight: 35 lb kettlebell in contralateral hand (opposite to planted foot).",
+        tip:"Working weight: 35 lb kettlebell in contralateral hand (opposite to planted foot). Done second while balance and coordination are still sharp.",
         form:"Hinge at hip, flat back, free leg extends behind. Stop short if lower back rounds \u2014 flat back beats depth." },
+      { id:"d3_hip_thrust", name:"Hip Thrust (barbell or machine)", type:"compound",
+        tip:"Working weight: 80-100 lbs. Pin to a specific weight each session \u2014 if you hit 12, add 10 lbs next time.",
+        form:"Upper back on bench, feet flat and close to glutes. Drive through heels, squeeze glutes at top. No low back hyperextension." },
       { id:"d3_leg_press", name:"Leg Press", type:"compound",
         tip:"Working weight: 200-230 lbs. Lower and wider foot placement = more glute and hamstring.",
         form:"No knee lockout at top. Lower until hips start to tuck \u2014 stop there." },
-      { id:"d3_cable_pull_through", name:"Cable Pull-Through", type:"isolation",
-        tip:"Start weight: 40-60 lbs. Low pulley, rope between legs, stand facing away.",
-        form:"Hip hinge forward, then drive hips through to stand. Like a KB swing but slower \u2014 glute-focused." },
+      { id:"d3_kb_swing", name:"Kettlebell Swing", type:"isolation",
+        tip:"Working weight: moderate KB \u2014 same one used for single-leg RDL or one step heavier. 3\xd715-20 reps. Hip hinge finisher, not a cardio circuit.",
+        form:"Hinge back, let KB swing between legs, then drive hips forward explosively. The power comes from the hip drive, not the arms. Let it float to shoulder height \u2014 do not pull it up. Smooth and controlled, not frantic." },
       { id:"d3_leg_curl", name:"Leg Curl Machine", type:"isolation",
         tip:"Working weight: 90 lbs.",
         form:"Slow on the way down (eccentric). Keep hips on pad throughout. Full range of motion." }
@@ -567,15 +567,15 @@ var EXERCISES = {
         type:"compound", isDumbbell:true,
         tip:"Accumulation: working weight 55-60 lbs each DB. Intensification: barbell, start at 95-115 lbs.",
         form:"Flat bench. Lower to chest, press up. Shoulder blades retracted throughout." },
-      { id:"d4_cable_chest_fly", name:"Cable Chest Fly", type:"isolation", fixedSets:"3 \xd7 12",
-        tip:"Working weight: ~17 lbs per side. Cables at shoulder height, one in each hand.",
-        form:"Slight forward lean, soft elbow bend. Sweep arms together in a wide arc \u2014 think hugging a barrel. Squeeze at center, slow on the return." },
       { id:"d4_chest_supported_row", name:"Chest-Supported Single-Arm DB Row", type:"compound", isDumbbell:true,
         tip:"Working weight: 40 lbs. Chest support removes lower back fatigue.",
         form:"Chest flat on incline bench. Pull elbow straight back past hip, squeeze at top. No torso rotation. Slow down." },
       { id:"d4_arnold_press", name:"Arnold Press", type:"compound", isDumbbell:true,
         tip:"Working weight: 30 lbs each dumbbell.",
         form:"Start with palms facing you, rotate outward as you press up. Hits all three heads of the shoulder." },
+      { id:"d4_cable_chest_fly", name:"Cable Chest Fly", type:"isolation", fixedSets:"3 \xd7 12",
+        tip:"Working weight: ~17 lbs per side. Cables at shoulder height, one in each hand.",
+        form:"Slight forward lean, soft elbow bend. Sweep arms together in a wide arc \u2014 think hugging a barrel. Squeeze at center, slow on the return." },
       { id:"d4_face_pull", name:"Face Pulls (cable)", type:"isolation",
         tip:"Shoulder health staple \u2014 repeat from Tue is intentional. Working weight: 50-60 lbs. Keep it controlled.",
         form:"Cable at face height, rope attachment. Pull to ears, elbows high, wrists behind elbows. Slow and controlled." },
@@ -593,12 +593,12 @@ var EXERCISES = {
       { id:"d5_hammer_curl", name:"Hammer Curl", type:"isolation", isDumbbell:true,
         tip:"Working weight: 20-25 lbs.",
         form:"Palms facing each other, curl straight up. Hits brachialis and forearm \u2014 adds thickness and grip." },
-      { id:"d5_cable_curl", name:"Cable Curl (straight bar or rope)", type:"isolation",
-        tip:"Working weight: 70 lbs. Cable keeps constant tension throughout.",
-        form:"Stand at low pulley, elbows stay at sides, curl all the way up, slow on the way down." },
       { id:"d5_skull_crushers", name:"Skull Crushers (light EZ bar)", type:"isolation",
         tip:"Working weight: 50 lbs.",
         form:"Lie flat, lower bar toward forehead bending only at elbows. Elbows point at ceiling. No elbow flare." },
+      { id:"d5_cable_curl", name:"Cable Curl (straight bar or rope)", type:"isolation",
+        tip:"Working weight: 70 lbs. Cable keeps constant tension throughout.",
+        form:"Stand at low pulley, elbows stay at sides, curl all the way up, slow on the way down." },
       { id:"d5_oh_tricep", name:"Overhead Tricep Extension (cable)", type:"isolation",
         tip:"Working weight: 50-60 lbs. Pairs with skull crushers to fully cover the long head.",
         form:"Face away from cable, rope at top. Keep elbows close to head. Full stretch down, squeeze up." },
@@ -1015,8 +1015,10 @@ function buildMacrosHTML(){
     + "<div class='callout'><strong>Hydration:</strong> Aim for 100+ oz water/day.</div>";
 }
 
-// ── Weight suggestion from history ────────────────────────────
-function computeWeightSuggestion(history){
+// ── Weight suggestion from history (phase-aware) ──────────────
+// Uses Epley 1RM estimate when crossing a phase boundary so the
+// suggested weight is calibrated to the new rep range, not the old one.
+function computeWeightSuggestion(history, phase, exType){
   if(!history || history.length === 0) return null;
   var recent = history.slice(-3);
   var maxWeights = recent.map(function(e){
@@ -1028,10 +1030,33 @@ function computeWeightSuggestion(history){
   var lastMax = maxWeights[maxWeights.length-1];
   var prevMax = maxWeights.length >= 2 ? maxWeights[maxWeights.length-2] : null;
   var trending = prevMax !== null && lastMax > prevMax;
-  // Slight step back so first set is controlled, then push from there
-  var suggested = trending ? lastMax : Math.max(lastMax - 2.5, lastMax * 0.95);
-  suggested = Math.round(suggested / 2.5) * 2.5;
-  return { weight:suggested, lastMax:lastMax, trending:trending, sessions:maxWeights.length };
+  var avgMax = maxWeights.reduce(function(a,b){ return a+b; },0) / maxWeights.length;
+
+  var suggested, note;
+
+  if(phase === 'intensification'){
+    // Estimate 1RM assuming history was logged in accumulation (10-12 rep range)
+    var srcReps = (exType === 'compound') ? 11 : 13;
+    var oneRM = avgMax * (1 + srcReps / 30);
+    // Back-calculate for intensification target reps
+    var tgtReps = (exType === 'compound') ? 5.5 : 9;
+    suggested = oneRM / (1 + tgtReps / 30);
+    suggested = Math.round(suggested / 2.5) * 2.5;
+    note = 'est. 1RM ' + Math.round(oneRM) + ' lbs \u2192 intensification target';
+  } else if(phase === 'deload'){
+    // Deload: 60% of estimated 1RM
+    var srcReps2 = (exType === 'compound') ? 11 : 13;
+    var oneRM2 = avgMax * (1 + srcReps2 / 30);
+    suggested = Math.round((oneRM2 * 0.60) / 2.5) * 2.5;
+    note = '\u224060% of est. 1RM \u2014 deload week';
+  } else {
+    // Accumulation: simple trend-based microload
+    suggested = trending ? lastMax : Math.max(lastMax - 2.5, lastMax * 0.95);
+    suggested = Math.round(suggested / 2.5) * 2.5;
+    note = null;
+  }
+
+  return { weight:suggested, lastMax:lastMax, trending:trending, sessions:maxWeights.length, note:note };
 }
 
 // ── Render exercise cards ────────────────────────────────────
@@ -1146,7 +1171,7 @@ function buildCard(container, ex, dayId, data, phase){
   detailDiv.className = "exercise-detail";
 
   if(!ex.noWeight){
-    var suggestion = computeWeightSuggestion(history);
+    var suggestion = computeWeightSuggestion(history, phase, ex.type);
     if(suggestion){
       var sugP = document.createElement("p");
       sugP.className = "tip-text";
@@ -1155,7 +1180,9 @@ function buildCard(container, ex, dayId, data, phase){
       var arrow = suggestion.trending ? "\u2191" : "\u2192";
       var sugDetail = document.createElement("span");
       sugDetail.style.color = "var(--muted)";
-      sugDetail.textContent = "last " + suggestion.sessions + " session" + (suggestion.sessions!==1?"s":"") + ": max " + suggestion.lastMax + " lbs";
+      var detailText = "last " + suggestion.sessions + " session" + (suggestion.sessions!==1?"s":"") + ": max " + suggestion.lastMax + " lbs";
+      if(suggestion.note) detailText += " \u00b7 " + suggestion.note;
+      sugDetail.textContent = detailText;
       sugP.appendChild(sugStrong);
       sugP.appendChild(document.createTextNode("~" + suggestion.weight + " lbs " + arrow + " "));
       sugP.appendChild(sugDetail);

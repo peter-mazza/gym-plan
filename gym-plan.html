@@ -442,26 +442,29 @@ function updateSetsDisplay(panelId, phase){
 
 var DAYS = [
   { id:"d1", label:"Mon", title:"MONDAY \u2014 PUSH", subtitle:"Chest \xb7 Shoulders \xb7 Triceps",
-    warmup:"5 min Incline Ramp (or sub) \u2014 Zone 1 \u2014 HR 100-120",
+    warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
+    warmupExtra:"Band stretches \u2014 chest opener (2\xd715 each side) + shoulder external rotation (2\xd715)",
     finisherNote:"Push the pace \u2014 breathing hard but not sprinting. This is where the endorphins kick in.",
     finisherZone:"10-15 min \u2014 Zone 3 \u2014 HR 135-155" },
   { id:"d2", label:"Tue", title:"TUESDAY \u2014 PULL", subtitle:"Back \xb7 Biceps \xb7 Rear Delts",
-    warmup:"5 min Incline Ramp (or sub) \u2014 Zone 1 \u2014 HR 100-120",
+    warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
+    warmupExtra:"Dead hangs \u2014 2\u20133 sets \xd7 10-15 sec \u2014 decompress spine, activate lats before pulling",
     finisherNote:"Push the incline or pace. You want to be breathing hard.",
     finisherZone:"10-15 min \u2014 Zone 3 \u2014 HR 135-155" },
   { id:"d3", label:"Wed", title:"WEDNESDAY \u2014 LEGS + GLUTES", subtitle:"Posterior chain priority \u2014 most important day",
-    warmup:"5 min Incline Ramp \u2014 Zone 1-2 \u2014 HR 115-135",
+    warmup:"5 min Woodway or ramp \u2014 Zone 1-2 \u2014 HR 115-135",
     activation:true,
     finisherNote:"Legs will be cooked \u2014 moderate incline at strong pace. Stair climber also solid after leg day.",
     finisherZone:"10-15 min \u2014 Zone 3 \u2014 HR 135-155" },
   { id:"d4", label:"Thu", title:"THURSDAY \u2014 UPPER", subtitle:"Push/Pull hybrid",
-    warmup:"5 min Incline Ramp \u2014 Zone 1 \u2014 HR 100-120",
+    warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
+    warmupExtra:"Band stretches \u2014 chest opener + shoulder circles (2\xd715 each) before pressing",
     bandPullAparts:true,
     finisherNote:"Push it. This is your conditioning day \u2014 the finisher matters more here.",
     finisherZone:"10-15 min \u2014 Zone 3 \u2014 HR 135-155" },
   { id:"d5", label:"Fri", title:"FRIDAY \u2014 ARMS", subtitle:"Optional \u2014 light on the body",
     optional:true,
-    warmup:"5 min Incline Ramp \u2014 Zone 1 \u2014 HR 100-120",
+    warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
     finisherNote:"Slightly easier today. Bonus session \u2014 push it but do not bury yourself.",
     finisherZone:"10-15 min \u2014 Zone 2-3 \u2014 HR 125-150",
     recovery:true },
@@ -834,7 +837,7 @@ function buildPanels(){
     html += "<div class='section-label'>Warm-Up</div>";
     html += "<div class='warmup-block' id='warmup-block-" + day.id + "' style='display:flex;align-items:flex-start;gap:10px;'>";
     html += "<button class='check-btn' id='warmup-check-" + day.id + "' onclick='toggleWarmup(\"" + day.id + "\")'></button>";
-    html += "<div style='flex:1;'><div class='w-title'>Incline Ramp (or substitute)</div><div class='warmup-item'>" + day.warmup + "</div></div>";
+    html += "<div style='flex:1;'><div class='w-title'>Cardio Warm-Up</div><div class='warmup-item'>" + day.warmup + "</div>" + (day.warmupExtra ? "<div class='warmup-item' style='margin-top:5px;padding-top:5px;border-top:1px solid var(--border);'>" + day.warmupExtra + "</div>" : "") + "</div>";
     html += "</div>";
 
     // Exercise sections
@@ -1383,7 +1386,9 @@ async function loadCardioHistory(dayId){
       d.textContent = fmtDate(r.date);
       var s = document.createElement("span");
       s.className = "h-sets";
-      s.textContent = r.cardio || "-";
+      var cardioLabel = r.cardio || "-";
+      if(r.cardioMinutes && parseFloat(r.cardioMinutes) > 0) cardioLabel += " \xb7 " + r.cardioMinutes + " min";
+      s.textContent = cardioLabel;
       row.appendChild(d);
       row.appendChild(s);
       entry.appendChild(row);

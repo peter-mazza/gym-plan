@@ -47,9 +47,9 @@ header p{color:var(--muted);font-size:10px;margin-top:2px;letter-spacing:1.5px;t
 .day-pill.optional{/* shown via "opt" sub-label only */}
 .day-pill.rest{opacity:.3;cursor:default;pointer-events:none;}
 .day-pill.week-done{color:var(--green);}
-.day-pill.week-done::before{content:'✓';position:absolute;top:2px;right:3px;font-size:7px;color:var(--green);font-family:'DM Sans',sans-serif;}
+.day-pill.week-done::before{content:'✓';position:absolute;top:1px;right:3px;font-size:9px;font-weight:700;color:var(--green);font-family:'DM Sans',sans-serif;}
 .day-pill.week-done.active{background:var(--green);color:white;}
-.day-pill.week-done.active::before{color:rgba(255,255,255,.8);}
+.day-pill.week-done.active::before{color:rgba(255,255,255,.85);}
 .day-pill.is-deload{color:var(--deload);}
 .day-pill.is-deload.active{background:var(--deload);color:white;}
 
@@ -113,7 +113,7 @@ header p{color:var(--muted);font-size:10px;margin-top:2px;letter-spacing:1.5px;t
 .set-col-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);font-weight:700;letter-spacing:2px;text-transform:uppercase;text-align:center;}
 .weight-input{background:var(--white);border:1px solid var(--border);border-radius:2px;color:var(--ink);font-family:'DM Mono',monospace;font-size:16px;font-weight:500;padding:10px 6px;width:100%;outline:none;transition:border-color .15s;text-align:center;}
 .weight-input:focus{border-color:var(--red);border-width:2px;}
-.weight-input::placeholder{color:var(--border-strong);font-weight:400;font-size:12px;}
+.weight-input::placeholder{color:var(--muted);font-weight:400;font-style:italic;}
 .save-btn{background:var(--ink);border:none;color:var(--bg);font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;padding:11px 16px;border-radius:2px;cursor:pointer;width:100%;margin-top:4px;transition:opacity .15s;}
 .save-btn:active{opacity:.75;}
 .saved-msg{font-family:'DM Mono',monospace;font-size:11px;color:var(--green);margin-top:6px;display:none;text-align:center;letter-spacing:1px;}
@@ -322,7 +322,7 @@ var DOW_TO_PANEL = { 1:'d1', 2:'d2', 3:'d3', 4:'d4', 5:'d5' };
 // Keyed by Monday of that calendar week (YYYY-MM-DD)
 // { dayIndex(0=Mon..4=Fri): panelId } — overrides which workout shows on that day
 var WEEK_DOW_OVERRIDES = {
-  '2026-04-27': { 3:'d3' }  // Thu: Legs+Glutes; Fri stays Upper (d4) as normal
+  '2026-04-27': { 3:'d3', 4:'d4' }  // Thu: Legs+Glutes, Fri: Upper (abbreviated week — skip Arms)
 };
 
 // ── Schedule logic ────────────────────────────────────────────
@@ -738,7 +738,7 @@ function renderWeekNav(){
 
     var btn = document.createElement('button');
     var cls = 'day-pill';
-    if(isFriday)  cls += ' optional';
+    if(isFriday && weekOverride[4] === undefined) cls += ' optional';
     if(isRestDay) cls += ' rest';
     if(isToday)   cls += ' today';
     if(isDone && !isRestDay) cls += ' week-done';
@@ -869,7 +869,7 @@ function buildPanels(){
     html += "</div>";
     html += "<input class='stat-input' type='text' placeholder='or type here...' id='cardio-" + day.id + "' style='width:100%;text-align:left;' oninput='saveCardioPersist(\"" + day.id + "\")'>";
     html += "<div style='display:flex;gap:8px;margin-top:8px;align-items:center;'>";
-    html += "<input class='stat-input' type='text' inputmode='decimal' placeholder='Duration (min)' id='cardio-dur-" + day.id + "' style='flex:1;' oninput='saveCardioPersist(\"" + day.id + "\")'>";
+    html += "<input class='stat-input' type='text' inputmode='decimal' placeholder='Duration (min)...' id='cardio-dur-" + day.id + "' style='flex:1;' oninput='saveCardioPersist(\"" + day.id + "\")'>";
     html += "</div>";
     html += "</div>";
     html += "<div class='hist-block' style='margin-top:10px;background:rgba(0,0,0,0.2);border:none;'>";
@@ -896,11 +896,11 @@ function buildPanels(){
     html += "<div id='wrap-logged-" + day.id + "' style='display:none;font-size:11px;font-weight:600;color:var(--green);'>✓ Logged</div>";
     html += "</div>";
     html += "<div class='stats-grid'>";
-    html += "<div class='stat-col'><div class='stat-col-label'>Duration (min)</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 55' id='stat-dur-" + day.id + "'></div>";
+    html += "<div class='stat-col'><div class='stat-col-label'>Duration</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 55' id='stat-dur-" + day.id + "'></div>";
     html += "<div class='stat-col'><div class='stat-col-label'>Calories</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 420' id='stat-cal-" + day.id + "'></div>";
     html += "<div class='stat-col'><div class='stat-col-label'>Avg HR</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 142' id='stat-hr-" + day.id + "'></div>";
     html += "</div>";
-    html += "<div class='notes-block'><div class='notes-label'>Notes (optional)</div>";
+    html += "<div class='notes-block'><div class='notes-label'>Notes</div>";
     html += "<textarea class='notes-textarea' id='notes-" + day.id + "' placeholder='How did it feel? Energy level, PRs, anything notable...'></textarea></div>";
     html += "<button class='stats-save-btn' style='margin-top:10px;' id='wrap-save-btn-" + day.id + "' onclick='saveWorkout(\"" + day.id + "\")'>Save Workout</button>";
     html += "</div>";
@@ -931,11 +931,11 @@ function buildActivityHTML(){
     + "<input class='stat-input' type='text' placeholder='or type here...' id='activity-type' style='width:100%;text-align:left;margin-bottom:14px;'>"
     + "<div class='section-label'>Stats</div>"
     + "<div class='stats-grid'>"
-    + "<div class='stat-col'><div class='stat-col-label'>Duration (min)</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 45' id='activity-dur'></div>"
+    + "<div class='stat-col'><div class='stat-col-label'>Duration</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 45' id='activity-dur'></div>"
     + "<div class='stat-col'><div class='stat-col-label'>Calories</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 320' id='activity-cal'></div>"
     + "<div class='stat-col'><div class='stat-col-label'>Avg HR</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 138' id='activity-hr'></div>"
     + "</div>"
-    + "<div class='notes-block' style='margin-top:10px;'><div class='notes-label'>Notes (optional)</div>"
+    + "<div class='notes-block' style='margin-top:10px;'><div class='notes-label'>Notes</div>"
     + "<textarea class='notes-textarea' id='activity-notes' placeholder='Distance, route, how it felt...'></textarea></div>"
     + "<div class='stat-col' style='margin-top:10px;'><div class='stat-col-label'>Date</div><input class='stat-input' type='date' id='activity-date'></div>"
     + "<button class='stats-save-btn' style='margin-top:12px;' onclick='saveActivity()'>Log Activity</button>"
@@ -1010,6 +1010,25 @@ function buildMacrosHTML(){
     + "<div class='section-label'>Quick References</div>"
     + "<div class='callout'>1 cup cooked rice = 45g carbs<br>1 banana = 27g carbs<br>2 slices bread = 30g carbs<br>1 scoop whey = 24-25g protein<br>6oz chicken breast = 52g protein<br>2 eggs = 12g protein<br>1 cup Greek yogurt = 17-20g protein</div>"
     + "<div class='callout'><strong>Hydration:</strong> Aim for 100+ oz water/day.</div>";
+}
+
+// ── Weight suggestion from history ────────────────────────────
+function computeWeightSuggestion(history){
+  if(!history || history.length === 0) return null;
+  var recent = history.slice(-3);
+  var maxWeights = recent.map(function(e){
+    var m = 0;
+    [e.s1,e.s2,e.s3].forEach(function(v){ var n=parseFloat(v); if(!isNaN(n)&&n>m) m=n; });
+    return m;
+  }).filter(function(w){ return w > 0; });
+  if(maxWeights.length === 0) return null;
+  var lastMax = maxWeights[maxWeights.length-1];
+  var prevMax = maxWeights.length >= 2 ? maxWeights[maxWeights.length-2] : null;
+  var trending = prevMax !== null && lastMax > prevMax;
+  // Slight step back so first set is controlled, then push from there
+  var suggested = trending ? lastMax : Math.max(lastMax - 2.5, lastMax * 0.95);
+  suggested = Math.round(suggested / 2.5) * 2.5;
+  return { weight:suggested, lastMax:lastMax, trending:trending, sessions:maxWeights.length };
 }
 
 // ── Render exercise cards ────────────────────────────────────
@@ -1123,7 +1142,38 @@ function buildCard(container, ex, dayId, data, phase){
   var detailDiv = document.createElement("div");
   detailDiv.className = "exercise-detail";
 
-  if(ex.tip){
+  if(!ex.noWeight){
+    var suggestion = computeWeightSuggestion(history);
+    if(suggestion){
+      var sugP = document.createElement("p");
+      sugP.className = "tip-text";
+      var sugStrong = document.createElement("strong");
+      sugStrong.textContent = "Suggested: ";
+      var arrow = suggestion.trending ? "\u2191" : "\u2192";
+      var sugDetail = document.createElement("span");
+      sugDetail.style.color = "var(--muted)";
+      sugDetail.textContent = "last " + suggestion.sessions + " session" + (suggestion.sessions!==1?"s":"") + ": max " + suggestion.lastMax + " lbs";
+      sugP.appendChild(sugStrong);
+      sugP.appendChild(document.createTextNode("~" + suggestion.weight + " lbs " + arrow + " "));
+      sugP.appendChild(sugDetail);
+      detailDiv.appendChild(sugP);
+      if(ex.tip){
+        var refP = document.createElement("p");
+        refP.className = "tip-text";
+        refP.style.cssText = "margin-top:4px;font-size:11px;color:var(--muted);";
+        var refStrong = document.createElement("strong");
+        refStrong.textContent = "Ref: ";
+        refP.appendChild(refStrong);
+        refP.appendChild(document.createTextNode(ex.tip));
+        detailDiv.appendChild(refP);
+      }
+    } else if(ex.tip){
+      var tipP = document.createElement("p");
+      tipP.className = "tip-text";
+      tipP.innerHTML = "<strong>Starting ref: </strong>" + ex.tip;
+      detailDiv.appendChild(tipP);
+    }
+  } else if(ex.tip){
     var tipP = document.createElement("p");
     tipP.className = "tip-text";
     tipP.innerHTML = "<strong>Starting ref: </strong>" + ex.tip;
@@ -1719,13 +1769,16 @@ function markDayComplete(dayId){
 function updateDayTabColors(){
   var data = loadData();
   var monday = getMondayOf(viewedDate);
+  var mondayKey = toDateKey(monday);
+  var weekOverride = WEEK_DOW_OVERRIDES[mondayKey] || {};
   var panelIds = ['d1','d2','d3','d4','d5'];
   var pills = document.querySelectorAll('.day-pill');
   pills.forEach(function(pill, i){
     if(i >= panelIds.length) return;
     var dayDate = new Date(monday); dayDate.setDate(monday.getDate()+i);
     var weekKey = _isoWeekKey(dayDate);
-    var done = !!(data.weekDone && data.weekDone[weekKey] && data.weekDone[weekKey][panelIds[i]]);
+    var actualPanelId = (weekOverride[i] !== undefined) ? weekOverride[i] : panelIds[i];
+    var done = !!(data.weekDone && data.weekDone[weekKey] && data.weekDone[weekKey][actualPanelId]);
     pill.classList.toggle('week-done', done && !pill.classList.contains('rest'));
   });
 }

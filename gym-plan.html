@@ -220,6 +220,16 @@ header p{color:var(--muted);font-size:10px;margin-top:2px;letter-spacing:1.5px;t
 .alt-note{font-size:12px;color:var(--muted);}
 .ref-link{display:inline-block;margin-top:6px;font-family:'DM Mono',monospace;font-size:11px;color:var(--red);text-decoration:none;}
 
+/* ── Recovery tab ─────────────────────────────────── */
+.recovery-section{margin-bottom:22px;}
+.recovery-section-label{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.recovery-card{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:0 3px 3px 0;padding:14px 16px;margin-bottom:8px;}
+.recovery-card-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink);margin-bottom:3px;}
+.recovery-card-meta{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:6px;}
+.recovery-card-desc{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:8px;}
+.recovery-watch{display:inline-block;font-family:'DM Mono',monospace;font-size:11px;color:var(--red);text-decoration:none;border:1px solid var(--red);border-radius:2px;padding:3px 8px;}
+.recovery-watch:hover{background:var(--red);color:#fff;}
+
 /* ── Stats section misc ───────────────────────────── */
 .ex-prog-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;}
 .ex-prog-entries{display:flex;flex-direction:column;gap:4px;}
@@ -466,11 +476,11 @@ var DAYS = [
     optional:true,
     warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
     finisherNote:"Keep it easy \u2014 this is a bonus day. Zone 2 only, recover for next week.",
-    finisherZone:"15-20 min \u2014 Zone 2 \u2014 HR 115-130",
-    recovery:true },
+    finisherZone:"15-20 min \u2014 Zone 2 \u2014 HR 115-130" },
   { id:"activity", label:"+ Activity", title:"ACTIVITY LOG", activityPanel:true },
   { id:"stats",    label:"Stats",      title:"STATS",        statsPanel:true },
-  { id:"macros",   label:"Macros",     title:"MACROS",       macrosPanel:true }
+  { id:"macros",   label:"Macros",     title:"MACROS",       macrosPanel:true },
+  { id:"recovery", label:"Recovery",   title:"RECOVERY",     recoveryPanel:true }
 ];
 
 var EXERCISES = {
@@ -780,7 +790,7 @@ function buildSecondaryNav(){
   var sec = document.getElementById('secondaryNav');
   if(!sec) return;
   sec.textContent = ''; // clear safely
-  [{id:'activity',label:'+ Activity'},{id:'stats',label:'Stats'},{id:'macros',label:'Macros'}].forEach(function(item){
+  [{id:'activity',label:'+ Activity'},{id:'stats',label:'Stats'},{id:'macros',label:'Macros'},{id:'recovery',label:'Recovery'}].forEach(function(item){
     var btn = document.createElement('button');
     btn.className = 'day-btn';
     btn.textContent = item.label;
@@ -807,6 +817,7 @@ function buildPanels(){
     if(day.activityPanel){ panel.innerHTML = buildActivityHTML(); container.appendChild(panel); return; }
     if(day.statsPanel){ panel.innerHTML = buildStatsHTML(); container.appendChild(panel); return; }
     if(day.macrosPanel){ panel.innerHTML = buildMacrosHTML(); container.appendChild(panel); return; }
+    if(day.recoveryPanel){ panel.innerHTML = buildRecoveryHTML(); container.appendChild(panel); return; }
 
     var html = "";
     html += "<div id='deload-banner-" + day.id + "'></div>";
@@ -880,17 +891,6 @@ function buildPanels(){
     html += "<div id='cardio-hist-" + day.id + "'><div class='hist-loading'>Loading...</div></div>";
     html += "</div>";
     html += "</div>";
-
-    // Recovery links for d5
-    if(day.recovery){
-      html += "<div class='callout' style='margin-top:16px;'>";
-      html += "<strong>At-home recovery (a few minutes anytime)</strong>";
-      html += "<a class='ref-link' href='https://www.youtube.com/watch?v=PB0IfqcCRBo' target='_blank'>▶ Hip Flexor Stretch</a><br>";
-      html += "<a class='ref-link' href='https://www.youtube.com/watch?v=LQn2MiTEVH0' target='_blank'>▶ Thoracic Rotation</a><br>";
-      html += "<a class='ref-link' href='https://www.youtube.com/watch?v=s9UgHjP14sI' target='_blank'>▶ Pigeon Pose (Glutes)</a><br>";
-      html += "<a class='ref-link' href='https://www.youtube.com/watch?v=sTxC3J3gQEU' target='_blank'>▶ Lower Back Decompression</a>";
-      html += "</div>";
-    }
 
     // Wrap-up stats
     html += "<div class='stats-block'>";
@@ -1013,6 +1013,65 @@ function buildMacrosHTML(){
     + "<div class='section-label'>Quick References</div>"
     + "<div class='callout'>1 cup cooked rice = 45g carbs<br>1 banana = 27g carbs<br>2 slices bread = 30g carbs<br>1 scoop whey = 24-25g protein<br>6oz chicken breast = 52g protein<br>2 eggs = 12g protein<br>1 cup Greek yogurt = 17-20g protein</div>"
     + "<div class='callout'><strong>Hydration:</strong> Aim for 100+ oz water/day.</div>";
+}
+
+// ── Recovery tab content ───────────────────────────────────────
+function buildRecoveryHTML(){
+  function section(label, cards){
+    var s = "<div class='recovery-section'>";
+    s += "<div class='recovery-section-label'>" + label + "</div>";
+    cards.forEach(function(c){
+      s += "<div class='recovery-card'>";
+      s += "<div class='recovery-card-title'>" + c.title + "</div>";
+      s += "<div class='recovery-card-meta'>" + c.meta + "</div>";
+      s += "<div class='recovery-card-desc'>" + c.desc + "</div>";
+      s += "<a class='recovery-watch' href='https://www.youtube.com/watch?v=" + c.vid + "' target='_blank'>&#9654; Watch</a>";
+      s += "</div>";
+    });
+    s += "</div>";
+    return s;
+  }
+
+  var h = "<div class='day-label'>RECOVERY</div>";
+  h += "<div class='day-subtitle' style='margin-bottom:18px;'>Floor stretching &amp; foam rolling you can do while watching TV</div>";
+
+  h += section("TV-Friendly Floor Stretches", [
+    { title:"10 Basic Stretches — Full Body", meta:"10 min · Floor only · Beginner-friendly",
+      desc:"A classic, no-fuss routine of the essential static stretches. Hold each for 30 sec. Perfect on a yoga mat in front of the couch.",
+      vid:"rDk1Fw0tdPk" },
+    { title:"Relaxing Floor Stretches", meta:"15 min · Floor only · Chill pace",
+      desc:"Low-intensity flow you can do completely lying down. Targets hips, hamstrings, and lower back — the spots that take the most abuse from heavy leg days.",
+      vid:"9F63raOTNIg" }
+  ]);
+
+  h += section("Foam Rolling", [
+    { title:"15-Min Full Body Foam Roll", meta:"15 min · Foam roller · All muscle groups",
+      desc:"Covers quads, IT band, glutes, upper back, and calves in sequence. Best done right after the workout or the night after a heavy session.",
+      vid:"oICzmVpNPp0" },
+    { title:"10-Min Beginner Foam Roll", meta:"10 min · Foam roller · Slower pace",
+      desc:"Slower-paced for when you're already sore. Great for rest days — hold tender spots for 20-30 sec instead of rolling through them.",
+      vid:"zv6SS3V3NZs" }
+  ]);
+
+  h += section("Hip Flexor &amp; Glute Focus", [
+    { title:"10-Min Hip Flexor Relief", meta:"10 min · Floor only · PT-led",
+      desc:"Physical therapist-guided stretches targeting the psoas and hip flexors — the biggest bottleneck after heavy RDL and hip thrust days. Do this the day after leg day.",
+      vid:"WtWtLhgHg7Q" },
+    { title:"Posterior Chain Stretch Routine", meta:"12 min · Floor only · Glutes &amp; hamstrings",
+      desc:"Full follow-along for glutes, piriformis, and hamstrings. Pigeon pose variations and seated stretches that are easy to hold while watching something.",
+      vid:"q0y9O4rorqQ" }
+  ]);
+
+  h += section("Upper Back &amp; Shoulders", [
+    { title:"10-Min Shoulder &amp; Thoracic Mobility", meta:"10 min · No equipment · Standing &amp; floor",
+      desc:"Targets the thoracic spine and shoulder girdle — essential for maintaining press mechanics. Especially useful after heavy incline and overhead pressing days.",
+      vid:"9iHko2F81cE" },
+    { title:"5-Min Thoracic Flow", meta:"5 min · Floor only · Quick reset",
+      desc:"Short thoracic rotation and extension flow. The fastest way to undo a day of sitting. Can be done between TV episodes — no warmup required.",
+      vid:"iovhifyipsU" }
+  ]);
+
+  return h;
 }
 
 // ── Weight suggestion from history (phase-aware) ──────────────
@@ -2588,7 +2647,7 @@ updateDayTabColors();
 
   if(state.isRest || state.preProgram){
     showRestScreen(state);
-  } else if(lastDay && ['activity','stats','macros'].indexOf(lastDay)!==-1){
+  } else if(lastDay && ['activity','stats','macros','recovery'].indexOf(lastDay)!==-1){
     // Restore non-workout tabs (Stats, Activity, Macros) across sessions
     showDay(lastDay);
   } else if(state.panelId){

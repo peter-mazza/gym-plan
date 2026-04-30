@@ -577,39 +577,37 @@ var EXERCISES = {
         type:"compound", isDumbbell:true,
         tip:"Accumulation: working weight 55-60 lbs each DB. Intensification: barbell, start at 95-115 lbs.",
         form:"Flat bench. Lower to chest, press up. Shoulder blades retracted throughout." },
+      { id:"d4_lat_pulldown", name:"Lat Pulldown (cable)", type:"compound", fixedSets:"3 \xd7 10-12",
+        tip:"Working weight: 130-150 lbs. Paired after bench — push/pull alternation keeps shoulders fresh.",
+        form:"Wide overhand grip, chest up, pull bar to upper chest. Squeeze lats at bottom, controlled return \u2014 don\u2019t let shoulders shrug at the top." },
+      { id:"d4_arnold_press", name:"Arnold Press", type:"compound", isDumbbell:true,
+        tip:"Working weight: 30 lbs each dumbbell. Do while shoulders are still fresh after bench.",
+        form:"Start with palms facing you, rotate outward as you press up. Hits all three heads of the shoulder." },
       { id:"d4_chest_supported_row", name:"Chest-Supported Single-Arm DB Row", type:"compound", isDumbbell:true,
         tip:"Working weight: 40 lbs. Chest support removes lower back fatigue.",
         form:"Chest flat on incline bench. Pull elbow straight back past hip, squeeze at top. No torso rotation. Slow down." },
-      { id:"d4_lat_pulldown", name:"Lat Pulldown (cable)", type:"compound", fixedSets:"3 \xd7 10-12",
-        tip:"Working weight: 130-150 lbs. Covers lat width — the chest-supported row hits thickness, this hits width. Both are needed on a standalone upper day.",
-        form:"Wide overhand grip, chest up, pull bar to upper chest. Squeeze lats at bottom, controlled return — don\u2019t let shoulders shrug at the top." },
-      { id:"d4_arnold_press", name:"Arnold Press", type:"compound", isDumbbell:true,
-        tip:"Working weight: 30 lbs each dumbbell.",
-        form:"Start with palms facing you, rotate outward as you press up. Hits all three heads of the shoulder." },
       { id:"d4_cable_chest_fly", name:"Cable Chest Fly", type:"isolation", fixedSets:"3 \xd7 12",
         tip:"Working weight: ~17 lbs per side. Cables at shoulder height, one in each hand.",
         form:"Slight forward lean, soft elbow bend. Sweep arms together in a wide arc \u2014 think hugging a barrel. Squeeze at center, slow on the return." },
       { id:"d4_face_pull", name:"Face Pulls (cable)", type:"isolation",
-        tip:"Shoulder health staple \u2014 repeat from Tue is intentional. Working weight: 50-60 lbs. Keep it controlled.",
+        tip:"Shoulder health staple. Working weight: 50-60 lbs. Cable is already set up from chest fly \u2014 adjust height and swap attachment.",
         form:"Cable at face height, rope attachment. Pull to ears, elbows high, wrists behind elbows. Slow and controlled." },
+      { id:"d4_lateral_raise", name:"Lateral Raise (DB)", type:"isolation", isDumbbell:true, fixedSets:"3 \xd7 12-15",
+        tip:"Working weight: 15-20 lbs. Do after face pulls while you\u2019re still at the shoulder isolation station.",
+        form:"Slight bend in elbow, raise arms to shoulder height. Lead with elbows, not hands. Pause at the top, slow on the way down \u2014 the negative is where the growth is." },
+      { id:"d4_ez_curl", name:"EZ Bar Curl", type:"isolation", fixedSets:"3 \xd7 10-12",
+        tip:"Working weight: 60-70 lbs on the EZ bar. Direct bicep hit \u2014 rows only work them secondarily.",
+        form:"Elbows pinned at sides. Full range \u2014 all the way down, squeeze at the top. No momentum." },
+      { id:"d4_rope_pushdown", name:"Tricep Rope Pushdown", type:"isolation", fixedSets:"3 \xd7 10-12",
+        tip:"Working weight: 50-60 lbs. Superset with curls if you want to save time \u2014 biceps rest while triceps work.",
+        form:"Cable at top, rope attachment. Elbows pinned at sides, spread the rope at the bottom and fully extend. Squeeze hard at lockout." },
       { id:"d4_farmers_carry", name:"Farmer's Carry", type:"compound", isDumbbell:true, fixedSets:"3 \xd7 40 yards",
-        tip:"Working weight: 44 lbs each hand (20kg KB). If full distance isn't a grip challenge, go heavier.",
+        tip:"Working weight: 44 lbs each hand (20kg KB). Done last before core \u2014 grip is spent by now so this doubles as a finisher for the lifting portion.",
         form:"Stand tall, shoulders packed back and down, neutral spine. Walk with short deliberate steps. Set down with control." }
     ],
     "core-d4": [
       { id:"d4_core_circuit", name:"Plank / Dead Bug / Bird Dog", noWeight:true, setsFormat:"rounds",
         form:"Plank: 40 sec. Dead Bug: 10 each side. Bird Dog: 10 each side. Rest 30-45 sec between rounds." }
-    ],
-    "arms-d4": [
-      { id:"d4_lateral_raise", name:"Lateral Raise (DB)", type:"isolation", isDumbbell:true, fixedSets:"3 \xd7 12-15",
-        tip:"Working weight: 15-20 lbs. Lateral delts get secondary work from Arnold Press but no isolation — this fills the gap on standalone upper days.",
-        form:"Slight bend in elbow, raise arms to shoulder height. Lead with elbows, not hands. Pause at the top, slow on the way down — the negative is where the growth is." },
-      { id:"d4_ez_curl", name:"EZ Bar Curl", type:"isolation", fixedSets:"3 \xd7 10-12",
-        tip:"Working weight: 60-70 lbs on the EZ bar. Biceps only get secondary work from rows on this day — this is the direct hit.",
-        form:"Elbows pinned at sides. Full range — all the way down, squeeze at the top. No momentum." },
-      { id:"d4_rope_pushdown", name:"Tricep Rope Pushdown", type:"isolation", fixedSets:"3 \xd7 10-12",
-        tip:"Working weight: 50-60 lbs. Triceps are secondary movers in all the pressing — this isolates them directly.",
-        form:"Cable at top, rope attachment. Elbows pinned at sides, spread the rope at the bottom and fully extend. Squeeze hard at lockout." }
     ]
   },
   d5: {
@@ -876,7 +874,6 @@ function buildPanels(){
         else if(sectionId.indexOf("biceps") === 0) label = "Biceps";
         else if(sectionId.indexOf("triceps") === 0) label = "Triceps";
         if(sectionId === "core-d4") label = "Core Circuit - 3 Rounds";
-        if(sectionId === "arms-d4") label = "Arm Finisher";
         html += "<div class='section-label'>" + label + "</div>";
         html += "<div id='" + sectionId + "'></div>";
       });

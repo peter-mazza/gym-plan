@@ -596,6 +596,17 @@ var EXERCISES = {
     "core-d4": [
       { id:"d4_core_circuit", name:"Plank / Dead Bug / Bird Dog", noWeight:true, setsFormat:"rounds",
         form:"Plank: 40 sec. Dead Bug: 10 each side. Bird Dog: 10 each side. Rest 30-45 sec between rounds." }
+    ],
+    "arms-d4": [
+      { id:"d4_lateral_raise", name:"Lateral Raise (DB)", type:"isolation", isDumbbell:true, fixedSets:"3 \xd7 12-15",
+        tip:"Working weight: 15-20 lbs. Lateral delts get secondary work from Arnold Press but no isolation — this fills the gap on standalone upper days.",
+        form:"Slight bend in elbow, raise arms to shoulder height. Lead with elbows, not hands. Pause at the top, slow on the way down — the negative is where the growth is." },
+      { id:"d4_ez_curl", name:"EZ Bar Curl", type:"isolation", fixedSets:"3 \xd7 10-12",
+        tip:"Working weight: 60-70 lbs on the EZ bar. Biceps only get secondary work from rows on this day — this is the direct hit.",
+        form:"Elbows pinned at sides. Full range — all the way down, squeeze at the top. No momentum." },
+      { id:"d4_rope_pushdown", name:"Tricep Rope Pushdown", type:"isolation", fixedSets:"3 \xd7 10-12",
+        tip:"Working weight: 50-60 lbs. Triceps are secondary movers in all the pressing — this isolates them directly.",
+        form:"Cable at top, rope attachment. Elbows pinned at sides, spread the rope at the bottom and fully extend. Squeeze hard at lockout." }
     ]
   },
   d5: {
@@ -862,6 +873,7 @@ function buildPanels(){
         else if(sectionId.indexOf("biceps") === 0) label = "Biceps";
         else if(sectionId.indexOf("triceps") === 0) label = "Triceps";
         if(sectionId === "core-d4") label = "Core Circuit - 3 Rounds";
+        if(sectionId === "arms-d4") label = "Arm Finisher";
         html += "<div class='section-label'>" + label + "</div>";
         html += "<div id='" + sectionId + "'></div>";
       });

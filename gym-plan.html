@@ -2682,11 +2682,7 @@ updateDayTabColors();
 
   if(state.isRest || state.preProgram){
     showRestScreen(state);
-  } else if(lastDay && ['activity','stats','macros','recovery'].indexOf(lastDay)!==-1){
-    // Restore non-workout tabs (Stats, Activity, Macros) across sessions
-    showDay(lastDay);
   } else if(state.panelId){
-    // Always open today's workout on load
     showDayForDate(state.panelId, today);
   } else {
     showDay('d1');

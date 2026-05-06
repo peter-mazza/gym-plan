@@ -1769,6 +1769,10 @@ async function saveWeight(exId, dayId){
 
 // ── Save workout ─────────────────────────────────────────────
 async function saveWorkout(dayId){
+  var saveBtn0 = document.getElementById("wrap-save-btn-" + dayId);
+  if(saveBtn0 && saveBtn0.disabled) return;
+  if(saveBtn0){ saveBtn0.disabled = true; saveBtn0.style.opacity = "0.5"; }
+
   var dur = (document.getElementById("stat-dur-" + dayId)||{}).value || "";
   var cal = (document.getElementById("stat-cal-" + dayId)||{}).value || "";
   var hr = (document.getElementById("stat-hr-" + dayId)||{}).value || "";
@@ -1822,7 +1826,11 @@ async function saveWorkout(dayId){
     var loggedBadge = document.getElementById("wrap-logged-" + dayId);
     if(loggedBadge) loggedBadge.style.display = "block";
     showToast(isEdit ? "Workout updated in Sheets" : "Workout saved to Sheets");
-  }catch(e){ showToast("Failed to save", "var(--accent2)"); }
+  }catch(e){
+    showToast("Failed to save", "var(--accent2)");
+  }finally{
+    if(saveBtn0){ saveBtn0.disabled = false; saveBtn0.style.opacity = ""; }
+  }
 }
 
 async function saveActivity(){

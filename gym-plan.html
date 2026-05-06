@@ -654,6 +654,7 @@ var EXERCISES = {
 
 // ── Viewed date (current or browsed week) ────────────────────
 var viewedDate = new Date();
+var _panelDates = {};
 
 // ── Storage ──────────────────────────────────────────────────
 var LS_KEY = "pgymplan_v5";
@@ -1733,7 +1734,7 @@ async function saveWorkout(dayId){
   dur = dur.trim(); cal = cal.trim(); hr = hr.trim();
   if(!dur && !cal && !hr && !cardio && !cardioMinutes && !notes){ showToast("Nothing to save", "var(--accent2)"); return; }
 
-  var now = new Date();
+  var now = _panelDates[dayId] || new Date();
   var dateStr = now.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
   var dayTitle = "";
   DAYS.forEach(function(d){ if(d.id === dayId) dayTitle = d.title; });
@@ -2481,6 +2482,7 @@ function showNextWorkout(){
 // ── Show a specific date's workout ───────────────────────────
 function showDayForDate(panelId, date){
   viewedDate = new Date(date);
+  _panelDates[panelId] = new Date(date);
   var state = getProgramState(date);
 
   var restEl = document.getElementById('rest-screen');

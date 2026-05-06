@@ -1365,7 +1365,7 @@ function buildCard(container, ex, dayId, data, phase){
       col.className = "set-col";
       var lbl = document.createElement("div");
       lbl.className = "set-col-label";
-      lbl.textContent = isOpt ? "SET 5 OPT" : "SET " + (si + 1);
+      lbl.textContent = isOpt ? "OPT" : "SET " + (si + 1);
       if(isOpt) lbl.style.cssText = "color:var(--muted);font-style:italic;";
       col.appendChild(lbl);
       var inp = document.createElement("input");

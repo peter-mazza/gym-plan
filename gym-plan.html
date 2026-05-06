@@ -426,6 +426,10 @@ function getExerciseName(ex, phase){
   if(ex.nameByPhase) return ex.nameByPhase[phase] || ex.nameByPhase.accumulation || ex.name;
   return ex.name;
 }
+function getExerciseTip(ex, phase){
+  if(ex.tipByPhase) return ex.tipByPhase[phase] || ex.tipByPhase.accumulation || ex.tip || '';
+  return ex.tip || '';
+}
 
 function findExercise(exId){
   var found = null;
@@ -544,9 +548,15 @@ var EXERCISES = {
   },
   d3: {
     "exercises-d3": [
-      { id:"d3_db_rdl", name:"Dumbbell Romanian Deadlift", type:"compound", isDumbbell:true,
-        tip:"Primary anchor \u2014 do this first, fresh. Working weight: 45-50 lbs each hand. Dumbbells allow a more natural path and reduce spinal loading vs barbell.",
-        form:"Hip hinge, soft knee bend, flat back throughout. Dumbbells hang in front of legs \u2014 keep them close to your body. Feel hamstrings load. Stop well short of lower back rounding \u2014 depth is not the goal, tension is." },
+      { id:"d3_db_rdl",
+        nameByPhase:{ accumulation:"Dumbbell RDL", deload:"Dumbbell RDL", intensification:"Barbell RDL" },
+        type:"compound", isDumbbell:true,
+        tipByPhase:{
+          accumulation:"Primary anchor \u2014 do this first, fresh. Working weight: 45-50 lbs each hand. Dumbbells allow a more natural path and reduce spinal loading vs barbell.",
+          deload:"Primary anchor \u2014 do this first, fresh. Deload weight: 30-35 lbs each hand.",
+          intensification:"Primary anchor \u2014 do this first, fresh. Start at 115 lbs, aim for 135-145 lbs by end of block. Bar stays close to legs throughout."
+        },
+        form:"Hip hinge, soft knee bend, flat back throughout. Keep the weight close to your body. Feel hamstrings load. Stop well short of lower back rounding \u2014 depth is not the goal, tension is." },
       { id:"d3_sl_rdl", name:"Single-Leg RDL (kettlebell)", type:"compound",
         tip:"Working weight: 35 lb kettlebell in contralateral hand (opposite to planted foot). Done second while balance and coordination are still sharp.",
         form:"Hinge at hip, flat back, free leg extends behind. Stop short if lower back rounds \u2014 flat back beats depth." },
@@ -1258,27 +1268,40 @@ function buildCard(container, ex, dayId, data, phase){
       sugP.appendChild(document.createTextNode("~" + suggestion.weight + " lbs " + arrow + " "));
       sugP.appendChild(sugDetail);
       detailDiv.appendChild(sugP);
-      if(ex.tip){
+      var tipText = getExerciseTip(ex, phase);
+      if(tipText){
         var refP = document.createElement("p");
         refP.className = "tip-text";
         refP.style.cssText = "margin-top:4px;font-size:11px;color:var(--muted);";
         var refStrong = document.createElement("strong");
         refStrong.textContent = "Ref: ";
         refP.appendChild(refStrong);
-        refP.appendChild(document.createTextNode(ex.tip));
+        refP.appendChild(document.createTextNode(tipText));
         detailDiv.appendChild(refP);
       }
-    } else if(ex.tip){
+    } else {
+      var tipText2 = getExerciseTip(ex, phase);
+      if(tipText2){
+        var tipP = document.createElement("p");
+        tipP.className = "tip-text";
+        var tipStrong = document.createElement("strong");
+        tipStrong.textContent = "Starting ref: ";
+        tipP.appendChild(tipStrong);
+        tipP.appendChild(document.createTextNode(tipText2));
+        detailDiv.appendChild(tipP);
+      }
+    }
+  } else {
+    var tipText3 = getExerciseTip(ex, phase);
+    if(tipText3){
       var tipP = document.createElement("p");
       tipP.className = "tip-text";
-      tipP.innerHTML = "<strong>Starting ref: </strong>" + ex.tip;
+      var tipStrong3 = document.createElement("strong");
+      tipStrong3.textContent = "Starting ref: ";
+      tipP.appendChild(tipStrong3);
+      tipP.appendChild(document.createTextNode(tipText3));
       detailDiv.appendChild(tipP);
     }
-  } else if(ex.tip){
-    var tipP = document.createElement("p");
-    tipP.className = "tip-text";
-    tipP.innerHTML = "<strong>Starting ref: </strong>" + ex.tip;
-    detailDiv.appendChild(tipP);
   }
   if(ex.form){
     var formP = document.createElement("p");

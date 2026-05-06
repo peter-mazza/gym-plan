@@ -2468,15 +2468,36 @@ function showRestScreen(state){
 }
 
 function showNextWorkout(){
-  var today = new Date();
-  var dow = today.getDay();
-  var toMon = dow===1 ? 0 : (dow===0 ? 1 : 8-dow);
-  var nextMon = new Date(today); nextMon.setDate(today.getDate()+toMon);
-  var restEl = document.getElementById('rest-screen');
-  if(restEl) restEl.style.display='none';
-  viewedDate = nextMon;
+  var today = new Date(); today.setHours(0,0,0,0);
+  var candidate = new Date(today); candidate.setDate(today.getDate() + 1);
+  var limit = new Date(today); limit.setDate(today.getDate() + 14);
+  while(candidate <= limit){
+    var dow = candidate.getDay();
+    if(dow !== 0 && dow !== 6){
+      var dateKey = toDateKey(candidate);
+      var exception = EXCEPTION_DATES[dateKey];
+      if(!exception || !exception.rest){
+        var restEl = document.getElementById('rest-screen');
+        if(restEl) restEl.style.display='none';
+        viewedDate = new Date(candidate);
+        renderWeekNav();
+        var mondayKey = toDateKey(getMondayOf(candidate));
+        var weekOverride = WEEK_DOW_OVERRIDES[mondayKey] || {};
+        var dowIdx = candidate.getDay() - 1;
+        var panelId = (weekOverride[dowIdx] !== undefined) ? weekOverride[dowIdx] : (DOW_TO_PANEL[candidate.getDay()] || 'd1');
+        showDayForDate(panelId, candidate);
+        return;
+      }
+    }
+    candidate.setDate(candidate.getDate() + 1);
+  }
+  // Fallback: next Monday
+  var mon = getMondayOf(new Date(today)); mon.setDate(mon.getDate() + 7);
+  var restEl2 = document.getElementById('rest-screen');
+  if(restEl2) restEl2.style.display='none';
+  viewedDate = mon;
   renderWeekNav();
-  showDayForDate('d1', nextMon);
+  showDayForDate('d1', mon);
 }
 
 // ── Show a specific date's workout ───────────────────────────

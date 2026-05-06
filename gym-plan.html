@@ -2762,6 +2762,25 @@ updateDayTabColors();
     loadWrapPersist(did);
     loadCardioPersist(did);
   });
+
+  // Pre-fill wrap block from WorkoutDoors shortcut params (?dur=&cal=&hr=)
+  (function(){
+    var urlP = new URLSearchParams(window.location.search);
+    var pDur = urlP.get('dur'), pCal = urlP.get('cal'), pHr = urlP.get('hr');
+    if(!pDur && !pCal && !pHr) return;
+    var did = state.panelId || 'd1';
+    setTimeout(function(){
+      var durEl = document.getElementById('stat-dur-' + did);
+      var calEl = document.getElementById('stat-cal-' + did);
+      var hrEl  = document.getElementById('stat-hr-'  + did);
+      if(durEl && pDur) durEl.value = pDur;
+      if(calEl && pCal) calEl.value = pCal;
+      if(hrEl  && pHr)  hrEl.value  = pHr;
+      // Scroll wrap block into view
+      var wrap = document.getElementById('wrap-' + did) || document.querySelector('.stats-block');
+      if(wrap) wrap.scrollIntoView({behavior:'smooth', block:'center'});
+    }, 300);
+  })();
 })();
 </script>
 </body>

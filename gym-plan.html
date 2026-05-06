@@ -1105,7 +1105,7 @@ function computeWeightSuggestion(history, phase, exType){
   var recent = history.slice(-3);
   var maxWeights = recent.map(function(e){
     var m = 0;
-    [e.s1,e.s2,e.s3].forEach(function(v){ var n=parseFloat(v); if(!isNaN(n)&&n>m) m=n; });
+    [e.s1,e.s2,e.s3,e.s4,e.s5].forEach(function(v){ var n=parseFloat(v); if(!isNaN(n)&&n>m) m=n; });
     return m;
   }).filter(function(w){ return w > 0; });
   if(maxWeights.length === 0) return null;
@@ -1315,6 +1315,11 @@ function buildCard(container, ex, dayId, data, phase){
     var ph1 = lastEntry && lastEntry.s1 ? lastEntry.s1 : "-";
     var ph2 = lastEntry && lastEntry.s2 ? lastEntry.s2 : "-";
     var ph3 = lastEntry && lastEntry.s3 ? lastEntry.s3 : "-";
+    var ph4 = lastEntry && lastEntry.s4 ? lastEntry.s4 : "-";
+    var ph5 = lastEntry && lastEntry.s5 ? lastEntry.s5 : "-";
+    var phAll = [ph1, ph2, ph3, ph4, ph5];
+
+    var numSetCols = (phase === 'intensification' && ex.type === 'compound') ? 5 : 3;
 
     var wsDiv = document.createElement("div");
     wsDiv.className = "weight-section";
@@ -1332,19 +1337,23 @@ function buildCard(container, ex, dayId, data, phase){
 
     var grid = document.createElement("div");
     grid.className = "sets-grid";
-    ["SET 1","SET 2","SET 3"].forEach(function(label, si){
+    grid.style.gridTemplateColumns = "repeat(" + numSetCols + ", 1fr)";
+    for(var si = 0; si < numSetCols; si++){
+      var isOpt = (numSetCols === 5 && si === 4);
       var col = document.createElement("div");
       col.className = "set-col";
       var lbl = document.createElement("div");
       lbl.className = "set-col-label";
-      lbl.textContent = label;
+      lbl.textContent = isOpt ? "SET 5 OPT" : "SET " + (si + 1);
+      if(isOpt) lbl.style.cssText = "color:var(--muted);font-style:italic;";
       col.appendChild(lbl);
       var inp = document.createElement("input");
       inp.className = "weight-input";
+      if(isOpt) inp.style.opacity = "0.6";
       inp.type = "text";
       inp.inputMode = "decimal";
-      inp.placeholder = [ph1,ph2,ph3][si];
-      inp.id = "input-" + ex.id + "-s" + (si+1);
+      inp.placeholder = phAll[si];
+      inp.id = "input-" + ex.id + "-s" + (si + 1);
       col.appendChild(inp);
       grid.appendChild(col);
     });
@@ -1624,10 +1633,14 @@ async function saveWeight(exId, dayId){
   var s1el = document.getElementById("input-" + exId + "-s1");
   var s2el = document.getElementById("input-" + exId + "-s2");
   var s3el = document.getElementById("input-" + exId + "-s3");
+  var s4el = document.getElementById("input-" + exId + "-s4");
+  var s5el = document.getElementById("input-" + exId + "-s5");
   var s1 = s1el ? s1el.value.trim() : "";
   var s2 = s2el ? s2el.value.trim() : "";
   var s3 = s3el ? s3el.value.trim() : "";
-  if(!s1 && !s2 && !s3){ showToast("Enter at least one set", "var(--accent2)"); return; }
+  var s4 = s4el ? s4el.value.trim() : "";
+  var s5 = s5el ? s5el.value.trim() : "";
+  if(!s1 && !s2 && !s3 && !s4 && !s5){ showToast("Enter at least one set", "var(--accent2)"); return; }
 
   var now = new Date();
   var dateStr = now.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
@@ -1638,7 +1651,7 @@ async function saveWeight(exId, dayId){
   var data = loadData();
   if(!data.history) data.history = {};
   if(!data.history[exId]) data.history[exId] = [];
-  data.history[exId].push({date:dateStr, dayLabel:dayTitle, s1:s1, s2:s2, s3:s3});
+  data.history[exId].push({date:dateStr, dayLabel:dayTitle, s1:s1, s2:s2, s3:s3, s4:s4, s5:s5});
   var hist = data.history[exId];
   if(hist.length >= 2 && hist[hist.length-2].date === dateStr){
     hist.splice(hist.length-2, 1);
@@ -1650,6 +1663,8 @@ async function saveWeight(exId, dayId){
   if(s1) summary.push("S1:" + s1);
   if(s2) summary.push("S2:" + s2);
   if(s3) summary.push("S3:" + s3);
+  if(s4) summary.push("S4:" + s4);
+  if(s5) summary.push("S5:" + s5);
   var summaryStr = summary.join(" ");
   var card = document.getElementById("card-" + exId);
   if(card){
@@ -1665,9 +1680,11 @@ async function saveWeight(exId, dayId){
       }
     }
     // Update placeholders
-    if(s1el){ s1el.placeholder = s1; s1el.value = ""; }
-    if(s2el){ s2el.placeholder = s2; s2el.value = ""; }
-    if(s3el){ s3el.placeholder = s3; s3el.value = ""; }
+    if(s1el){ s1el.placeholder = s1 || "-"; s1el.value = ""; }
+    if(s2el){ s2el.placeholder = s2 || "-"; s2el.value = ""; }
+    if(s3el){ s3el.placeholder = s3 || "-"; s3el.value = ""; }
+    if(s4el){ s4el.placeholder = s4 || "-"; s4el.value = ""; }
+    if(s5el){ s5el.placeholder = s5 || "-"; s5el.value = ""; }
     // Update weight label
     var wLabel = card.querySelector(".weight-label");
     if(wLabel){
@@ -1707,7 +1724,7 @@ async function saveWeight(exId, dayId){
 
   // Post to Sheets with pending queue for reliability
   var exName = getExName(exId);
-  var params = "type=exercise&date=" + encodeURIComponent(dateStr) + "&day=" + encodeURIComponent(dayTitle) + "&exercise=" + encodeURIComponent(exName) + "&set1=" + encodeURIComponent(s1) + "&set2=" + encodeURIComponent(s2) + "&set3=" + encodeURIComponent(s3);
+  var params = "type=exercise&date=" + encodeURIComponent(dateStr) + "&day=" + encodeURIComponent(dayTitle) + "&exercise=" + encodeURIComponent(exName) + "&set1=" + encodeURIComponent(s1) + "&set2=" + encodeURIComponent(s2) + "&set3=" + encodeURIComponent(s3) + "&set4=" + encodeURIComponent(s4) + "&set5=" + encodeURIComponent(s5);
   queuePending(params);
   updatePendingIndicator();
   try{

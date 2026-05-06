@@ -1654,7 +1654,7 @@ async function saveWeight(exId, dayId){
   var s5 = s5el ? s5el.value.trim() : "";
   if(!s1 && !s2 && !s3 && !s4 && !s5){ showToast("Enter at least one set", "var(--accent2)"); return; }
 
-  var now = new Date();
+  var now = _panelDates[dayId] || new Date();
   var dateStr = now.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
   var dayTitle = "";
   DAYS.forEach(function(d){ if(d.id === dayId) dayTitle = d.title; });

@@ -97,6 +97,7 @@ header p{color:var(--muted);font-size:10px;margin-top:2px;letter-spacing:1.5px;t
 .exercise-meta{display:flex;align-items:center;gap:8px;margin-top:3px;flex-wrap:wrap;}
 .exercise-sets{font-family:'DM Mono',monospace;font-weight:500;color:var(--red);font-size:11px;}
 .prev-weight{font-family:'DM Mono',monospace;font-size:10px;color:var(--amber);}
+.pr-badge{background:var(--green);color:white;font-family:'DM Mono',monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;letter-spacing:1px;margin-left:6px;}
 .info-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);width:26px;height:26px;border-radius:50%;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Mono',monospace;transition:all .15s;}
 .info-btn.open{background:var(--ink);border-color:var(--ink);color:var(--bg);}
 .edit-entry-btn{background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;cursor:pointer;letter-spacing:.5px;}
@@ -655,6 +656,7 @@ var EXERCISES = {
 // ── Viewed date (current or browsed week) ────────────────────
 var viewedDate = new Date();
 var _panelDates = {};
+var _prMap = {};
 
 // ── Storage ──────────────────────────────────────────────────
 var LS_KEY = "pgymplan_v5";
@@ -1164,6 +1166,16 @@ function buildCard(container, ex, dayId, data, phase){
   var isDone = !!(data.checks && data.checks[ex.id]);
   var history = (data.history && data.history[ex.id]) || [];
   var lastEntry = history.length ? history[history.length-1] : null;
+
+  var localMax = 0;
+  history.forEach(function(e){
+    ['s1','s2','s3','s4','s5'].forEach(function(k){
+      var v = parseFloat(e[k]); if(!isNaN(v) && v > localMax) localMax = v;
+    });
+  });
+  if(localMax > 0 && (!_prMap[ex.id] || localMax > _prMap[ex.id])){
+    _prMap[ex.id] = localMax;
+  }
 
   var lastSummary = "";
   if(lastEntry){
@@ -1693,6 +1705,24 @@ async function saveWeight(exId, dayId){
       lSpan.style.cssText = "color:var(--accent2);font-size:11px;font-weight:600;margin-left:6px;";
       lSpan.textContent = summaryStr;
       wLabel.appendChild(lSpan);
+    }
+  }
+
+  var allSetVals = [s1,s2,s3,s4,s5].map(parseFloat).filter(function(v){ return !isNaN(v) && v > 0; });
+  if(allSetVals.length > 0 && card){
+    var newMax = Math.max.apply(null, allSetVals);
+    var existingBadge = card.querySelector('.pr-badge');
+    if(existingBadge) existingBadge.remove();
+    if(_prMap[exId] && newMax > _prMap[exId]){
+      _prMap[exId] = newMax;
+      var prBadge = document.createElement('span');
+      prBadge.className = 'pr-badge';
+      prBadge.textContent = 'PR';
+      var metaEl = card.querySelector('.exercise-meta');
+      if(metaEl) metaEl.appendChild(prBadge);
+      showToast('New PR — ' + getExName(exId));
+    } else if(!_prMap[exId]){
+      _prMap[exId] = newMax;
     }
   }
 

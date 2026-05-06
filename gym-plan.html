@@ -1176,6 +1176,20 @@ function buildCard(container, ex, dayId, data, phase){
   var history = (data.history && data.history[ex.id]) || [];
   var lastEntry = history.length ? history[history.length-1] : null;
 
+  // Find the entry logged on the specific date being viewed
+  var panelDate = _panelDates[dayId];
+  var panelDateStr = panelDate
+    ? panelDate.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"})
+    : null;
+  var viewedEntry = null;
+  if(panelDateStr){
+    for(var hi = history.length - 1; hi >= 0; hi--){
+      if(history[hi].date === panelDateStr){ viewedEntry = history[hi]; break; }
+    }
+  }
+  if(viewedEntry) isDone = true;
+  var displayEntry = viewedEntry || lastEntry;
+
   var localMax = 0;
   history.forEach(function(e){
     ['s1','s2','s3','s4','s5'].forEach(function(k){
@@ -1187,11 +1201,13 @@ function buildCard(container, ex, dayId, data, phase){
   }
 
   var lastSummary = "";
-  if(lastEntry){
+  if(displayEntry){
     var parts = [];
-    if(lastEntry.s1) parts.push("S1:" + lastEntry.s1);
-    if(lastEntry.s2) parts.push("S2:" + lastEntry.s2);
-    if(lastEntry.s3) parts.push("S3:" + lastEntry.s3);
+    if(displayEntry.s1) parts.push("S1:" + displayEntry.s1);
+    if(displayEntry.s2) parts.push("S2:" + displayEntry.s2);
+    if(displayEntry.s3) parts.push("S3:" + displayEntry.s3);
+    if(displayEntry.s4) parts.push("S4:" + displayEntry.s4);
+    if(displayEntry.s5) parts.push("S5:" + displayEntry.s5);
     lastSummary = parts.join(" ");
   }
 
@@ -1333,11 +1349,11 @@ function buildCard(container, ex, dayId, data, phase){
   }
 
   if(!ex.noWeight){
-    var ph1 = lastEntry && lastEntry.s1 ? lastEntry.s1 : "-";
-    var ph2 = lastEntry && lastEntry.s2 ? lastEntry.s2 : "-";
-    var ph3 = lastEntry && lastEntry.s3 ? lastEntry.s3 : "-";
-    var ph4 = lastEntry && lastEntry.s4 ? lastEntry.s4 : "-";
-    var ph5 = lastEntry && lastEntry.s5 ? lastEntry.s5 : "-";
+    var ph1 = displayEntry && displayEntry.s1 ? displayEntry.s1 : "-";
+    var ph2 = displayEntry && displayEntry.s2 ? displayEntry.s2 : "-";
+    var ph3 = displayEntry && displayEntry.s3 ? displayEntry.s3 : "-";
+    var ph4 = displayEntry && displayEntry.s4 ? displayEntry.s4 : "-";
+    var ph5 = displayEntry && displayEntry.s5 ? displayEntry.s5 : "-";
     var phAll = [ph1, ph2, ph3, ph4, ph5];
 
     var numSetCols = (phase === 'intensification' && ex.type === 'compound') ? 5 : 3;

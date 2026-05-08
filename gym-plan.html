@@ -1469,12 +1469,14 @@ function openEditMode(exId, dayId){
 }
 
 // ── Backfill past workout from Sheets ───────────────────────
-async function backfillFromSheets(panelId, viewedDateStr){
+async function backfillFromSheets(panelId, targetDate){
+  // targetDate is a Date object — compare by parts to avoid string/timezone bugs
+  var ty = targetDate.getFullYear(), tm = targetDate.getMonth(), td = targetDate.getDate();
+  var viewedDateStr = targetDate.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
   var sections = EXERCISES[panelId];
   if(!sections) return;
-  var phase = getProgramState(_panelDates[panelId] || new Date()).phase;
+  var phase = getProgramState(targetDate).phase;
   var data = loadData();
-  // Collect exercises that lack local history for this date
   var needed = [];
   Object.keys(sections).forEach(function(sectionId){
     sections[sectionId].forEach(function(ex){
@@ -1485,7 +1487,6 @@ async function backfillFromSheets(panelId, viewedDateStr){
     });
   });
   if(!needed.length) return;
-  // Fetch all in parallel
   var promises = needed.map(function(ex){
     var exName = getExerciseName(ex, phase);
     return fetch(SHEETS_URL + "?type=history&exercise=" + encodeURIComponent(exName))
@@ -1500,7 +1501,15 @@ async function backfillFromSheets(panelId, viewedDateStr){
     var ex = result.ex, rows = result.rows;
     var dateRow = null;
     for(var i = rows.length-1; i >= 0; i--){
-      if(fmtDate(rows[i].date) === viewedDateStr){ dateRow = rows[i]; break; }
+      var raw = String(rows[i].date || "");
+      var rd;
+      // ISO date strings (YYYY-MM-DD) must be parsed as local to avoid UTC offset bug
+      var iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if(iso) rd = new Date(parseInt(iso[1]), parseInt(iso[2])-1, parseInt(iso[3]));
+      else rd = new Date(raw);
+      if(!isNaN(rd.getTime()) && rd.getFullYear()===ty && rd.getMonth()===tm && rd.getDate()===td){
+        dateRow = rows[i]; break;
+      }
     }
     if(!dateRow) return;
     var entry = {
@@ -1512,7 +1521,6 @@ async function backfillFromSheets(panelId, viewedDateStr){
     if(!data.history[ex.id]) data.history[ex.id] = [];
     data.history[ex.id].push(entry);
     dataChanged = true;
-    // Update card in-place
     var card = document.getElementById("card-" + ex.id);
     if(!card) return;
     card.classList.add("done");
@@ -2715,8 +2723,7 @@ function showDayForDate(panelId, date){
     var curMon = getMondayOf(new Date());
     var viewedMon = getMondayOf(_panelDates[panelId] || new Date());
     if(viewedMon.getTime() < curMon.getTime()){
-      var backfillDateStr = (_panelDates[panelId] || new Date()).toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
-      backfillFromSheets(panelId, backfillDateStr);
+      backfillFromSheets(panelId, _panelDates[panelId] || new Date());
     }
   }
 }

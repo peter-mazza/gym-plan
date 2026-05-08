@@ -832,6 +832,11 @@ function shiftWeek(delta){
   viewedDate.setDate(viewedDate.getDate() + delta*7);
   renderWeekNav();
   var monday = getMondayOf(viewedDate);
+  // Pre-set all panel dates so restoreWarmupStates uses the correct week for every panel
+  ['d1','d2','d3','d4','d5'].forEach(function(pid, i){
+    var d = new Date(monday); d.setDate(monday.getDate() + i);
+    _panelDates[pid] = d;
+  });
   showDayForDate('d1', monday);
 }
 
@@ -1372,17 +1377,6 @@ function buildCard(container, ex, dayId, data, phase){
 
     var wsDiv = document.createElement("div");
     wsDiv.className = "weight-section";
-
-    var wLabel = document.createElement("div");
-    wLabel.className = "weight-label";
-    wLabel.textContent = "Log Weight";
-    if(lastSummary){
-      var lSpan = document.createElement("span");
-      lSpan.style.cssText = "color:var(--accent2);font-size:11px;font-weight:600;margin-left:6px;";
-      lSpan.textContent = lastSummary;
-      wLabel.appendChild(lSpan);
-    }
-    wsDiv.appendChild(wLabel);
 
     var grid = document.createElement("div");
     grid.className = "sets-grid";
@@ -2813,6 +2807,10 @@ function showNextWorkout(){
         var weekOverride = WEEK_DOW_OVERRIDES[mondayKey] || {};
         var dowIdx = candidate.getDay() - 1;
         var panelId = (weekOverride[dowIdx] !== undefined) ? weekOverride[dowIdx] : (DOW_TO_PANEL[candidate.getDay()] || 'd1');
+        var newMon = getMondayOf(candidate);
+        ['d1','d2','d3','d4','d5'].forEach(function(pid, i){
+          var d = new Date(newMon); d.setDate(newMon.getDate() + i); _panelDates[pid] = d;
+        });
         showDayForDate(panelId, candidate);
         return;
       }
@@ -2825,6 +2823,9 @@ function showNextWorkout(){
   if(restEl2) restEl2.style.display='none';
   viewedDate = mon;
   renderWeekNav();
+  ['d1','d2','d3','d4','d5'].forEach(function(pid, i){
+    var d = new Date(mon); d.setDate(mon.getDate() + i); _panelDates[pid] = d;
+  });
   showDayForDate('d1', mon);
 }
 

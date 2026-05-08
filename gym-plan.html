@@ -171,6 +171,7 @@ header p{color:var(--muted);font-size:10px;margin-top:2px;letter-spacing:1.5px;t
 
 /* ── Stats / wrap-up block ────────────────────────── */
 .stats-block{margin-top:20px;background:var(--white);border:1px solid var(--border);border-radius:3px;padding:16px;}
+.stats-block.logged{border-color:var(--green);}
 .stats-title{font-family:'Barlow Condensed',sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ink);margin-bottom:12px;}
 .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
 .stat-col{display:flex;flex-direction:column;gap:4px;}
@@ -920,7 +921,7 @@ function buildPanels(){
     html += "</div>";
 
     // Wrap-up stats
-    html += "<div class='stats-block'>";
+    html += "<div class='stats-block' id='wrap-block-" + day.id + "'>";
     html += "<div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;'>";
     html += "<div class='stats-title' style='margin-bottom:0;'>📊 WRAP UP WORKOUT</div>";
     html += "<div id='wrap-logged-" + day.id + "' style='display:none;font-size:11px;font-weight:600;color:var(--green);'>✓ Logged</div>";
@@ -2010,11 +2011,14 @@ async function saveWorkout(dayId){
       saveData(wdata);
     }catch(e){}
 
-    markDayComplete(dayId);
+    var _wk = _panelDates[dayId] ? _isoWeekKey(_panelDates[dayId]) : getPacificWeekKey();
+    markDayComplete(dayId, _wk);
     var saveBtn = document.getElementById("wrap-save-btn-" + dayId);
     if(saveBtn) saveBtn.textContent = "Update Workout";
     var loggedBadge = document.getElementById("wrap-logged-" + dayId);
     if(loggedBadge) loggedBadge.style.display = "block";
+    var wrapBlock = document.getElementById("wrap-block-" + dayId);
+    if(wrapBlock) wrapBlock.classList.add("logged");
     showToast(isEdit ? "Workout updated in Sheets" : "Workout saved to Sheets");
   }catch(e){
     showToast("Failed to save", "var(--accent2)");
@@ -2795,6 +2799,14 @@ function showDayForDate(panelId, date){
     var today = new Date(); today.setHours(0,0,0,0);
     var viewedDay = new Date(_panelDates[panelId] || new Date()); viewedDay.setHours(0,0,0,0);
     if(viewedDay.getTime() < today.getTime()){
+      // If local history already has entries for this date, mark the pill green immediately
+      var _vds = (_panelDates[panelId] || new Date()).toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
+      var _ld = loadData(); var _secs = EXERCISES[panelId];
+      if(_secs && Object.keys(_secs).some(function(sid){
+        return _secs[sid].some(function(ex){
+          return (_ld.history && _ld.history[ex.id] || []).some(function(e){ return e.date === _vds; });
+        });
+      })){ markDayComplete(panelId, _isoWeekKey(_panelDates[panelId] || new Date())); }
       backfillFromSheets(panelId, _panelDates[panelId] || new Date());
     }
   }
@@ -2941,11 +2953,13 @@ function loadWrapPersist(dayId){
       var data = loadData();
       saved = data.wrapHistory ? (data.wrapHistory[dayId + "_" + panelDateStr] || null) : null;
     }
+    var wrapBlock = document.getElementById("wrap-block-" + dayId);
     if(!saved){
       var sb0 = document.getElementById("wrap-save-btn-" + dayId);
       if(sb0) sb0.textContent = "Save Workout";
       var lb0 = document.getElementById("wrap-logged-" + dayId);
       if(lb0) lb0.style.display = "none";
+      if(wrapBlock) wrapBlock.classList.remove("logged");
       var durEl0 = document.getElementById("stat-dur-" + dayId);
       var calEl0 = document.getElementById("stat-cal-" + dayId);
       var hrEl0 = document.getElementById("stat-hr-" + dayId);
@@ -2969,6 +2983,7 @@ function loadWrapPersist(dayId){
     if(saveBtn) saveBtn.textContent = isToday ? "Update Workout" : "Workout Logged";
     var loggedBadge = document.getElementById("wrap-logged-" + dayId);
     if(loggedBadge) loggedBadge.style.display = "block";
+    if(wrapBlock) wrapBlock.classList.add("logged");
   }catch(e){}
 }
 
@@ -3038,6 +3053,11 @@ updateDayTabColors();
     }, 300);
   })();
 })();
+
+// Re-run stale check when app returns to foreground (catches overnight/week-boundary sessions)
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState === 'visible') clearStaleChecks();
+});
 </script>
 </body>
 </html>

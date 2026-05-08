@@ -1171,7 +1171,6 @@ function renderAll(){
 
 function buildCard(container, ex, dayId, data, phase){
   phase = phase || getProgramState(new Date()).phase;
-  var isDone = !!(data.checks && data.checks[ex.id]);
   var history = (data.history && data.history[ex.id]) || [];
   var lastEntry = history.length ? history[history.length-1] : null;
 
@@ -1180,6 +1179,11 @@ function buildCard(container, ex, dayId, data, phase){
   var panelDateStr = panelDate
     ? panelDate.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"})
     : null;
+  var panelWeekKey = panelDate ? _isoWeekKey(panelDate) : null;
+  // Only apply live checks for the current week — future weeks must start blank
+  var isCurrentWeek = !panelWeekKey || panelWeekKey === getPacificWeekKey();
+  var isDone = isCurrentWeek && !!(data.checks && data.checks[ex.id]);
+
   var viewedEntry = null;
   if(panelDateStr){
     for(var hi = history.length - 1; hi >= 0; hi--){
@@ -1188,7 +1192,6 @@ function buildCard(container, ex, dayId, data, phase){
   }
   if(viewedEntry) isDone = true;
   // Also restore from archived weekly check state (covers bodyweight + weight exercises)
-  var panelWeekKey = panelDate ? _isoWeekKey(panelDate) : null;
   var archivedWeek = panelWeekKey && data.checksHistory && data.checksHistory[panelWeekKey];
   if(archivedWeek && !isDone){
     isDone = !!(archivedWeek.checks && archivedWeek.checks[ex.id]);
@@ -1271,7 +1274,7 @@ function buildCard(container, ex, dayId, data, phase){
   if(ex.noWeight){
     var setBtns = document.createElement("div");
     setBtns.className = "set-checks";
-    var savedChecks = (data.setBChecks && data.setBChecks[ex.id]) || [];
+    var savedChecks = (isCurrentWeek && data.setBChecks && data.setBChecks[ex.id]) || [];
     if(!savedChecks.length && archivedWeek && archivedWeek.setBChecks && archivedWeek.setBChecks[ex.id]){
       savedChecks = archivedWeek.setBChecks[ex.id];
     }
@@ -1607,49 +1610,71 @@ async function backfillWrapFromSheets(panelId, targetDate){
   var hasWrap = data.wrapHistory && data.wrapHistory[key];
   var hasCardio = data.cardioHistory && data.cardioHistory[key];
   if(hasWrap && hasCardio) return;
-  try{
-    var resp = await fetch(SHEETS_URL + "?type=stats_workouts");
-    var json = await resp.json();
-    var rows = (json && json.rows) ? json.rows : [];
-    var match = null;
-    for(var i = rows.length - 1; i >= 0; i--){
-      var raw = String(rows[i].date || "");
-      var rd;
-      var iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
-      if(iso) rd = new Date(parseInt(iso[1]), parseInt(iso[2])-1, parseInt(iso[3]));
-      else rd = new Date(raw);
-      if(!isNaN(rd.getTime()) && rd.getFullYear()===ty && rd.getMonth()===tm && rd.getDate()===td){
-        match = rows[i]; break;
+
+  var dayTitle = ""; DAYS.forEach(function(d){ if(d.id===panelId) dayTitle = d.title; });
+  if(!dayTitle) return;
+
+  function parseSheetsDate(raw){
+    var s = String(raw||"");
+    var iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if(iso) return new Date(parseInt(iso[1]),parseInt(iso[2])-1,parseInt(iso[3]));
+    return new Date(s);
+  }
+  function dateMatches(raw){ var d=parseSheetsDate(raw); return !isNaN(d)&&d.getFullYear()===ty&&d.getMonth()===tm&&d.getDate()===td; }
+
+  var changed = false;
+  data = loadData();
+
+  // 1. Cardio: cardio_history returns per-row dates — filter directly
+  if(!hasCardio){
+    try{
+      var cr = await fetch(SHEETS_URL+"?type=cardio_history&day="+encodeURIComponent(dayTitle)+"&dayId="+encodeURIComponent(panelId));
+      var cj = await cr.json();
+      var cRows = (cj&&cj.rows)?cj.rows:[];
+      for(var ci=cRows.length-1;ci>=0;ci--){
+        if(dateMatches(cRows[ci].date)){
+          if(!data.cardioHistory) data.cardioHistory={};
+          data.cardioHistory[key]={type:cRows[ci].cardio||"",duration:cRows[ci].cardioMinutes||"",done:!!(cRows[ci].cardio||cRows[ci].cardioMinutes)};
+          changed=true; break;
+        }
       }
+    }catch(e){}
+  }
+
+  // 2. Wrap-up: try day_history first (confirmed field names); fall back to stats_workouts
+  if(!hasWrap){
+    var wrapMatch = null;
+    try{
+      var dr = await fetch(SHEETS_URL+"?type=day_history&day="+encodeURIComponent(dayTitle)+"&dayId="+encodeURIComponent(panelId));
+      var dj = await dr.json();
+      if(dj&&dj.date&&dateMatches(dj.date)) wrapMatch={dur:dj.duration||"",cal:dj.calories||"",hr:dj.heartRate||"",cardio:dj.cardio||"",cardioMinutes:dj.cardioMinutes||"",notes:dj.notes||""};
+    }catch(e){}
+    if(!wrapMatch){
+      try{
+        var sr = await fetch(SHEETS_URL+"?type=stats_workouts");
+        var sj = await sr.json();
+        var sRows=(sj&&sj.rows)?sj.rows:[];
+        for(var si=sRows.length-1;si>=0;si--){
+          if(dateMatches(sRows[si].date)){
+            wrapMatch={dur:sRows[si].duration||"",cal:sRows[si].calories||"",hr:sRows[si].heartRate||"",cardio:sRows[si].cardio||"",cardioMinutes:sRows[si].cardioMinutes||"",notes:sRows[si].notes||""};
+            break;
+          }
+        }
+      }catch(e){}
     }
-    if(!match) return;
-    data = loadData();
-    var changed = false;
-    if(!hasWrap){
-      if(!data.wrapHistory) data.wrapHistory = {};
-      data.wrapHistory[key] = {
-        dur: match.duration || "", cal: match.calories || "",
-        hr: match.heartRate || "", cardio: match.cardio || "",
-        cardioMinutes: match.cardioMinutes || "", notes: match.notes || ""
-      };
-      changed = true;
+    if(wrapMatch){
+      if(!data.wrapHistory) data.wrapHistory={};
+      data.wrapHistory[key]=wrapMatch;
+      changed=true;
     }
-    if(!hasCardio && match.cardio){
-      if(!data.cardioHistory) data.cardioHistory = {};
-      data.cardioHistory[key] = {
-        type: match.cardio || "",
-        duration: match.cardioMinutes || "",
-        done: true
-      };
-      changed = true;
-    }
-    if(changed){
-      saveData(data);
-      markDayComplete(panelId, _isoWeekKey(targetDate));
-      loadWrapPersist(panelId);
-      loadCardioPersist(panelId);
-    }
-  }catch(e){}
+  }
+
+  if(changed){
+    saveData(data);
+    markDayComplete(panelId, _isoWeekKey(targetDate));
+    loadWrapPersist(panelId);
+    loadCardioPersist(panelId);
+  }
 }
 
 // ── Live history from Sheets ─────────────────────────────────
@@ -1835,10 +1860,11 @@ function toggleWarmup(dayId){
 function restoreWarmupStates(){
   var data = loadData();
   ["d1","d2","d3","d4","d5","d3-act"].forEach(function(dayId){
-    var isDone = !!(data.warmupChecks && data.warmupChecks[dayId]);
+    var pd = _panelDates[dayId];
+    var wk = pd ? _isoWeekKey(pd) : null;
+    var isCurrentWeek = !wk || wk === getPacificWeekKey();
+    var isDone = isCurrentWeek && !!(data.warmupChecks && data.warmupChecks[dayId]);
     if(!isDone){
-      var pd = _panelDates[dayId];
-      var wk = pd ? _isoWeekKey(pd) : null;
       var arch = wk && data.checksHistory && data.checksHistory[wk];
       if(arch) isDone = !!(arch.warmupChecks && arch.warmupChecks[dayId]);
     }

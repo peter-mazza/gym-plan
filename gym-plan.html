@@ -1825,8 +1825,25 @@ async function saveWeight(exId, dayId){
   if(hist.length >= 2 && hist[hist.length-2].date === dateStr){
     hist.splice(hist.length-2, 1);
   }
+  // Saving sets means this exercise is done — mark it so navigation shows it complete
+  if(!data.checks) data.checks = {};
+  data.checks[exId] = true;
   saveData(data);
 
+  // Mark card as done in-place
+  if(card){
+    card.classList.add("done");
+    var cb = card.querySelector(".check-btn");
+    if(cb && !cb.classList.contains("done")){ cb.classList.add("done"); cb.innerHTML = "&#10003;"; }
+    if(!card.querySelector(".edit-entry-btn")){
+      var eb = document.createElement("button");
+      eb.className = "edit-entry-btn"; eb.textContent = "Edit";
+      eb.onclick = (function(eid, did){ return function(e){ e.stopPropagation(); openEditMode(eid, did); }; })(exId, dayId);
+      var md = card.querySelector(".exercise-main");
+      var ib = card.querySelector(".info-btn");
+      if(md && ib) md.insertBefore(eb, ib);
+    }
+  }
   // Update card display in-place without full re-render
   var summary = [];
   if(s1) summary.push("S1:" + s1);
@@ -2759,9 +2776,9 @@ function showDayForDate(panelId, date){
     var dayObj=null; DAYS.forEach(function(d){ if(d.id===panelId) dayObj=d; });
     if(dayObj){ loadDayHistory(panelId,dayObj.title); loadCardioHistory(panelId); }
     loadWrapPersist(panelId); loadCardioPersist(panelId);
-    var curMon = getMondayOf(new Date());
-    var viewedMon = getMondayOf(_panelDates[panelId] || new Date());
-    if(viewedMon.getTime() < curMon.getTime()){
+    var today = new Date(); today.setHours(0,0,0,0);
+    var viewedDay = new Date(_panelDates[panelId] || new Date()); viewedDay.setHours(0,0,0,0);
+    if(viewedDay.getTime() < today.getTime()){
       backfillFromSheets(panelId, _panelDates[panelId] || new Date());
     }
   }

@@ -2864,8 +2864,10 @@ function saveCardioPersist(dayId){
   var typeEl = document.getElementById("cardio-" + dayId);
   var durEl = document.getElementById("cardio-dur-" + dayId);
   var doneBtn = document.getElementById("finisher-done-" + dayId);
+  var _now = _panelDates[dayId] || new Date();
   var cardioData = {
     weekKey: getPacificWeekKey(),
+    date: _now.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"}),
     type: typeEl ? typeEl.value : "",
     duration: durEl ? durEl.value : "",
     done: doneBtn ? doneBtn.classList.contains("done") : false
@@ -2886,13 +2888,25 @@ function loadCardioPersist(dayId){
   try{
     var panelDate = _panelDates[dayId];
     var panelDateStr = panelDate ? panelDate.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"}) : null;
-    var saved = JSON.parse(localStorage.getItem("pgymplan_cardio_" + dayId));
-    var isCurrentWeek = saved && saved.weekKey === getPacificWeekKey();
-    if(!isCurrentWeek){
-      if(saved) localStorage.removeItem("pgymplan_cardio_" + dayId);
+    var cached = JSON.parse(localStorage.getItem("pgymplan_cardio_" + dayId));
+    var saved = null;
+    if(cached && panelDateStr && cached.date === panelDateStr){
+      saved = cached;
+    } else if(cached && !panelDateStr && cached.weekKey === getPacificWeekKey()){
+      saved = cached;
+    } else if(panelDateStr){
       var data = loadData();
-      saved = panelDateStr && data.cardioHistory ? (data.cardioHistory[dayId + "_" + panelDateStr] || null) : null;
+      saved = data.cardioHistory ? (data.cardioHistory[dayId + "_" + panelDateStr] || null) : null;
     }
+    // Reset finisher state before applying saved values
+    var finEl0 = document.getElementById("finisher-" + dayId);
+    var doneBtn0 = document.getElementById("finisher-done-" + dayId);
+    var typeEl0 = document.getElementById("cardio-" + dayId);
+    var durEl0 = document.getElementById("cardio-dur-" + dayId);
+    if(finEl0){ finEl0.classList.remove("done"); finEl0.querySelectorAll(".cardio-pill").forEach(function(p){ p.classList.remove("active"); }); }
+    if(doneBtn0){ doneBtn0.classList.remove("done"); doneBtn0.textContent = ""; }
+    if(typeEl0) typeEl0.value = "";
+    if(durEl0) durEl0.value = "";
     if(!saved) return;
     var typeEl = document.getElementById("cardio-" + dayId);
     var durEl = document.getElementById("cardio-dur-" + dayId);
@@ -2916,28 +2930,43 @@ function loadWrapPersist(dayId){
   try{
     var panelDate = _panelDates[dayId];
     var panelDateStr = panelDate ? panelDate.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"}) : null;
-    var saved = JSON.parse(localStorage.getItem("pgymplan_lastwrap_" + dayId));
-    var isCurrentWeek = saved && saved.weekKey === getPacificWeekKey();
-    if(!isCurrentWeek){
-      if(saved) localStorage.removeItem("pgymplan_lastwrap_" + dayId);
+    var cached = JSON.parse(localStorage.getItem("pgymplan_lastwrap_" + dayId));
+    // Match by exact date; fall back to current-week cache when panel date unknown (init)
+    var saved = null;
+    if(cached && panelDateStr && cached.date === panelDateStr){
+      saved = cached;
+    } else if(cached && !panelDateStr && cached.weekKey === getPacificWeekKey()){
+      saved = cached;
+    } else if(panelDateStr){
       var data = loadData();
-      saved = panelDateStr && data.wrapHistory ? (data.wrapHistory[dayId + "_" + panelDateStr] || null) : null;
+      saved = data.wrapHistory ? (data.wrapHistory[dayId + "_" + panelDateStr] || null) : null;
     }
     if(!saved){
       var sb0 = document.getElementById("wrap-save-btn-" + dayId);
       if(sb0) sb0.textContent = "Save Workout";
+      var lb0 = document.getElementById("wrap-logged-" + dayId);
+      if(lb0) lb0.style.display = "none";
+      var durEl0 = document.getElementById("stat-dur-" + dayId);
+      var calEl0 = document.getElementById("stat-cal-" + dayId);
+      var hrEl0 = document.getElementById("stat-hr-" + dayId);
+      var notesEl0 = document.getElementById("notes-" + dayId);
+      if(durEl0) durEl0.value = "";
+      if(calEl0) calEl0.value = "";
+      if(hrEl0) hrEl0.value = "";
+      if(notesEl0) notesEl0.value = "";
       return;
     }
     var durEl = document.getElementById("stat-dur-" + dayId);
     var calEl = document.getElementById("stat-cal-" + dayId);
     var hrEl = document.getElementById("stat-hr-" + dayId);
     var notesEl = document.getElementById("notes-" + dayId);
-    if(durEl && saved.dur) durEl.value = saved.dur;
-    if(calEl && saved.cal) calEl.value = saved.cal;
-    if(hrEl && saved.hr) hrEl.value = saved.hr;
-    if(notesEl && saved.notes) notesEl.value = saved.notes;
+    if(durEl) durEl.value = saved.dur || "";
+    if(calEl) calEl.value = saved.cal || "";
+    if(hrEl) hrEl.value = saved.hr || "";
+    if(notesEl) notesEl.value = saved.notes || "";
     var saveBtn = document.getElementById("wrap-save-btn-" + dayId);
-    if(saveBtn) saveBtn.textContent = isCurrentWeek ? "Update Workout" : "Workout Logged";
+    var isToday = panelDateStr && panelDateStr === new Date().toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
+    if(saveBtn) saveBtn.textContent = isToday ? "Update Workout" : "Workout Logged";
     var loggedBadge = document.getElementById("wrap-logged-" + dayId);
     if(loggedBadge) loggedBadge.style.display = "block";
   }catch(e){}

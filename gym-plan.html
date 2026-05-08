@@ -1487,19 +1487,26 @@ async function backfillFromSheets(panelId, targetDate){
     });
   });
   if(!needed.length) return;
+  showToast("DEBUG: fetching " + needed.length + " exercises for " + viewedDateStr, "#555");
   var promises = needed.map(function(ex){
     var exName = getExerciseName(ex, phase);
     return fetch(SHEETS_URL + "?type=history&exercise=" + encodeURIComponent(exName))
       .then(function(r){ return r.json(); })
-      .then(function(json){ return {ex:ex, rows:json.rows||[]}; })
-      .catch(function(){ return {ex:ex, rows:[]}; });
+      .then(function(json){ return {ex:ex, exName:exName, rows:json.rows||[]}; })
+      .catch(function(err){ return {ex:ex, exName:exName, rows:[], err:String(err)}; });
   });
   var results = await Promise.all(promises);
   if(!data.history) data.history = {};
   var dataChanged = false;
+  var debugFound = [], debugMissed = [];
   results.forEach(function(result){
     var ex = result.ex, rows = result.rows;
     var dateRow = null;
+    // Show what dates Sheets returned for the first exercise
+    if(rows.length > 0 && debugFound.length + debugMissed.length === 0){
+      var sampleDates = rows.slice(-3).map(function(r){ return String(r.date||""); }).join(", ");
+      showToast("DEBUG: " + result.exName + " → " + rows.length + " rows. Last dates: " + sampleDates, "#555");
+    }
     for(var i = rows.length-1; i >= 0; i--){
       var raw = String(rows[i].date || "");
       var rd;
@@ -1557,7 +1564,9 @@ async function backfillFromSheets(panelId, targetDate){
       var infoBtn = card.querySelector(".info-btn");
       if(mainDiv && infoBtn) mainDiv.insertBefore(editBtn, infoBtn);
     }
+    if(dateRow) debugFound.push(result.exName); else debugMissed.push(result.exName);
   });
+  showToast("DEBUG: matched " + debugFound.length + "/" + (debugFound.length+debugMissed.length) + ". Miss: " + (debugMissed.slice(0,2).join(", ")||"none"), "#555");
   if(dataChanged) saveData(data);
 }
 

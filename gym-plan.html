@@ -1598,6 +1598,59 @@ async function backfillFromSheets(panelId, targetDate){
   }
 }
 
+// ── Backfill wrap-up + cardio from Sheets for past days ──────
+async function backfillWrapFromSheets(panelId, targetDate){
+  var ty = targetDate.getFullYear(), tm = targetDate.getMonth(), td = targetDate.getDate();
+  var viewedDateStr = targetDate.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
+  var key = panelId + "_" + viewedDateStr;
+  var data = loadData();
+  var hasWrap = data.wrapHistory && data.wrapHistory[key];
+  var hasCardio = data.cardioHistory && data.cardioHistory[key];
+  if(hasWrap && hasCardio) return;
+  try{
+    var resp = await fetch(SHEETS_URL + "?type=stats_workouts");
+    var json = await resp.json();
+    var rows = (json && json.rows) ? json.rows : [];
+    var match = null;
+    for(var i = rows.length - 1; i >= 0; i--){
+      var raw = String(rows[i].date || "");
+      var rd;
+      var iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if(iso) rd = new Date(parseInt(iso[1]), parseInt(iso[2])-1, parseInt(iso[3]));
+      else rd = new Date(raw);
+      if(!isNaN(rd.getTime()) && rd.getFullYear()===ty && rd.getMonth()===tm && rd.getDate()===td){
+        match = rows[i]; break;
+      }
+    }
+    if(!match) return;
+    data = loadData();
+    var changed = false;
+    if(!hasWrap){
+      if(!data.wrapHistory) data.wrapHistory = {};
+      data.wrapHistory[key] = {
+        dur: match.duration || "", cal: match.calories || "",
+        hr: match.heartRate || "", cardio: match.cardio || "",
+        cardioMinutes: match.cardioMinutes || "", notes: match.notes || ""
+      };
+      changed = true;
+    }
+    if(!hasCardio && match.cardio){
+      if(!data.cardioHistory) data.cardioHistory = {};
+      data.cardioHistory[key] = {
+        type: match.cardio || "",
+        duration: match.cardioMinutes || "",
+        done: true
+      };
+      changed = true;
+    }
+    if(changed){
+      saveData(data);
+      markDayComplete(panelId, _isoWeekKey(targetDate));
+      loadWrapPersist(panelId);
+      loadCardioPersist(panelId);
+    }
+  }catch(e){}
+}
 
 // ── Live history from Sheets ─────────────────────────────────
 async function fetchLiveHistory(exId, exName){
@@ -2808,6 +2861,7 @@ function showDayForDate(panelId, date){
         });
       })){ markDayComplete(panelId, _isoWeekKey(_panelDates[panelId] || new Date())); }
       backfillFromSheets(panelId, _panelDates[panelId] || new Date());
+      backfillWrapFromSheets(panelId, _panelDates[panelId] || new Date());
     }
   }
 }

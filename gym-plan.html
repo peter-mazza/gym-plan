@@ -592,33 +592,21 @@ var EXERCISES = {
         type:"compound", isDumbbell:true,
         tip:"Accumulation: working weight 55-60 lbs each DB. Intensification: barbell, start at 95-115 lbs.",
         form:"Flat bench. Lower to chest, press up. Shoulder blades retracted throughout." },
-      { id:"d4_lat_pulldown", name:"Lat Pulldown", type:"compound", fixedSets:"3 \xd7 10-12",
-        tip:"Wide overhand grip, cable. Working weight: 130-150 lbs. Paired after bench — push/pull alternation keeps shoulders fresh.",
-        form:"Wide overhand grip, chest up, pull bar to upper chest. Squeeze lats at bottom, controlled return \u2014 don\u2019t let shoulders shrug at the top." },
-      { id:"d4_arnold_press", name:"Arnold Press", type:"compound", isDumbbell:true,
-        tip:"Working weight: 30 lbs each dumbbell. Do while shoulders are still fresh after bench.",
-        form:"Start with palms facing you, rotate outward as you press up. Hits all three heads of the shoulder." },
-      { id:"d4_chest_supported_row", name:"Chest-Supported Row", type:"compound", isDumbbell:true,
-        tip:"Single-arm dumbbell. Working weight: 40 lbs. Chest support removes lower back fatigue.",
-        form:"Chest flat on incline bench. Pull elbow straight back past hip, squeeze at top. No torso rotation. Slow down." },
       { id:"d4_cable_chest_fly", name:"Cable Chest Fly", type:"isolation", fixedSets:"3 \xd7 12",
         tip:"Working weight: ~17 lbs per side. Cables at shoulder height, one in each hand.",
         form:"Slight forward lean, soft elbow bend. Sweep arms together in a wide arc \u2014 think hugging a barrel. Squeeze at center, slow on the return." },
-      { id:"d4_face_pull", name:"Face Pulls", type:"isolation",
-        tip:"Shoulder health staple. Working weight: 50-60 lbs. Cable is already set up from chest fly \u2014 adjust height and swap attachment.",
-        form:"Cable at face height, rope attachment. Pull to ears, elbows high, wrists behind elbows. Slow and controlled." },
-      { id:"d4_lateral_raise", name:"Lateral Raise", type:"isolation", isDumbbell:true, fixedSets:"3 \xd7 12-15",
-        tip:"Dumbbell. Working weight: 15-20 lbs. Do after face pulls while you\u2019re still at the shoulder isolation station.",
-        form:"Slight bend in elbow, raise arms to shoulder height. Lead with elbows, not hands. Pause at the top, slow on the way down \u2014 the negative is where the growth is." },
-      { id:"d4_ez_curl", name:"EZ Bar Curl", type:"isolation", fixedSets:"3 \xd7 10-12",
-        tip:"Working weight: 60-70 lbs on the EZ bar. Direct bicep hit \u2014 rows only work them secondarily.",
-        form:"Elbows pinned at sides. Full range \u2014 all the way down, squeeze at the top. No momentum." },
-      { id:"d4_rope_pushdown", name:"Tricep Rope Pushdown", type:"isolation", fixedSets:"3 \xd7 10-12",
-        tip:"Working weight: 50-60 lbs. Superset with curls if you want to save time \u2014 biceps rest while triceps work.",
-        form:"Cable at top, rope attachment. Elbows pinned at sides, spread the rope at the bottom and fully extend. Squeeze hard at lockout." },
+      { id:"d4_chest_supported_row", name:"Chest-Supported Row", type:"compound", isDumbbell:true,
+        tip:"Single-arm dumbbell. Working weight: 40 lbs. Chest support removes lower back fatigue.",
+        form:"Chest flat on incline bench. Pull elbow straight back past hip, squeeze at top. No torso rotation. Slow down." },
+      { id:"d4_arnold_press", name:"Arnold Press", type:"compound", isDumbbell:true,
+        tip:"Working weight: 30 lbs each dumbbell.",
+        form:"Start with palms facing you, rotate outward as you press up. Hits all three heads of the shoulder." },
       { id:"d4_farmers_carry", name:"Farmer's Carry", type:"compound", isDumbbell:true, fixedSets:"3 \xd7 40 yards",
-        tip:"Working weight: 44 lbs each hand (20kg KB). Done last before core \u2014 grip is spent by now so this doubles as a finisher for the lifting portion.",
-        form:"Stand tall, shoulders packed back and down, neutral spine. Walk with short deliberate steps. Set down with control." }
+        tip:"Working weight: 44 lbs each hand (20kg KB).",
+        form:"Stand tall, shoulders packed back and down, neutral spine. Walk with short deliberate steps. Set down with control." },
+      { id:"d4_face_pull", name:"Face Pulls", type:"isolation",
+        tip:"Shoulder health staple. Working weight: 50-60 lbs.",
+        form:"Cable at face height, rope attachment. Pull to ears, elbows high, wrists behind elbows. Slow and controlled." }
     ],
     "core-d4": [
       { id:"d4_core_circuit", name:"Core Circuit", noWeight:true, setsFormat:"rounds",
@@ -1256,7 +1244,7 @@ function buildCard(container, ex, dayId, data, phase){
     var editBtn = document.createElement("button");
     editBtn.className = "edit-entry-btn";
     editBtn.textContent = "Edit";
-    editBtn.onclick = (function(eid){ return function(e){ e.stopPropagation(); openEditMode(eid); }; })(ex.id);
+    editBtn.onclick = (function(eid, did){ return function(e){ e.stopPropagation(); openEditMode(eid, did); }; })(ex.id, dayId);
     mainDiv.appendChild(editBtn);
   }
   mainDiv.appendChild(infoBtn);
@@ -1390,6 +1378,7 @@ function buildCard(container, ex, dayId, data, phase){
       inp.type = "text";
       inp.inputMode = "decimal";
       inp.placeholder = phAll[si];
+      if(viewedEntry && phAll[si] && phAll[si] !== '-'){ inp.value = phAll[si]; }
       inp.id = "input-" + ex.id + "-s" + (si + 1);
       col.appendChild(inp);
       grid.appendChild(col);
@@ -1448,7 +1437,7 @@ function toggleTip(btn, exId, exName){
   if(open && exId && exName) fetchLiveHistory(exId, exName);
 }
 
-function openEditMode(exId){
+function openEditMode(exId, dayId){
   var card = document.getElementById("card-" + exId);
   if(!card) return;
   var detail = card.querySelector(".exercise-detail");
@@ -1457,17 +1446,113 @@ function openEditMode(exId){
   if(infoBtn){ infoBtn.classList.add("open"); infoBtn.textContent = "x"; }
   var data = loadData();
   var history = (data.history && data.history[exId]) || [];
-  var last = history.length ? history[history.length-1] : null;
-  if(last){
-    ["s1","s2","s3"].forEach(function(s,i){
+  var panelDate = dayId && _panelDates[dayId];
+  var panelDateStr = panelDate
+    ? panelDate.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"})
+    : null;
+  var viewedEntry = null;
+  if(panelDateStr){
+    for(var hi = history.length - 1; hi >= 0; hi--){
+      if(history[hi].date === panelDateStr){ viewedEntry = history[hi]; break; }
+    }
+  }
+  var entry = viewedEntry || (history.length ? history[history.length-1] : null);
+  if(entry){
+    ["s1","s2","s3","s4","s5"].forEach(function(s){
       var inp = document.getElementById("input-" + exId + "-" + s);
-      if(inp){ inp.value = last[s] || ""; }
+      if(inp && entry[s]) inp.value = entry[s];
     });
   }
   var saveBtn = card.querySelector(".save-btn");
   if(saveBtn) saveBtn.textContent = "Update Sets";
   card.scrollIntoView({behavior:"smooth", block:"nearest"});
 }
+
+// ── Backfill past workout from Sheets ───────────────────────
+async function backfillFromSheets(panelId, viewedDateStr){
+  var sections = EXERCISES[panelId];
+  if(!sections) return;
+  var phase = getProgramState(_panelDates[panelId] || new Date()).phase;
+  var data = loadData();
+  // Collect exercises that lack local history for this date
+  var needed = [];
+  Object.keys(sections).forEach(function(sectionId){
+    sections[sectionId].forEach(function(ex){
+      if(ex.noWeight) return;
+      var hist = (data.history && data.history[ex.id]) || [];
+      var hasLocal = hist.some(function(e){ return e.date === viewedDateStr; });
+      if(!hasLocal) needed.push(ex);
+    });
+  });
+  if(!needed.length) return;
+  // Fetch all in parallel
+  var promises = needed.map(function(ex){
+    var exName = getExerciseName(ex, phase);
+    return fetch(SHEETS_URL + "?type=history&exercise=" + encodeURIComponent(exName))
+      .then(function(r){ return r.json(); })
+      .then(function(json){ return {ex:ex, rows:json.rows||[]}; })
+      .catch(function(){ return {ex:ex, rows:[]}; });
+  });
+  var results = await Promise.all(promises);
+  if(!data.history) data.history = {};
+  var dataChanged = false;
+  results.forEach(function(result){
+    var ex = result.ex, rows = result.rows;
+    var dateRow = null;
+    for(var i = rows.length-1; i >= 0; i--){
+      if(fmtDate(rows[i].date) === viewedDateStr){ dateRow = rows[i]; break; }
+    }
+    if(!dateRow) return;
+    var entry = {
+      date:viewedDateStr,
+      s1:dateRow.set1||"", s2:dateRow.set2||"",
+      s3:dateRow.set3||"", s4:dateRow.set4||"",
+      s5:dateRow.set5||""
+    };
+    if(!data.history[ex.id]) data.history[ex.id] = [];
+    data.history[ex.id].push(entry);
+    dataChanged = true;
+    // Update card in-place
+    var card = document.getElementById("card-" + ex.id);
+    if(!card) return;
+    card.classList.add("done");
+    var checkBtn = card.querySelector(".check-btn");
+    if(checkBtn){ checkBtn.classList.add("done"); checkBtn.innerHTML = "&#10003;"; }
+    var parts = [];
+    if(entry.s1) parts.push("S1:"+entry.s1);
+    if(entry.s2) parts.push("S2:"+entry.s2);
+    if(entry.s3) parts.push("S3:"+entry.s3);
+    if(entry.s4) parts.push("S4:"+entry.s4);
+    if(entry.s5) parts.push("S5:"+entry.s5);
+    var summary = parts.join(" ");
+    var prevEl = card.querySelector(".prev-weight");
+    if(prevEl){ prevEl.textContent = summary; }
+    else{
+      var metaEl = card.querySelector(".exercise-meta");
+      if(metaEl){
+        var sp = document.createElement("span");
+        sp.className = "prev-weight";
+        sp.textContent = summary;
+        metaEl.appendChild(sp);
+      }
+    }
+    ["s1","s2","s3","s4","s5"].forEach(function(s, si){
+      var inp = document.getElementById("input-" + ex.id + "-s" + (si+1));
+      if(inp && entry[s]){ inp.value = entry[s]; inp.placeholder = entry[s]; }
+    });
+    if(!card.querySelector(".edit-entry-btn")){
+      var editBtn = document.createElement("button");
+      editBtn.className = "edit-entry-btn";
+      editBtn.textContent = "Edit";
+      editBtn.onclick = (function(eid, did){ return function(e){ e.stopPropagation(); openEditMode(eid, did); }; })(ex.id, panelId);
+      var mainDiv = card.querySelector(".exercise-main");
+      var infoBtn = card.querySelector(".info-btn");
+      if(mainDiv && infoBtn) mainDiv.insertBefore(editBtn, infoBtn);
+    }
+  });
+  if(dataChanged) saveData(data);
+}
+
 
 // ── Live history from Sheets ─────────────────────────────────
 async function fetchLiveHistory(exId, exName){
@@ -2627,6 +2712,12 @@ function showDayForDate(panelId, date){
     var dayObj=null; DAYS.forEach(function(d){ if(d.id===panelId) dayObj=d; });
     if(dayObj){ loadDayHistory(panelId,dayObj.title); loadCardioHistory(panelId); }
     loadWrapPersist(panelId); loadCardioPersist(panelId);
+    var curMon = getMondayOf(new Date());
+    var viewedMon = getMondayOf(_panelDates[panelId] || new Date());
+    if(viewedMon.getTime() < curMon.getTime()){
+      var backfillDateStr = (_panelDates[panelId] || new Date()).toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
+      backfillFromSheets(panelId, backfillDateStr);
+    }
   }
 }
 

@@ -1591,7 +1591,10 @@ async function backfillFromSheets(panelId, targetDate){
       if(mainDiv && infoBtn) mainDiv.insertBefore(editBtn, infoBtn);
     }
   });
-  if(dataChanged) saveData(data);
+  if(dataChanged){
+    saveData(data);
+    markDayComplete(panelId, _isoWeekKey(targetDate));
+  }
 }
 
 
@@ -1998,6 +2001,13 @@ async function saveWorkout(dayId){
         day: dayTitle,
         dur:dur, cal:cal, hr:hr, cardio:cardio, cardioMinutes:cardioMinutes, notes:notes
       }));
+    }catch(e){}
+    // Archive by date so past-day navigation can restore this
+    try{
+      var wdata = loadData();
+      if(!wdata.wrapHistory) wdata.wrapHistory = {};
+      wdata.wrapHistory[dayId + "_" + dateStr] = {dur:dur, cal:cal, hr:hr, cardio:cardio, cardioMinutes:cardioMinutes, notes:notes};
+      saveData(wdata);
     }catch(e){}
 
     markDayComplete(dayId);
@@ -2854,21 +2864,36 @@ function saveCardioPersist(dayId){
   var typeEl = document.getElementById("cardio-" + dayId);
   var durEl = document.getElementById("cardio-dur-" + dayId);
   var doneBtn = document.getElementById("finisher-done-" + dayId);
+  var cardioData = {
+    weekKey: getPacificWeekKey(),
+    type: typeEl ? typeEl.value : "",
+    duration: durEl ? durEl.value : "",
+    done: doneBtn ? doneBtn.classList.contains("done") : false
+  };
+  try{ localStorage.setItem("pgymplan_cardio_" + dayId, JSON.stringify(cardioData)); }catch(e){}
+  // Archive by date so past-day navigation can restore this
   try{
-    localStorage.setItem("pgymplan_cardio_" + dayId, JSON.stringify({
-      weekKey: getPacificWeekKey(),
-      type: typeEl ? typeEl.value : "",
-      duration: durEl ? durEl.value : "",
-      done: doneBtn ? doneBtn.classList.contains("done") : false
-    }));
+    var now = _panelDates[dayId] || new Date();
+    var dStr = now.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
+    var cdata = loadData();
+    if(!cdata.cardioHistory) cdata.cardioHistory = {};
+    cdata.cardioHistory[dayId + "_" + dStr] = {type:cardioData.type, duration:cardioData.duration, done:cardioData.done};
+    saveData(cdata);
   }catch(e){}
 }
 
 function loadCardioPersist(dayId){
   try{
+    var panelDate = _panelDates[dayId];
+    var panelDateStr = panelDate ? panelDate.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"}) : null;
     var saved = JSON.parse(localStorage.getItem("pgymplan_cardio_" + dayId));
+    var isCurrentWeek = saved && saved.weekKey === getPacificWeekKey();
+    if(!isCurrentWeek){
+      if(saved) localStorage.removeItem("pgymplan_cardio_" + dayId);
+      var data = loadData();
+      saved = panelDateStr && data.cardioHistory ? (data.cardioHistory[dayId + "_" + panelDateStr] || null) : null;
+    }
     if(!saved) return;
-    if(saved.weekKey !== getPacificWeekKey()){ localStorage.removeItem("pgymplan_cardio_" + dayId); return; }
     var typeEl = document.getElementById("cardio-" + dayId);
     var durEl = document.getElementById("cardio-dur-" + dayId);
     if(typeEl && saved.type) typeEl.value = saved.type;
@@ -2889,12 +2914,18 @@ function loadCardioPersist(dayId){
 // ── Wrap-up persist ───────────────────────────────────────────
 function loadWrapPersist(dayId){
   try{
+    var panelDate = _panelDates[dayId];
+    var panelDateStr = panelDate ? panelDate.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"}) : null;
     var saved = JSON.parse(localStorage.getItem("pgymplan_lastwrap_" + dayId));
-    if(!saved) return;
-    if(!saved.weekKey || saved.weekKey !== getPacificWeekKey()){
-      localStorage.removeItem("pgymplan_lastwrap_" + dayId);
-      var saveBtn0 = document.getElementById("wrap-save-btn-" + dayId);
-      if(saveBtn0) saveBtn0.textContent = "Save Workout";
+    var isCurrentWeek = saved && saved.weekKey === getPacificWeekKey();
+    if(!isCurrentWeek){
+      if(saved) localStorage.removeItem("pgymplan_lastwrap_" + dayId);
+      var data = loadData();
+      saved = panelDateStr && data.wrapHistory ? (data.wrapHistory[dayId + "_" + panelDateStr] || null) : null;
+    }
+    if(!saved){
+      var sb0 = document.getElementById("wrap-save-btn-" + dayId);
+      if(sb0) sb0.textContent = "Save Workout";
       return;
     }
     var durEl = document.getElementById("stat-dur-" + dayId);
@@ -2906,7 +2937,7 @@ function loadWrapPersist(dayId){
     if(hrEl && saved.hr) hrEl.value = saved.hr;
     if(notesEl && saved.notes) notesEl.value = saved.notes;
     var saveBtn = document.getElementById("wrap-save-btn-" + dayId);
-    if(saveBtn) saveBtn.textContent = "Update Workout";
+    if(saveBtn) saveBtn.textContent = isCurrentWeek ? "Update Workout" : "Workout Logged";
     var loggedBadge = document.getElementById("wrap-logged-" + dayId);
     if(loggedBadge) loggedBadge.style.display = "block";
   }catch(e){}

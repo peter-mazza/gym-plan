@@ -658,6 +658,16 @@ function clearStaleChecks(){
   var data = loadData();
   var curWeek = getPacificWeekKey();
   if(!data.checksWeekKey || data.checksWeekKey !== curWeek){
+    // Archive the outgoing week before clearing so past workout states are preserved
+    var oldWeek = data.checksWeekKey;
+    if(oldWeek && data.checks && Object.keys(data.checks).length > 0){
+      if(!data.checksHistory) data.checksHistory = {};
+      data.checksHistory[oldWeek] = {
+        checks: JSON.parse(JSON.stringify(data.checks||{})),
+        setBChecks: JSON.parse(JSON.stringify(data.setBChecks||{})),
+        warmupChecks: JSON.parse(JSON.stringify(data.warmupChecks||{}))
+      };
+    }
     data.checks = {};
     data.setBChecks = {};
     data.warmupChecks = {};
@@ -1176,6 +1186,12 @@ function buildCard(container, ex, dayId, data, phase){
     }
   }
   if(viewedEntry) isDone = true;
+  // Also restore from archived weekly check state (covers bodyweight + weight exercises)
+  var panelWeekKey = panelDate ? _isoWeekKey(panelDate) : null;
+  var archivedWeek = panelWeekKey && data.checksHistory && data.checksHistory[panelWeekKey];
+  if(archivedWeek && !isDone){
+    isDone = !!(archivedWeek.checks && archivedWeek.checks[ex.id]);
+  }
   var displayEntry = viewedEntry || lastEntry;
 
   var localMax = 0;
@@ -1254,7 +1270,11 @@ function buildCard(container, ex, dayId, data, phase){
   if(ex.noWeight){
     var setBtns = document.createElement("div");
     setBtns.className = "set-checks";
-    var savedChecks = (data.setBChecks && data.setBChecks[ex.id]) || [false,false,false];
+    var savedChecks = (data.setBChecks && data.setBChecks[ex.id]) || [];
+    if(!savedChecks.length && archivedWeek && archivedWeek.setBChecks && archivedWeek.setBChecks[ex.id]){
+      savedChecks = archivedWeek.setBChecks[ex.id];
+    }
+    if(!savedChecks.length) savedChecks = [false,false,false];
     ["S1","S2","S3"].forEach(function(lbl, si){
       var wrap = document.createElement("div");
       wrap.className = "set-check-wrap";
@@ -1754,6 +1774,12 @@ function restoreWarmupStates(){
   var data = loadData();
   ["d1","d2","d3","d4","d5","d3-act"].forEach(function(dayId){
     var isDone = !!(data.warmupChecks && data.warmupChecks[dayId]);
+    if(!isDone){
+      var pd = _panelDates[dayId];
+      var wk = pd ? _isoWeekKey(pd) : null;
+      var arch = wk && data.checksHistory && data.checksHistory[wk];
+      if(arch) isDone = !!(arch.warmupChecks && arch.warmupChecks[dayId]);
+    }
     var btn = document.getElementById("warmup-check-" + dayId);
     var block = document.getElementById("warmup-block-" + dayId);
     if(btn){ btn.className = "check-btn" + (isDone ? " done" : ""); btn.textContent = isDone ? "\u2713" : ""; }

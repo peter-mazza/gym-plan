@@ -2047,17 +2047,18 @@ async function saveWorkout(dayId){
   var dayTitle = "";
   DAYS.forEach(function(d){ if(d.id === dayId) dayTitle = d.title; });
 
-  // Detect if editing an existing entry this week
+  // Detect if editing an existing entry (current week cache or archived past date)
   var existingSaved = null;
   try{ existingSaved = JSON.parse(localStorage.getItem("pgymplan_lastwrap_" + dayId)); }catch(e){}
-  var isEdit = existingSaved && existingSaved.weekKey === getPacificWeekKey();
-  var origDate = isEdit ? (existingSaved.date || dateStr) : dateStr;
+  var _edata = loadData();
+  var isEdit = (existingSaved && existingSaved.date === dateStr) ||
+               !!(_edata.wrapHistory && _edata.wrapHistory[dayId + "_" + dateStr]);
   var type = isEdit ? "edit_workout" : "workout";
 
   try{
     var params = "type=" + type
       + "&date=" + encodeURIComponent(dateStr)
-      + "&originalDate=" + encodeURIComponent(origDate)
+      + "&originalDate=" + encodeURIComponent(dateStr)
       + "&day=" + encodeURIComponent(dayTitle)
       + "&cardio=" + encodeURIComponent(cardio)
       + "&cardioMinutes=" + encodeURIComponent(cardioMinutes)
@@ -3061,7 +3062,7 @@ function loadWrapPersist(dayId){
     if(notesEl) notesEl.value = saved.notes || "";
     var saveBtn = document.getElementById("wrap-save-btn-" + dayId);
     var isToday = panelDateStr && panelDateStr === new Date().toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
-    if(saveBtn) saveBtn.textContent = isToday ? "Update Workout" : "Workout Logged";
+    if(saveBtn) saveBtn.textContent = "Update Workout";
     var loggedBadge = document.getElementById("wrap-logged-" + dayId);
     if(loggedBadge) loggedBadge.style.display = "block";
     if(wrapBlock) wrapBlock.classList.add("logged");

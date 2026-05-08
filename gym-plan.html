@@ -1725,6 +1725,11 @@ function toggleCheck(exId){
   if(!data.checks) data.checks = {};
   data.checks[exId] = !data.checks[exId];
   saveData(data);
+  if(data.checks[exId]){
+    var _did = exId.split("_")[0];
+    var _pd = _panelDates[_did];
+    markDayComplete(_did, _pd ? _isoWeekKey(_pd) : getPacificWeekKey());
+  }
   var card = document.getElementById("card-" + exId);
   if(card){
     card.classList.toggle("done", data.checks[exId]);
@@ -1829,6 +1834,7 @@ async function saveWeight(exId, dayId){
   if(!data.checks) data.checks = {};
   data.checks[exId] = true;
   saveData(data);
+  markDayComplete(dayId, _isoWeekKey(now));
 
   // Mark card as done in-place
   if(card){
@@ -2112,10 +2118,10 @@ function isAdjacentWeek(wk1, wk2){
   return (y2 === y1 && w2 === w1 + 1) || (y2 === y1 + 1 && w2 === 1 && w1 >= 52);
 }
 
-function markDayComplete(dayId){
+function markDayComplete(dayId, weekKey){
   var data = loadData();
   if(!data.weekDone) data.weekDone = {};
-  var weekKey = getPacificWeekKey();
+  weekKey = weekKey || getPacificWeekKey();
   if(!data.weekDone[weekKey]) data.weekDone[weekKey] = {};
   data.weekDone[weekKey][dayId] = true;
   saveData(data);
@@ -2832,6 +2838,8 @@ function toggleSetCheck(exId, setIdx){
   if(allDone && !(data.checks && data.checks[exId])){
     if(!data.checks) data.checks = {};
     data.checks[exId] = true; saveData(data);
+    var _dId = exId.split("_")[0]; var _dPd = _panelDates[_dId];
+    markDayComplete(_dId, _dPd ? _isoWeekKey(_dPd) : getPacificWeekKey());
     var card = document.getElementById("card-" + exId);
     if(card){ card.classList.add("done"); var cb = card.querySelector(".check-btn"); if(cb){ cb.classList.add("done"); cb.textContent = "\u2713"; } }
   } else if(!allDone && data.checks && data.checks[exId]){

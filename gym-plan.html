@@ -1112,7 +1112,7 @@ function buildRecoveryHTML(){
 // ── Weight suggestion from history (phase-aware) ──────────────
 // Uses Epley 1RM estimate when crossing a phase boundary so the
 // suggested weight is calibrated to the new rep range, not the old one.
-function computeWeightSuggestion(history, phase, exType){
+function computeWeightSuggestion(history, phase, exType, isDumbbell){
   if(!history || history.length === 0) return null;
   var recent = history.slice(-3);
   var maxWeights = recent.map(function(e){
@@ -1135,23 +1135,24 @@ function computeWeightSuggestion(history, phase, exType){
     ? (exType === 'compound' ? 5.5 : 9)
     : (exType === 'compound' ? 11 : 13);
   var oneRM = Math.round(avgMax * (1 + srcReps / 30) / 5) * 5;
+  // Dumbbells exist in 5 lb increments at most gyms; barbells/cables handle 2.5 lb steps
+  var roundTo = isDumbbell ? 5 : 2.5;
 
   var suggested, pct, note;
 
   if(phase === 'intensification'){
     var tgtReps = (exType === 'compound') ? 5.5 : 9;
     suggested = oneRM / (1 + tgtReps / 30);
-    suggested = Math.round(suggested / 2.5) * 2.5;
+    suggested = Math.round(suggested / roundTo) * roundTo;
     pct = Math.round((suggested / oneRM) * 100);
     note = null;
   } else if(phase === 'deload'){
-    suggested = Math.round((oneRM * 0.60) / 2.5) * 2.5;
+    suggested = Math.round((oneRM * 0.60) / roundTo) * roundTo;
     pct = 60;
     note = null;
   } else {
-    // Accumulation: trend-based microload, no 1RM needed
-    suggested = trending ? lastMax : Math.max(lastMax - 2.5, lastMax * 0.95);
-    suggested = Math.round(suggested / 2.5) * 2.5;
+    // Accumulation: typical working weight based on recent avg — no progression step
+    suggested = Math.round(avgMax / roundTo) * roundTo;
     pct = null;
     oneRM = null;
     note = null;
@@ -1316,7 +1317,7 @@ function buildCard(container, ex, dayId, data, phase){
   detailDiv.className = "exercise-detail";
 
   if(!ex.noWeight){
-    var suggestion = computeWeightSuggestion(history, phase, ex.type);
+    var suggestion = computeWeightSuggestion(history, phase, ex.type, ex.isDumbbell);
     if(suggestion){
       var sugP = document.createElement("p");
       sugP.className = "tip-text";
@@ -1335,8 +1336,7 @@ function buildCard(container, ex, dayId, data, phase){
       } else if(phase === 'deload' && suggestion.oneRM){
         formulaText = "Est. 1RM: ~" + suggestion.oneRM + " lbs via Epley \u00b7 60% = " + suggestion.weight + " lbs \u00b7 active recovery";
       } else {
-        var accArrow = suggestion.trending ? "\u2191" : "\u2192";
-        formulaText = "recent max: " + suggestion.lastMax + " lbs " + accArrow + " (" + suggestion.sessions + " session" + (suggestion.sessions!==1?"s":"") + ")";
+        formulaText = "typical \u00b7 last " + suggestion.sessions + " session" + (suggestion.sessions!==1?"s":"") + " \u00b7 recent max: " + suggestion.lastMax + " lbs";
       }
       formulaP.textContent = formulaText;
       detailDiv.appendChild(formulaP);
@@ -1729,24 +1729,6 @@ async function fetchLiveHistory(exId, exName){
     });
     liveEl.innerHTML = "";
     liveEl.appendChild(div);
-    // Progressive overload nudge \u2014 only during accumulation (deload/intensification use 1RM-based suggestion)
-    var _nudgeDayId = exId.split("_")[0];
-    var _nudgePhase = getProgramState(_panelDates[_nudgeDayId] || new Date()).phase;
-    if(_nudgePhase === 'accumulation'){
-      var lastRow = json.rows[json.rows.length - 1];
-      var nudgeNums = [lastRow.set1, lastRow.set2, lastRow.set3, lastRow.set4, lastRow.set5].filter(function(v){ return v && !isNaN(parseFloat(v)); });
-      if(nudgeNums.length > 0){
-        var avgLast = nudgeNums.reduce(function(a,b){ return a + parseFloat(b); }, 0) / nudgeNums.length;
-        var exObj = null;
-        Object.keys(EXERCISES).forEach(function(d){ Object.keys(EXERCISES[d]).forEach(function(s){ EXERCISES[d][s].forEach(function(ex){ if(ex.id === exId) exObj = ex; }); }); });
-        var increment = (exObj && exObj.isDumbbell) ? 2.5 : 5;
-        var suggested = Math.ceil(avgLast / increment) * increment + increment;
-        var nudgeDiv = document.createElement("div");
-        nudgeDiv.className = "overload-nudge";
-        nudgeDiv.textContent = "\uD83C\uDFCB\uFE0F Today\u2019s target: " + suggested + " lbs (+" + increment + " progression)";
-        liveEl.appendChild(nudgeDiv);
-      }
-    }
   }catch(err){
     if(loadEl) loadEl.textContent = "";
     liveEl.innerHTML = "<div class='hist-loading'>Could not load history</div>";

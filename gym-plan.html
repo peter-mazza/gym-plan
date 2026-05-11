@@ -1126,31 +1126,38 @@ function computeWeightSuggestion(history, phase, exType){
   var trending = prevMax !== null && lastMax > prevMax;
   var avgMax = maxWeights.reduce(function(a,b){ return a+b; },0) / maxWeights.length;
 
-  var suggested, note;
+  // Determine the phase that produced the recent history for accurate Epley 1RM estimation
+  var lastHistEntry = history[history.length-1];
+  var srcDate = (lastHistEntry && lastHistEntry.date) ? new Date(lastHistEntry.date) : new Date();
+  var srcPhase = getProgramState(srcDate).phase;
+  // Rep midpoint for the source phase (used to back-calc 1RM via Epley: 1RM = w*(1+r/30))
+  var srcReps = (srcPhase === 'intensification')
+    ? (exType === 'compound' ? 5.5 : 9)
+    : (exType === 'compound' ? 11 : 13);
+  var oneRM = Math.round(avgMax * (1 + srcReps / 30) / 5) * 5;
+
+  var suggested, pct, note;
 
   if(phase === 'intensification'){
-    // Estimate 1RM assuming history was logged in accumulation (10-12 rep range)
-    var srcReps = (exType === 'compound') ? 11 : 13;
-    var oneRM = avgMax * (1 + srcReps / 30);
-    // Back-calculate for intensification target reps
     var tgtReps = (exType === 'compound') ? 5.5 : 9;
     suggested = oneRM / (1 + tgtReps / 30);
     suggested = Math.round(suggested / 2.5) * 2.5;
-    note = 'est. 1RM ' + Math.round(oneRM) + ' lbs \u2192 intensification target';
+    pct = Math.round((suggested / oneRM) * 100);
+    note = null;
   } else if(phase === 'deload'){
-    // Deload: 60% of estimated 1RM
-    var srcReps2 = (exType === 'compound') ? 11 : 13;
-    var oneRM2 = avgMax * (1 + srcReps2 / 30);
-    suggested = Math.round((oneRM2 * 0.60) / 2.5) * 2.5;
-    note = '\u224060% of est. 1RM \u2014 deload week';
+    suggested = Math.round((oneRM * 0.60) / 2.5) * 2.5;
+    pct = 60;
+    note = null;
   } else {
-    // Accumulation: simple trend-based microload
+    // Accumulation: trend-based microload, no 1RM needed
     suggested = trending ? lastMax : Math.max(lastMax - 2.5, lastMax * 0.95);
     suggested = Math.round(suggested / 2.5) * 2.5;
+    pct = null;
+    oneRM = null;
     note = null;
   }
 
-  return { weight:suggested, lastMax:lastMax, trending:trending, sessions:maxWeights.length, note:note };
+  return { weight:suggested, lastMax:lastMax, trending:trending, sessions:maxWeights.length, note:note, oneRM:oneRM, pct:pct };
 }
 
 // ── Render exercise cards ────────────────────────────────────
@@ -1315,16 +1322,24 @@ function buildCard(container, ex, dayId, data, phase){
       sugP.className = "tip-text";
       var sugStrong = document.createElement("strong");
       sugStrong.textContent = "Suggested: ";
-      var arrow = suggestion.trending ? "\u2191" : "\u2192";
-      var sugDetail = document.createElement("span");
-      sugDetail.style.color = "var(--muted)";
-      var detailText = "last " + suggestion.sessions + " session" + (suggestion.sessions!==1?"s":"") + ": max " + suggestion.lastMax + " lbs";
-      if(suggestion.note) detailText += " \u00b7 " + suggestion.note;
-      sugDetail.textContent = detailText;
       sugP.appendChild(sugStrong);
-      sugP.appendChild(document.createTextNode("~" + suggestion.weight + " lbs " + arrow + " "));
-      sugP.appendChild(sugDetail);
+      sugP.appendChild(document.createTextNode("~" + suggestion.weight + " lbs"));
       detailDiv.appendChild(sugP);
+      var formulaP = document.createElement("p");
+      formulaP.className = "tip-text";
+      formulaP.style.cssText = "margin-top:2px;font-size:11px;color:var(--muted);";
+      var formulaText;
+      if(phase === 'intensification' && suggestion.oneRM){
+        var tgtRangeStr = (ex.type === 'compound') ? '5\u20136' : '8\u201310';
+        formulaText = "Est. 1RM: ~" + suggestion.oneRM + " lbs via Epley \u00b7 " + suggestion.pct + "% for " + tgtRangeStr + " reps";
+      } else if(phase === 'deload' && suggestion.oneRM){
+        formulaText = "Est. 1RM: ~" + suggestion.oneRM + " lbs via Epley \u00b7 60% = " + suggestion.weight + " lbs \u00b7 active recovery";
+      } else {
+        var accArrow = suggestion.trending ? "\u2191" : "\u2192";
+        formulaText = "recent max: " + suggestion.lastMax + " lbs " + accArrow + " (" + suggestion.sessions + " session" + (suggestion.sessions!==1?"s":"") + ")";
+      }
+      formulaP.textContent = formulaText;
+      detailDiv.appendChild(formulaP);
       var tipText = getExerciseTip(ex, phase);
       if(tipText){
         var refP = document.createElement("p");

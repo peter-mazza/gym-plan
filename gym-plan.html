@@ -1720,6 +1720,8 @@ async function fetchLiveHistory(exId, exName){
       if(r.set1) parts.push("S1:" + r.set1);
       if(r.set2) parts.push("S2:" + r.set2);
       if(r.set3) parts.push("S3:" + r.set3);
+      if(r.set4) parts.push("S4:" + r.set4);
+      if(r.set5) parts.push("S5:" + r.set5);
       setsSpan.textContent = parts.join(" ");
       row.appendChild(setsSpan);
       entry.appendChild(row);
@@ -1727,19 +1729,23 @@ async function fetchLiveHistory(exId, exName){
     });
     liveEl.innerHTML = "";
     liveEl.appendChild(div);
-    // Progressive overload nudge based on most recent entry
-    var lastRow = json.rows[json.rows.length - 1];
-    var nudgeNums = [lastRow.set1, lastRow.set2, lastRow.set3].filter(function(v){ return v && !isNaN(parseFloat(v)); });
-    if(nudgeNums.length > 0){
-      var avgLast = nudgeNums.reduce(function(a,b){ return a + parseFloat(b); }, 0) / nudgeNums.length;
-      var exObj = null;
-      Object.keys(EXERCISES).forEach(function(d){ Object.keys(EXERCISES[d]).forEach(function(s){ EXERCISES[d][s].forEach(function(ex){ if(ex.id === exId) exObj = ex; }); }); });
-      var increment = (exObj && exObj.isDumbbell) ? 2.5 : 5;
-      var suggested = Math.ceil(avgLast / increment) * increment + increment;
-      var nudgeDiv = document.createElement("div");
-      nudgeDiv.className = "overload-nudge";
-      nudgeDiv.textContent = "\uD83C\uDFCB\uFE0F Today\u2019s target: " + suggested + " lbs (+" + increment + " progression)";
-      liveEl.appendChild(nudgeDiv);
+    // Progressive overload nudge \u2014 only during accumulation (deload/intensification use 1RM-based suggestion)
+    var _nudgeDayId = exId.split("_")[0];
+    var _nudgePhase = getProgramState(_panelDates[_nudgeDayId] || new Date()).phase;
+    if(_nudgePhase === 'accumulation'){
+      var lastRow = json.rows[json.rows.length - 1];
+      var nudgeNums = [lastRow.set1, lastRow.set2, lastRow.set3, lastRow.set4, lastRow.set5].filter(function(v){ return v && !isNaN(parseFloat(v)); });
+      if(nudgeNums.length > 0){
+        var avgLast = nudgeNums.reduce(function(a,b){ return a + parseFloat(b); }, 0) / nudgeNums.length;
+        var exObj = null;
+        Object.keys(EXERCISES).forEach(function(d){ Object.keys(EXERCISES[d]).forEach(function(s){ EXERCISES[d][s].forEach(function(ex){ if(ex.id === exId) exObj = ex; }); }); });
+        var increment = (exObj && exObj.isDumbbell) ? 2.5 : 5;
+        var suggested = Math.ceil(avgLast / increment) * increment + increment;
+        var nudgeDiv = document.createElement("div");
+        nudgeDiv.className = "overload-nudge";
+        nudgeDiv.textContent = "\uD83C\uDFCB\uFE0F Today\u2019s target: " + suggested + " lbs (+" + increment + " progression)";
+        liveEl.appendChild(nudgeDiv);
+      }
     }
   }catch(err){
     if(loadEl) loadEl.textContent = "";
@@ -2460,7 +2466,7 @@ function buildPRTable(){
     var exName = getExName(exId);
     var maxWt = 0;
     entries.forEach(function(e){
-      [e.s1,e.s2,e.s3].forEach(function(v){
+      [e.s1,e.s2,e.s3,e.s4,e.s5].forEach(function(v){
         var n = parseFloat(v);
         if(!isNaN(n) && n > maxWt) maxWt = n;
       });
@@ -2489,7 +2495,7 @@ function buildStrengthIndex(){
     var entries = history[exId];
     entries.forEach(function(e){
       var maxWt = 0;
-      [e.s1,e.s2,e.s3].forEach(function(v){
+      [e.s1,e.s2,e.s3,e.s4,e.s5].forEach(function(v){
         var n = parseFloat(v);
         if(!isNaN(n) && n > maxWt) maxWt = n;
       });
@@ -2536,7 +2542,7 @@ function buildTop3Progressions(){
     var labels = entries.map(function(e){ return fmtDate(e.date).replace(", 2026",""); });
     var maxSets = entries.map(function(e){
       var m = 0;
-      [e.s1,e.s2,e.s3].forEach(function(v){ var n=parseFloat(v); if(!isNaN(n)&&n>m) m=n; });
+      [e.s1,e.s2,e.s3,e.s4,e.s5].forEach(function(v){ var n=parseFloat(v); if(!isNaN(n)&&n>m) m=n; });
       return m || null;
     });
     var wrap = document.createElement("div");

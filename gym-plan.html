@@ -394,7 +394,7 @@ function getProgramState(date){
 
   var repScheme;
   if(phaseKey === 'deload')               repScheme = '2 \xd7 10-12 all exercises \xb7 reduce load ~40%';
-  else if(phaseKey === 'intensification') repScheme = '4-5 \xd7 5-6 compounds \xb7 3 \xd7 8-10 accessories';
+  else if(phaseKey === 'intensification') repScheme = '4-5 \xd7 5-6 compounds \xb7 3 \xd7 8-10 accessories \xb7 rest 2-3 min between sets';
   else                                    repScheme = '3 \xd7 10-12 compounds \xb7 3 \xd7 12-15 isolation';
 
   var dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -538,7 +538,7 @@ var EXERCISES = {
       { id:"d2_db_row", legacyName:"Single-Arm Dumbbell Row", name:"DB Row", type:"compound", isDumbbell:true,
         tip:"Working weight: 45 lbs. Stop 1-2 reps short of failure \u2014 lower back feeds directly into Wednesday\u2019s RDL.",
         form:"Brace with opposite hand on bench. Pull elbow straight back past hip. Elbow to ceiling." },
-      { id:"d2_face_pull", legacyName:"Face Pulls (cable)", name:"Face Pulls", type:"isolation",
+      { id:"d2_face_pull", legacyName:"Face Pulls (cable)", name:"Face Pulls", type:"isolation", fixedSets:"3 × 12-15",
         tip:"Do not skip this \u2014 best shoulder health exercise available. Working weight: 50 lbs. Keep it controlled.",
         form:"Cable at face height, rope attachment. Pull to ears, elbows high, wrists behind elbows. Slow and controlled." },
       { id:"d2_ez_curl", name:"EZ Bar Curl", type:"isolation",
@@ -558,16 +558,20 @@ var EXERCISES = {
         nameByPhase:{ accumulation:"Dumbbell RDL", deload:"Dumbbell RDL", intensification:"Barbell RDL" },
         type:"compound", isDumbbell:true,
         tipByPhase:{
-          accumulation:"Primary anchor \u2014 do this first, fresh. Working weight: 45-50 lbs each hand. Dumbbells allow a more natural path and reduce spinal loading vs barbell.",
-          deload:"Primary anchor \u2014 do this first, fresh. Deload weight: 30-35 lbs each hand.",
-          intensification:"Primary anchor \u2014 do this first, fresh. Start at 115 lbs, aim for 135-145 lbs by end of block. Bar stays close to legs throughout."
+          accumulation:"Primary anchor \u2014 do this first, fresh. Dumbbells allow a more natural path and reduce spinal loading vs barbell.",
+          deload:"Primary anchor \u2014 do this first, fresh. Active recovery weight.",
+          intensification:"Primary anchor \u2014 do this first, fresh. Bar stays close to legs throughout. Brace hard before each rep."
         },
         form:"Hip hinge, soft knee bend, flat back throughout. Keep the weight close to your body. Feel hamstrings load. Stop well short of lower back rounding \u2014 depth is not the goal, tension is." },
-      { id:"d3_sl_rdl", legacyName:"Single-Leg RDL (kettlebell)", name:"Single-Leg RDL", type:"compound",
+      { id:"d3_sl_rdl", legacyName:"Single-Leg RDL (kettlebell)", name:"Single-Leg RDL", type:"isolation",
         tip:"Working weight: 35 lb kettlebell in contralateral hand (opposite to planted foot). Done second while balance and coordination are still sharp.",
         form:"Hinge at hip, flat back, free leg extends behind. Stop short if lower back rounds \u2014 flat back beats depth." },
       { id:"d3_hip_thrust", legacyName:"Hip Thrust (barbell or machine)", name:"Hip Thrust", type:"compound",
-        tip:"Working weight: 80-100 lbs. Pin to a specific weight each session \u2014 if you hit 12, add 10 lbs next time.",
+        tipByPhase:{
+          accumulation:"Pin to a specific weight each session \u2014 if you hit 12, add 10 lbs next time.",
+          deload:"Active recovery. Light weight, feel the contraction.",
+          intensification:"Heavy but controlled \u2014 feel contraction in glutes, not lumbar spine. Reduce weight immediately if you feel lower back loading."
+        },
         form:"Upper back on bench, feet flat and close to glutes. Drive through heels, squeeze glutes at top. No low back hyperextension." },
       { id:"d3_leg_press", name:"Leg Press", type:"compound",
         tip:"Working weight: 200-230 lbs. Lower and wider foot placement = more glute and hamstring.",
@@ -605,7 +609,7 @@ var EXERCISES = {
       { id:"d4_farmers_carry", name:"Farmer's Carry", type:"compound", isDumbbell:true, fixedSets:"3 \xd7 40 yards",
         tip:"Working weight: 44 lbs each hand (20kg KB).",
         form:"Stand tall, shoulders packed back and down, neutral spine. Walk with short deliberate steps. Set down with control." },
-      { id:"d4_face_pull", legacyName:"Face Pulls (cable)", name:"Face Pulls", type:"isolation",
+      { id:"d4_face_pull", legacyName:"Face Pulls (cable)", name:"Face Pulls", type:"isolation", fixedSets:"3 × 12-15",
         tip:"Shoulder health staple. Working weight: 50-60 lbs.",
         form:"Cable at face height, rope attachment. Pull to ears, elbows high, wrists behind elbows. Slow and controlled." }
     ],
@@ -1126,39 +1130,37 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell){
   var trending = prevMax !== null && lastMax > prevMax;
   var avgMax = maxWeights.reduce(function(a,b){ return a+b; },0) / maxWeights.length;
 
-  // Determine the phase that produced the recent history for accurate Epley 1RM estimation
-  var lastHistEntry = history[history.length-1];
-  var srcDate = (lastHistEntry && lastHistEntry.date) ? new Date(lastHistEntry.date) : new Date();
-  var srcPhase = getProgramState(srcDate).phase;
-  // Rep midpoint for the source phase (used to back-calc 1RM via Epley: 1RM = w*(1+r/30))
-  var srcReps = (srcPhase === 'intensification')
-    ? (exType === 'compound' ? 5.5 : 9)
-    : (exType === 'compound' ? 11 : 13);
-  var oneRM = Math.round(avgMax * (1 + srcReps / 30) / 5) * 5;
   // Dumbbells exist in 5 lb increments at most gyms; barbells/cables handle 2.5 lb steps
   var roundTo = isDumbbell ? 5 : 2.5;
 
-  var suggested, pct, note;
+  var suggested, pct, oneRM;
 
   if(phase === 'intensification'){
+    // Use Epley 1RM from source phase to calibrate to the intensification rep range
+    var lastHistEntry = history[history.length-1];
+    var srcDate = (lastHistEntry && lastHistEntry.date) ? new Date(lastHistEntry.date) : new Date();
+    var srcPhase = getProgramState(srcDate).phase;
+    var srcReps = (srcPhase === 'intensification')
+      ? (exType === 'compound' ? 5.5 : 9)
+      : (exType === 'compound' ? 11 : 13);
+    oneRM = Math.round(avgMax * (1 + srcReps / 30) / 5) * 5;
     var tgtReps = (exType === 'compound') ? 5.5 : 9;
     suggested = oneRM / (1 + tgtReps / 30);
     suggested = Math.round(suggested / roundTo) * roundTo;
     pct = Math.round((suggested / oneRM) * 100);
-    note = null;
   } else if(phase === 'deload'){
-    suggested = Math.round((oneRM * 0.60) / roundTo) * roundTo;
+    // 60% of recent working max — no 1RM estimation needed
+    suggested = Math.round((avgMax * 0.60) / roundTo) * roundTo;
     pct = 60;
-    note = null;
+    oneRM = null;
   } else {
-    // Accumulation: typical working weight based on recent avg — no progression step
+    // Accumulation: use recent avg as typical working weight
     suggested = Math.round(avgMax / roundTo) * roundTo;
     pct = null;
     oneRM = null;
-    note = null;
   }
 
-  return { weight:suggested, lastMax:lastMax, trending:trending, sessions:maxWeights.length, note:note, oneRM:oneRM, pct:pct };
+  return { weight:suggested, lastMax:lastMax, trending:trending, sessions:maxWeights.length, oneRM:oneRM, pct:pct, avgMax:Math.round(avgMax) };
 }
 
 // ── Render exercise cards ────────────────────────────────────
@@ -1333,27 +1335,13 @@ function buildCard(container, ex, dayId, data, phase){
       if(phase === 'intensification' && suggestion.oneRM){
         var tgtRangeStr = (ex.type === 'compound') ? '5\u20136' : '8\u201310';
         formulaText = "Est. 1RM: ~" + suggestion.oneRM + " lbs via Epley \u00b7 " + suggestion.pct + "% for " + tgtRangeStr + " reps";
-      } else if(phase === 'deload' && suggestion.oneRM){
-        formulaText = "Est. 1RM: ~" + suggestion.oneRM + " lbs via Epley \u00b7 60% = " + suggestion.weight + " lbs \u00b7 active recovery";
+      } else if(phase === 'deload'){
+        formulaText = "60% of recent working max (~" + suggestion.avgMax + " lbs avg) \u00b7 active recovery";
       } else {
         formulaText = "typical \u00b7 last " + suggestion.sessions + " session" + (suggestion.sessions!==1?"s":"") + " \u00b7 recent max: " + suggestion.lastMax + " lbs";
       }
       formulaP.textContent = formulaText;
       detailDiv.appendChild(formulaP);
-      // Note only shows in accumulation — in deload/intensification the suggestion is the weight guidance
-      if(phase === 'accumulation'){
-        var tipText = getExerciseTip(ex, phase);
-        if(tipText){
-          var refP = document.createElement("p");
-          refP.className = "tip-text";
-          refP.style.cssText = "margin-top:4px;font-size:11px;color:var(--muted);";
-          var refStrong = document.createElement("strong");
-          refStrong.textContent = "Note: ";
-          refP.appendChild(refStrong);
-          refP.appendChild(document.createTextNode(tipText));
-          detailDiv.appendChild(refP);
-        }
-      }
     } else {
       var tipText2 = getExerciseTip(ex, phase);
       if(tipText2){

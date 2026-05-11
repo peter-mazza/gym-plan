@@ -499,7 +499,7 @@ var EXERCISES = {
       { id:"d1_incline_db_press",
         nameByPhase:{ accumulation:"Incline DB Press", deload:"Incline DB Press", intensification:"Barbell Bench Press" },
         type:"compound", isDumbbell:true,
-        tip:"Accumulation: working weight 50-55 lb DBs. Intensification: barbell bench, start 95-115 lbs. Last 2 reps should feel hard.",
+        tipByPhase:{ accumulation:"Working weight 50–55 lb DBs. Last 2 reps should feel hard.", intensification:"Start at 95–115 lbs. Last 2 reps should feel hard." },
         form:"Keep shoulder blades pinched back. No elbow flare past 45\xb0." },
       { id:"d1_chest_fly", legacyName:"Chest Fly Machine", name:"Chest Fly", type:"isolation",
         tip:"Machine. Working weight: 100-105 lbs on the stack.",
@@ -591,7 +591,7 @@ var EXERCISES = {
       { id:"d4_db_bench",
         nameByPhase:{ accumulation:"Dumbbell Bench Press", deload:"Dumbbell Bench Press", intensification:"Barbell Bench Press" },
         type:"compound", isDumbbell:true,
-        tip:"Accumulation: working weight 55-60 lbs each DB. Intensification: barbell, start at 95-115 lbs.",
+        tipByPhase:{ accumulation:"Working weight 55–60 lbs each DB.", intensification:"Barbell bench, start at 95–115 lbs." },
         form:"Flat bench. Lower to chest, press up. Shoulder blades retracted throughout." },
       { id:"d4_cable_chest_fly", name:"Cable Chest Fly", type:"isolation", fixedSets:"3 \xd7 12",
         tip:"Working weight: ~17 lbs per side. Cables at shoulder height, one in each hand.",
@@ -1340,16 +1340,19 @@ function buildCard(container, ex, dayId, data, phase){
       }
       formulaP.textContent = formulaText;
       detailDiv.appendChild(formulaP);
-      var tipText = getExerciseTip(ex, phase);
-      if(tipText){
-        var refP = document.createElement("p");
-        refP.className = "tip-text";
-        refP.style.cssText = "margin-top:4px;font-size:11px;color:var(--muted);";
-        var refStrong = document.createElement("strong");
-        refStrong.textContent = "Note: ";
-        refP.appendChild(refStrong);
-        refP.appendChild(document.createTextNode(tipText));
-        detailDiv.appendChild(refP);
+      // Note only shows in accumulation — in deload/intensification the suggestion is the weight guidance
+      if(phase === 'accumulation'){
+        var tipText = getExerciseTip(ex, phase);
+        if(tipText){
+          var refP = document.createElement("p");
+          refP.className = "tip-text";
+          refP.style.cssText = "margin-top:4px;font-size:11px;color:var(--muted);";
+          var refStrong = document.createElement("strong");
+          refStrong.textContent = "Note: ";
+          refP.appendChild(refStrong);
+          refP.appendChild(document.createTextNode(tipText));
+          detailDiv.appendChild(refP);
+        }
       }
     } else {
       var tipText2 = getExerciseTip(ex, phase);

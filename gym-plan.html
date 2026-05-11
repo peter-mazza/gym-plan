@@ -2055,7 +2055,7 @@ async function saveWorkout(dayId){
     try{
       localStorage.setItem("pgymplan_lastwrap_" + dayId, JSON.stringify({
         weekKey: getPacificWeekKey(),
-        date: origDate,
+        date: dateStr,
         day: dayTitle,
         dur:dur, cal:cal, hr:hr, cardio:cardio, cardioMinutes:cardioMinutes, notes:notes
       }));

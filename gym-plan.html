@@ -464,29 +464,29 @@ var DAYS = [
   { id:"d1", label:"Mon", title:"MONDAY \u2014 PUSH", subtitle:"Chest \xb7 Shoulders \xb7 Triceps",
     warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
     warmupExtra:"Band stretches \u2014 chest opener (2\xd715 each side) + shoulder external rotation (2\xd715)",
-    finisherNote:"Push the pace \u2014 breathing hard but not sprinting. Extend to 20 min if you feel good \u2014 this is where the endorphin window opens.",
-    finisherZone:"15-20 min \u2014 Zone 3 \u2014 HR 135-155" },
+    finisherNote:"Incline treadmill \u2014 legs are completely fresh, let them drive the work. Back and arms are fatigued so avoid rowing. Push the pace \u2014 this is where the endorphin window opens.",
+    finisherZone:"20 min \u2014 Incline Treadmill \u2014 Zone 3 \u2014 HR 135-155" },
   { id:"d2", label:"Tue", title:"TUESDAY \u2014 PULL", subtitle:"Back \xb7 Biceps \xb7 Rear Delts",
     warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
     warmupExtra:"Dead hangs \u2014 2\u20133 sets \xd7 10-15 sec \u2014 decompress spine, activate lats before pulling",
-    finisherNote:"Push the incline or pace. Stay in Zone 3 \u2014 breathing hard but not sprinting.",
-    finisherZone:"15-20 min \u2014 Zone 3 \u2014 HR 135-155" },
+    finisherNote:"Stair climber \u2014 back and arms are done; stairs are leg-dominant and one of the highest caloric burns available. Stay in Zone 3 \u2014 breathing hard but not sprinting.",
+    finisherZone:"20 min \u2014 Stair Climber \u2014 Zone 3 \u2014 HR 135-155" },
   { id:"d3", label:"Wed", title:"WEDNESDAY \u2014 LEGS + GLUTES", subtitle:"Posterior chain priority \u2014 most important day",
     warmup:"5 min Woodway or ramp \u2014 Zone 1-2 \u2014 HR 115-135",
     activation:true,
-    finisherNote:"Legs are spent \u2014 do NOT load them further. Use the ramp at low resistance, bike, or rower. Keep it easy. Zone 2 only.",
-    finisherZone:"15 min \u2014 Zone 2 \u2014 HR 115-130" },
+    finisherNote:"Stationary bike \u2014 non-weight-bearing, flushes fatigued legs without impact or additional lower back load. No treadmill (leg impact), no rowing (lower back still working). Keep it genuinely easy \u2014 conversational pace.",
+    finisherZone:"25 min \u2014 Stationary Bike \u2014 Zone 2 \u2014 HR 115-130" },
   { id:"d4", label:"Thu", title:"THURSDAY \u2014 UPPER", subtitle:"Push/Pull hybrid",
     warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
     warmupExtra:"Band stretches \u2014 chest opener + shoulder circles (2\xd715 each) before pressing",
     bandPullAparts:true,
-    finisherNote:"Push it. This is your conditioning day \u2014 the finisher matters more here. Go to 20 min if you have it. If this is your only Zone 3 session this week, go 25-30 min \u2014 you have the recovery days to absorb it.",
-    finisherZone:"15-20 min \u2014 Zone 3 \u2014 HR 135-155 (25-30 min on abbreviated weeks)" },
+    finisherNote:"Rower \u2014 back has had 2 full days of rest since Tuesday, this is the day to use it. Total-body Zone 3, best posterior chain conditioning of the week. Push it.",
+    finisherZone:"20 min \u2014 Rower \u2014 Zone 3 \u2014 HR 135-155" },
   { id:"d5", label:"Fri", title:"FRIDAY \u2014 ARMS", subtitle:"Optional \u2014 light on the body",
     optional:true,
     warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
-    finisherNote:"Keep it easy \u2014 this is a bonus day. Zone 2 only, recover for next week.",
-    finisherZone:"15-20 min \u2014 Zone 2 \u2014 HR 115-130" },
+    finisherNote:"Incline treadmill walk \u2014 active recovery only. Zone 2, conserve legs for Monday. This is a bonus day \u2014 don\u2019t push it.",
+    finisherZone:"20 min \u2014 Incline Treadmill Walk \u2014 Zone 2 \u2014 HR 110-125" },
   { id:"activity", label:"+ Activity", title:"ACTIVITY LOG", activityPanel:true },
   { id:"stats",    label:"Stats",      title:"STATS",        statsPanel:true },
   { id:"macros",   label:"Macros",     title:"MACROS",       macrosPanel:true },
@@ -513,9 +513,6 @@ var EXERCISES = {
       { id:"d1_rope_pushdown", name:"Tricep Rope Pushdown", type:"isolation",
         tip:"Working weight: 80-90 lbs.",
         form:"Spread rope handles apart at the bottom to fully contract. Keep elbows pinned to sides." },
-      { id:"d1_oh_tricep", legacyName:"Overhead Tricep Extension (cable)", name:"OHT Extension", type:"isolation",
-        tip:"Working weight: 50-60 lbs.",
-        form:"Face away from cable, rope at top. Keep elbows close to head. Full stretch down, squeeze up." }
     ],
     "core-d1": [
       { id:"d1_plank", name:"Plank Shoulder Taps", noWeight:true, coreSets:"40 sec",
@@ -532,9 +529,6 @@ var EXERCISES = {
       { id:"d2_lat_pulldown", legacyName:"Lat Pulldown (wide grip)", name:"Lat Pulldown", type:"compound",
         tip:"Wide grip. Working weight: 80-90 lbs.",
         form:"Lean back slightly, pull bar to upper chest, lead with elbows. No jerking or momentum." },
-      { id:"d2_straight_arm_pulldown", legacyName:"Straight-Arm Pulldown (cable)", name:"Straight-Arm Pulldown", type:"isolation",
-        tip:"Working weight: 60-70 lbs. High pulley, rope or straight bar.",
-        form:"Arms straight with soft elbow bend. Hinge slightly at hip, pull bar down to thighs. Feel lats stretch at top." },
       { id:"d2_db_row", legacyName:"Single-Arm Dumbbell Row", name:"DB Row", type:"compound", isDumbbell:true,
         tip:"Working weight: 45 lbs. Stop 1-2 reps short of failure \u2014 lower back feeds directly into Wednesday\u2019s RDL.",
         form:"Brace with opposite hand on bench. Pull elbow straight back past hip. Elbow to ceiling." },
@@ -548,8 +542,9 @@ var EXERCISES = {
     "core-d2": [
       { id:"d2_bird_dog", name:"Bird Dog", noWeight:true, coreSets:"10 each side",
         form:"Extend opposite arm and leg simultaneously. Keep hips level \u2014 no rotation. Pause 1 sec at full extension." },
-      { id:"d2_hollow_hold", name:"Hollow Hold", noWeight:true, coreSets:"30 sec",
-        form:"Press lower back into floor, arms overhead and legs straight hovering. If lower back lifts, bend knees." }
+      { id:"d2_pallof_press", name:"Pallof Press", noWeight:true, coreSets:"10 each side",
+        tip:"Cable or band at chest height. Anti-rotation — this is the core exercise most programs miss.",
+        form:"Set cable or band at chest height. Stand sideways to anchor, feet shoulder-width. Hold handle at chest with both hands. Press straight out, hold 1-2 sec, return. The cable pulls you sideways — resist it. Do not rotate. Keep hips square and core braced. 10 reps each side, 3 sets. Weight: light enough to hold for 1-2 sec without twisting." }
     ]
   },
   d3: {
@@ -566,6 +561,9 @@ var EXERCISES = {
       { id:"d3_sl_rdl", legacyName:"Single-Leg RDL (kettlebell)", name:"Single-Leg RDL", type:"isolation",
         tip:"Working weight: 35 lb kettlebell in contralateral hand (opposite to planted foot). Done second while balance and coordination are still sharp.",
         form:"Hinge at hip, flat back, free leg extends behind. Stop short if lower back rounds \u2014 flat back beats depth." },
+      { id:"d3_kb_swing", name:"Kettlebell Swing", type:"isolation",
+        tip:"Working weight: moderate KB \u2014 same one used for single-leg RDL or one step heavier. 3\xd715-20 reps. Hip hinge finisher, not a cardio circuit.",
+        form:"Hinge back, let KB swing between legs, then drive hips forward explosively. The power comes from the hip drive, not the arms. Let it float to shoulder height \u2014 do not pull it up. Smooth and controlled, not frantic." },
       { id:"d3_hip_thrust", legacyName:"Hip Thrust (barbell or machine)", name:"Hip Thrust", type:"compound",
         tipByPhase:{
           accumulation:"Pin to a specific weight each session \u2014 if you hit 12, add 10 lbs next time.",
@@ -576,16 +574,11 @@ var EXERCISES = {
       { id:"d3_leg_press", name:"Leg Press", type:"compound",
         tip:"Working weight: 200-230 lbs. Lower and wider foot placement = more glute and hamstring.",
         form:"No knee lockout at top. Lower until hips start to tuck \u2014 stop there." },
-      { id:"d3_kb_swing", name:"Kettlebell Swing", type:"isolation",
-        tip:"Working weight: moderate KB \u2014 same one used for single-leg RDL or one step heavier. 3\xd715-20 reps. Hip hinge finisher, not a cardio circuit.",
-        form:"Hinge back, let KB swing between legs, then drive hips forward explosively. The power comes from the hip drive, not the arms. Let it float to shoulder height \u2014 do not pull it up. Smooth and controlled, not frantic." },
       { id:"d3_leg_curl", legacyName:"Leg Curl Machine", name:"Leg Curl", type:"isolation",
         tip:"Working weight: 90 lbs.",
         form:"Slow on the way down (eccentric). Keep hips on pad throughout. Full range of motion." }
     ],
     "core-d3": [
-      { id:"d3_ab_wheel", name:"Ab Wheel", noWeight:true, coreSets:"15 reps",
-        form:"Start kneeling. Keep core tight, do not let lower back sag as you roll out. Only go as far as you can control." },
       { id:"d3_side_plank", name:"Side Plank", noWeight:true, coreSets:"30 sec each side",
         form:"Stack or stagger feet. Drive hip up \u2014 do not let it sag. Trains lateral core stability." }
     ]
@@ -597,15 +590,15 @@ var EXERCISES = {
         type:"compound", isDumbbell:true,
         tipByPhase:{ accumulation:"Working weight 55–60 lbs each DB.", intensification:"Barbell bench, start at 95–115 lbs." },
         form:"Flat bench. Lower to chest, press up. Shoulder blades retracted throughout." },
+      { id:"d4_arnold_press", name:"Arnold Press", type:"compound", isDumbbell:true,
+        tip:"Working weight: 30 lbs each dumbbell.",
+        form:"Start with palms facing you, rotate outward as you press up. Hits all three heads of the shoulder." },
       { id:"d4_cable_chest_fly", name:"Cable Chest Fly", type:"isolation", fixedSets:"3 \xd7 12",
         tip:"Working weight: ~17 lbs per side. Cables at shoulder height, one in each hand.",
         form:"Slight forward lean, soft elbow bend. Sweep arms together in a wide arc \u2014 think hugging a barrel. Squeeze at center, slow on the return." },
       { id:"d4_chest_supported_row", legacyName:"Chest-Supported Single-Arm DB Row", name:"Chest-Supported Row", type:"compound", isDumbbell:true,
         tip:"Single-arm dumbbell. Working weight: 40 lbs. Chest support removes lower back fatigue.",
         form:"Chest flat on incline bench. Pull elbow straight back past hip, squeeze at top. No torso rotation. Slow down." },
-      { id:"d4_arnold_press", name:"Arnold Press", type:"compound", isDumbbell:true,
-        tip:"Working weight: 30 lbs each dumbbell.",
-        form:"Start with palms facing you, rotate outward as you press up. Hits all three heads of the shoulder." },
       { id:"d4_farmers_carry", name:"Farmer's Carry", type:"compound", isDumbbell:true, fixedSets:"3 \xd7 40 yards",
         tip:"Working weight: 44 lbs each hand (20kg KB).",
         form:"Stand tall, shoulders packed back and down, neutral spine. Walk with short deliberate steps. Set down with control." },
@@ -869,14 +862,18 @@ function buildPanels(){
 
     // Glute activation for d3
     if(day.activation){
-      html += "<div class='section-label'>Glute Activation (band) - Do BEFORE loading weight</div>";
+      html += "<div class='section-label'>Activation - Do BEFORE loading weight</div>";
       html += "<div class='warmup-block' id='warmup-block-" + day.id + "-act' style='display:flex;align-items:flex-start;gap:10px;'>";
       html += "<button class='check-btn' id='warmup-check-" + day.id + "-act' onclick='toggleWarmup(\"" + day.id + "-act\")'></button>";
       html += "<div style='flex:1;'>";
-      html += "<div class='w-title'>Band warm-up</div>";
-      html += "<div class='warmup-item'>Clamshells - 2x15 each side</div>";
-      html += "<div class='warmup-item'>Glute Bridge with band - 2x15</div>";
-      html += "<div class='warmup-item' style='font-size:12px;margin-top:6px;'>Fires up the glutes so they do the work during heavy lifts instead of your lower back compensating.</div>";
+      html += "<div class='w-title'>Pre-Load Activation</div>";
+      html += "<div class='warmup-item'><strong>Clamshells</strong> — 2\xd715 each side (band)</div>";
+      html += "<div class='warmup-item'><strong>Glute Bridge</strong> — 2\xd715 (band)</div>";
+      html += "<div class='warmup-item' style='margin-top:6px;'><strong>Goblet Squat</strong> — 2\xd710–12 (moderate KB, activation weight not working weight)</div>";
+      html += "<div class='warmup-item' style='font-size:11px;color:var(--muted);margin-top:2px;'>Hold KB at chest, feet shoulder-width, toes slightly out. Sit down between your heels, chest tall, knees tracking over toes. Full depth. This primes the squat pattern and hip mobility before leg press loading.</div>";
+      html += "<div class='warmup-item' style='margin-top:6px;'><strong>90/90 Hip Flexor Stretch</strong> — 30 sec each side</div>";
+      html += "<div class='warmup-item' style='font-size:11px;color:var(--muted);margin-top:2px;'>Kneel on one knee (half-kneeling position). Front foot flat, back knee on ground. Tuck your pelvis under (posterior pelvic tilt) — this is what activates the stretch. Lean forward slightly until you feel a deep pull at the front of the back hip. Do NOT arch the lower back. Switch sides. Tight hip flexors pull on the lumbar spine and are a primary cause of lower back pain — do this every single Wednesday without exception.</div>";
+      html += "<div class='warmup-item' style='font-size:12px;margin-top:6px;color:var(--muted);'>Glutes and hip flexors primed — now load with confidence.</div>";
       html += "</div>";
       html += "</div>";
     }

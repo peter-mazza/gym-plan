@@ -325,14 +325,15 @@ var EXCEPTION_DATES = {
   '2026-07-17': { rest:true, note:'Extended rest \u2014 resume Jul 21' },
   '2026-08-14': { rest:true, note:'Unavailable today' },
   '2026-05-13': { rest:true, note:'Sick day — cold' },
-  '2026-05-14': { rest:true, note:'Sick day — cold' }
+  '2026-05-14': { rest:true, note:'Sick day — cold' },
+  '2026-05-15': { rest:true, note:'Sick day — cold' }
 };
 
 // Keyed by the Monday of that calendar week (YYYY-MM-DD)
 var WEEK_BANNERS = {
   '2026-04-27': 'Abbreviated week \u2014 Mon/Tue/Wed unavailable. Thu: Legs + Glutes \xb7 Fri: Upper (Push/Pull).',
   '2026-08-10': 'Note: Fri Aug 14 is a rest day this week \u2014 no Arms session.',
-  '2026-05-11': 'Wed/Thu sick days (cold). Legs + Glutes moved to Friday. Do your full normal leg session. If you feel strong after, optionally add Arnold Press + Face Pulls from Thursday\u2019s program at the end \u2014 skip the bench press. Keep cardio Zone 2 easy bike today.'
+  '2026-05-11': 'Sick week \u2014 cold. Wed/Thu/Fri all rest days. Only Mon (Push) + Tue (Pull) completed. Proceeding to deload week 7 as scheduled \u2014 illness acts as involuntary deload; the body needs recovery, not more accumulation load.'
 };
 
 // Maps JS day-of-week (1=Mon...5=Fri) to workout panel ID
@@ -342,7 +343,7 @@ var DOW_TO_PANEL = { 1:'d1', 2:'d2', 3:'d3', 4:'d4', 5:'d5' };
 // { dayIndex(0=Mon..4=Fri): panelId } — overrides which workout shows on that day
 var WEEK_DOW_OVERRIDES = {
   '2026-04-27': { 3:'d3', 4:'d4' },  // Thu: Legs+Glutes, Fri: Upper (abbreviated week — skip Arms)
-  '2026-05-11': { 4:'d3' }            // Fri: Legs+Glutes (Wed/Thu sick days — cold)
+  '2026-05-11': {}                     // Full sick week — no day overrides needed
 };
 
 // ── Schedule logic ────────────────────────────────────────────

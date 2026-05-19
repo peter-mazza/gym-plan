@@ -469,7 +469,7 @@ var DAYS = [
   { id:"d1", label:"Mon", title:"MONDAY \u2014 PUSH", subtitle:"Chest \xb7 Shoulders \xb7 Triceps",
     warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
     warmupExtra:"Band stretches \u2014 chest opener (2\xd715 each side) + shoulder external rotation (2\xd715)",
-    finisherNote:"Incline treadmill \u2014 legs are completely fresh, let them drive the work. Back and arms are fatigued so avoid rowing. Push the pace \u2014 this is where the endorphin window opens.",
+    finisherNote:"Incline treadmill \u2014 legs are completely fresh, let them drive the work. Chest and shoulders are fatigued \u2014 avoid rowing (uses triceps) or assault bike. Push the pace \u2014 this is where the endorphin window opens.",
     finisherZone:"20 min \u2014 Incline Treadmill \u2014 Zone 3 \u2014 HR 135-155" },
   { id:"d2", label:"Tue", title:"TUESDAY \u2014 PULL", subtitle:"Back \xb7 Biceps \xb7 Rear Delts",
     warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
@@ -545,8 +545,8 @@ var EXERCISES = {
         form:"Keep elbows pinned at sides. Full stretch at bottom, squeeze at top." }
     ],
     "core-d2": [
-      { id:"d2_pallof_press", name:"Pallof Press", noWeight:true, coreSets:"10 each side",
-        tip:"Cable or band at chest height. Anti-rotation — this is the core exercise most programs miss.",
+      { id:"d2_pallof_press", name:"Pallof Press", type:"isolation", fixedSets:"3 × 10 each side",
+        tip:"Cable or band at chest height. Start light (10-15 lbs). Anti-rotation — resist the pull, do not rotate.",
         form:"Set cable or band at chest height. Stand sideways to anchor, feet shoulder-width. Hold handle at chest with both hands. Press straight out, hold 1-2 sec, return. The cable pulls you sideways — resist it. Do not rotate. Keep hips square and core braced. 10 reps each side, 3 sets. Weight: light enough to hold for 1-2 sec without twisting." },
       { id:"d2_bird_dog", name:"Bird Dog", noWeight:true, coreSets:"10 each side",
         form:"Extend opposite arm and leg simultaneously. Keep hips level \u2014 no rotation. Pause 1 sec at full extension." }
@@ -1156,8 +1156,8 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell){
     pct = 60;
     oneRM = null;
   } else {
-    // Accumulation: use recent avg as typical working weight
-    suggested = Math.round(avgMax / roundTo) * roundTo;
+    // Accumulation: match last session's weight — most intuitive for the user
+    suggested = Math.round(lastMax / roundTo) * roundTo;
     pct = null;
     oneRM = null;
   }
@@ -1271,6 +1271,15 @@ function buildCard(container, ex, dayId, data, phase){
     prevSpan.className = "prev-weight";
     prevSpan.textContent = lastSummary;
     metaDiv.appendChild(prevSpan);
+    // Show PR badge if this entry is the all-time best for this exercise
+    var _dispMax = 0;
+    if(displayEntry){ ['s1','s2','s3','s4','s5'].forEach(function(k){ var v=parseFloat(displayEntry[k]); if(!isNaN(v)&&v>_dispMax) _dispMax=v; }); }
+    if(_dispMax > 0 && _prMap[ex.id] && _dispMax >= _prMap[ex.id]){
+      var _prBadge = document.createElement("span");
+      _prBadge.className = "pr-badge";
+      _prBadge.textContent = "PR";
+      metaDiv.appendChild(_prBadge);
+    }
   }
   infoDiv.appendChild(metaDiv);
   mainDiv.appendChild(infoDiv);
@@ -1340,7 +1349,7 @@ function buildCard(container, ex, dayId, data, phase){
       } else if(phase === 'deload'){
         formulaText = "60% of recent working max (~" + suggestion.avgMax + " lbs avg) \u00b7 active recovery";
       } else {
-        formulaText = "typical \u00b7 last " + suggestion.sessions + " session" + (suggestion.sessions!==1?"s":"") + " \u00b7 recent max: " + suggestion.lastMax + " lbs";
+        formulaText = "last session \u00b7 recent max: " + suggestion.lastMax + " lbs";
       }
       formulaP.textContent = formulaText;
       detailDiv.appendChild(formulaP);
@@ -1605,6 +1614,74 @@ async function backfillFromSheets(panelId, targetDate){
   }
 }
 
+// ── Prefetch full exercise history for today's workout ───────
+async function prefetchTodayHistory(panelId){
+  var sections = EXERCISES[panelId];
+  if(!sections) return;
+  var panelDate = _panelDates[panelId] || new Date();
+  var phase = getProgramState(panelDate).phase;
+  var data = loadData();
+  var needed = [];
+  Object.keys(sections).forEach(function(sectionId){
+    sections[sectionId].forEach(function(ex){
+      if(ex.noWeight) return;
+      var hist = (data.history && data.history[ex.id]) || [];
+      if(hist.length === 0) needed.push(ex);
+    });
+  });
+  if(!needed.length) return;
+  var promises = [];
+  needed.forEach(function(ex){
+    var exName = getExerciseName(ex, phase);
+    var p = fetch(SHEETS_URL + "?type=history&exercise=" + encodeURIComponent(exName))
+      .then(function(r){ return r.json(); })
+      .then(function(json){ return json.rows||[]; })
+      .catch(function(){ return []; });
+    if(ex.legacyName){
+      var ln = ex.legacyName;
+      var p2 = fetch(SHEETS_URL + "?type=history&exercise=" + encodeURIComponent(ln))
+        .then(function(r){ return r.json(); })
+        .then(function(json){ return json.rows||[]; })
+        .catch(function(){ return []; });
+      promises.push(Promise.all([p, p2]).then(function(res){ return {ex:ex, rows:res[0].concat(res[1])}; }));
+    } else {
+      promises.push(p.then(function(rows){ return {ex:ex, rows:rows}; }));
+    }
+  });
+  var results = await Promise.all(promises);
+  if(!data.history) data.history = {};
+  var dataChanged = false;
+  results.forEach(function(result){
+    var ex = result.ex, rows = result.rows;
+    if(!rows.length) return;
+    var entries = [];
+    rows.forEach(function(row){
+      var raw = String(row.date || "");
+      var rd;
+      var iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if(iso) rd = new Date(parseInt(iso[1]), parseInt(iso[2])-1, parseInt(iso[3]));
+      else rd = new Date(raw);
+      if(isNaN(rd.getTime())) return;
+      var dateStr = rd.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
+      entries.push({date:dateStr, s1:row.set1||"", s2:row.set2||"", s3:row.set3||"", s4:row.set4||"", s5:row.set5||""});
+    });
+    if(entries.length){
+      data.history[ex.id] = entries;
+      dataChanged = true;
+      var exMax = 0;
+      entries.forEach(function(e){
+        ['s1','s2','s3','s4','s5'].forEach(function(k){ var v=parseFloat(e[k]); if(!isNaN(v)&&v>exMax) exMax=v; });
+      });
+      if(exMax > 0) _prMap[ex.id] = exMax;
+    }
+  });
+  if(dataChanged){
+    saveData(data);
+    renderPanel(panelId, phase);
+    restoreWarmupStates();
+  }
+}
+
 // ── Backfill wrap-up + cardio from Sheets for past days ──────
 async function backfillWrapFromSheets(panelId, targetDate){
   var ty = targetDate.getFullYear(), tm = targetDate.getMonth(), td = targetDate.getDate();
@@ -1799,11 +1876,6 @@ function toggleCheck(exId){
   if(!data.checks) data.checks = {};
   data.checks[exId] = !data.checks[exId];
   saveData(data);
-  if(data.checks[exId]){
-    var _did = exId.split("_")[0];
-    var _pd = _panelDates[_did];
-    markDayComplete(_did, _pd ? _isoWeekKey(_pd) : getPacificWeekKey());
-  }
   var card = document.getElementById("card-" + exId);
   if(card){
     card.classList.toggle("done", data.checks[exId]);
@@ -2896,6 +2968,8 @@ function showDayForDate(panelId, date){
       })){ markDayComplete(panelId, _isoWeekKey(_panelDates[panelId] || new Date())); }
       backfillFromSheets(panelId, _panelDates[panelId] || new Date());
       backfillWrapFromSheets(panelId, _panelDates[panelId] || new Date());
+    } else {
+      prefetchTodayHistory(panelId);
     }
   }
 }

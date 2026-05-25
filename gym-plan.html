@@ -299,7 +299,7 @@ var PROGRAM_START = new Date('2026-04-13T00:00:00');
 var PHASES = {
   accumulation:   { name:'Accumulation',    compound:{sets:3,    reps:'10-12'}, isolation:{sets:3,    reps:'12-15'} },
   intensification:{ name:'Intensification', compound:{sets:'4-5',reps:'5-6'},  isolation:{sets:3,    reps:'8-10'}  },
-  deload:         { name:'Deload',          compound:{sets:2,    reps:'10-12'}, isolation:{sets:2,    reps:'10-12'} }
+  deload:         { name:'Deload',          compound:{sets:2,    reps:'10-12'}, isolation:{sets:3,    reps:'10-12'} }
 };
 
 // 1-based week numbers from PROGRAM_START. end:999 = open-ended.
@@ -398,7 +398,7 @@ function getProgramState(date){
   var banner = WEEK_BANNERS[toDateKey(monday)] || null;
 
   var repScheme;
-  if(phaseKey === 'deload')               repScheme = '2 \xd7 10-12 all exercises \xb7 reduce load ~40%';
+  if(phaseKey === 'deload')               repScheme = '2 \xd7 10-12 compounds \xb7 3 \xd7 10-12 isolation & core \xb7 reduce load ~40–50%';
   else if(phaseKey === 'intensification') repScheme = '4-5 \xd7 5-6 compounds \xb7 3 \xd7 8-10 accessories \xb7 rest 2-3 min between sets';
   else                                    repScheme = '3 \xd7 10-12 compounds \xb7 3 \xd7 12-15 isolation';
 
@@ -424,11 +424,11 @@ function getProgramState(date){
 function getSetsForExercise(ex, phase){
   if(ex.fixedSets) return { display:ex.fixedSets };
   if(ex.noWeight){
-    var s = phase === 'deload' ? 2 : 3;
-    if(ex.setsFormat === 'rounds') return { display:s+' rounds' };
-    return { display:s+' \xd7 '+(ex.coreSets||'') };
+    // Core/bodyweight exercises are not compound — keep full 3 sets even during deload
+    if(ex.setsFormat === 'rounds') return { display:'3 rounds' };
+    return { display:'3 \xd7 '+(ex.coreSets||'') };
   }
-  if(phase === 'deload')          return { display:'2 \xd7 10-12' };
+  if(phase === 'deload')          return { display:(ex.type==='compound'?'2 \xd7 10-12':'3 \xd7 10-12') };
   if(phase === 'intensification') return { display:(ex.type==='compound'?'4-5 \xd7 5-6':'3 \xd7 8-10') };
   return { display:(ex.type==='compound'?'3 \xd7 10-12':'3 \xd7 12-15') };
 }
@@ -470,28 +470,33 @@ var DAYS = [
     warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
     warmupExtra:"Band stretches \u2014 chest opener (2\xd715 each side) + shoulder external rotation (2\xd715)",
     finisherNote:"Incline treadmill \u2014 legs are completely fresh, let them drive the work. Chest and shoulders are fatigued \u2014 avoid rowing (uses triceps) or assault bike. Push the pace \u2014 this is where the endorphin window opens.",
-    finisherZone:"20 min \u2014 Incline Treadmill \u2014 Zone 3 \u2014 HR 135-155" },
+    finisherZone:"20 min \u2014 Incline Treadmill \u2014 Zone 3 \u2014 HR 135-155",
+    finisherByPhase:{ deload:{ zone:"15 min \u2014 Incline Treadmill \u2014 Zone 2-3 \u2014 HR 125-145", note:"Deload week \u2014 incline treadmill at a comfortable steady pace. Chest and shoulders are recovering; don\u2019t push. Zone 2-3 is enough to keep cardiovascular momentum without digging into recovery." } } },
   { id:"d2", label:"Tue", title:"TUESDAY \u2014 PULL", subtitle:"Back \xb7 Biceps \xb7 Rear Delts",
     warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
     warmupExtra:"Dead hangs \u2014 2\u20133 sets \xd7 10-15 sec \u2014 decompress spine, activate lats before pulling",
     finisherNote:"Stair climber \u2014 back and arms are done; stairs are leg-dominant and one of the highest caloric burns available. Stay in Zone 3 \u2014 breathing hard but not sprinting.",
-    finisherZone:"20 min \u2014 Stair Climber \u2014 Zone 3 \u2014 HR 135-155" },
+    finisherZone:"20 min \u2014 Stair Climber \u2014 Zone 3 \u2014 HR 135-155",
+    finisherByPhase:{ deload:{ zone:"15 min \u2014 Stair Climber \u2014 Zone 2 \u2014 HR 120-135", note:"Deload week \u2014 stairs at an easy, controlled pace. Back and biceps are recovering; stairs are leg-dominant so you're not loading what you just worked. Zone 2 only \u2014 steady but not hard." } } },
   { id:"d3", label:"Wed", title:"WEDNESDAY \u2014 LEGS + GLUTES", subtitle:"Posterior chain priority \u2014 most important day",
     warmup:"5 min Woodway or ramp \u2014 Zone 1-2 \u2014 HR 115-135",
     activation:true,
     finisherNote:"Stationary bike \u2014 non-weight-bearing, flushes fatigued legs without impact or additional lower back load. No treadmill (leg impact), no rowing (lower back still working). Keep it genuinely easy \u2014 conversational pace.",
-    finisherZone:"25 min \u2014 Stationary Bike \u2014 Zone 2 \u2014 HR 115-130" },
+    finisherZone:"25 min \u2014 Stationary Bike \u2014 Zone 2 \u2014 HR 115-130",
+    finisherByPhase:{ deload:{ zone:"20 min \u2014 Stationary Bike \u2014 Zone 2 \u2014 HR 115-130", note:"Deload week \u2014 same non-weight-bearing bike flush, slightly shorter. Legs are in active recovery; keep the pace genuinely conversational. 20 minutes is plenty." } } },
   { id:"d4", label:"Thu", title:"THURSDAY \u2014 UPPER", subtitle:"Push/Pull hybrid",
     warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
     warmupExtra:"Band stretches \u2014 chest opener + shoulder circles (2\xd715 each) before pressing",
     bandPullAparts:true,
-    finisherNote:"Rower \u2014 back has had 2 full days of rest since Tuesday, this is the day to use it. Total-body Zone 3, best posterior chain conditioning of the week. Push it.",
-    finisherZone:"20 min \u2014 Rower \u2014 Zone 3 \u2014 HR 135-155" },
+    finisherNote:"Rower or Bike \u2014 back has had 2 full days of rest since Tuesday. Rower is total-body Zone 3 and excellent posterior chain conditioning. Prefer to skip the rower? Stair Climber or Bike at Zone 3 are solid alternatives. Push it.",
+    finisherZone:"20 min \u2014 Rower or Bike \u2014 Zone 3 \u2014 HR 135-155",
+    finisherByPhase:{ deload:{ zone:"15 min \u2014 Stationary Bike \u2014 Zone 2-3 \u2014 HR 125-145", note:"Deload week \u2014 swapping to the bike this week. Back has had 2 full days to recover but this is a deload \u2014 keep it measured. Bike is non-impact and easy on the posterior chain. Zone 2-3, no grinding." } } },
   { id:"d5", label:"Fri", title:"FRIDAY \u2014 ARMS", subtitle:"Optional \u2014 light on the body",
     optional:true,
     warmup:"5 min Woodway or ramp \u2014 Zone 1 \u2014 HR 100-120",
     finisherNote:"Incline treadmill walk \u2014 active recovery only. Zone 2, conserve legs for Monday. This is a bonus day \u2014 don\u2019t push it.",
-    finisherZone:"20 min \u2014 Incline Treadmill Walk \u2014 Zone 2 \u2014 HR 110-125" },
+    finisherZone:"20 min \u2014 Incline Treadmill Walk \u2014 Zone 2 \u2014 HR 110-125",
+    finisherByPhase:{ deload:{ zone:"15 min \u2014 Incline Treadmill Walk \u2014 Zone 2 \u2014 HR 110-125", note:"Deload week \u2014 same active recovery walk, slightly shorter. Arms are recovering; this is a light bonus day even in a normal week. 15 minutes, Zone 2 only, conserve legs for Monday." } } },
   { id:"activity", label:"+ Activity", title:"ACTIVITY LOG", activityPanel:true },
   { id:"stats",    label:"Stats",      title:"STATS",        statsPanel:true },
   { id:"macros",   label:"Macros",     title:"MACROS",       macrosPanel:true },
@@ -912,18 +917,19 @@ function buildPanels(){
     html += "<button class='check-btn' id='finisher-done-" + day.id + "' onclick='toggleFinisherDone(\"" + day.id + "\")'></button>";
     html += "<div class='finisher-title' style='margin-bottom:0;'>🔥 CARDIO FINISHER</div>";
     html += "</div>";
-    html += "<div class='finisher-detail'><strong>" + day.finisherZone + "</strong><br>" + day.finisherNote + "</div>";
+    html += "<div class='finisher-detail'><strong id='finisher-zone-" + day.id + "'>" + day.finisherZone + "</strong><br><span id='finisher-note-" + day.id + "'>" + day.finisherNote + "</span></div>";
     html += "<div style='margin-top:10px;'>";
     html += "<div class='stat-col-label' style='text-align:left;margin-bottom:5px;'>WHAT DID YOU DO?</div>";
-    html += "<div class='cardio-pills'>";
+    html += "<div class='cardio-pills' id='cardio-pills-" + day.id + "'>";
     ["Ramp","Treadmill","Bike","Stairs","Rower"].forEach(function(t){
-      html += "<button class='cardio-pill' onclick='toggleCardioPill(this,\"cardio-" + day.id + "\",\"" + t + "\")'>" + t + "</button>";
+      html += "<button class='cardio-pill' onclick='toggleFinisherPill(this,\"" + day.id + "\",\"" + t + "\")'>" + t + "</button>";
     });
     html += "</div>";
-    html += "<input class='stat-input' type='text' placeholder='or type here...' id='cardio-" + day.id + "' style='width:100%;text-align:left;' oninput='saveCardioPersist(\"" + day.id + "\")'>";
-    html += "<div style='display:flex;gap:8px;margin-top:8px;align-items:center;'>";
-    html += "<input class='stat-input' type='text' inputmode='decimal' placeholder='Duration (min)...' id='cardio-dur-" + day.id + "' style='flex:1;' oninput='saveCardioPersist(\"" + day.id + "\")'>";
+    html += "<input class='stat-input' type='text' placeholder='or type here...' id='cardio-" + day.id + "' style='width:100%;text-align:left;margin-top:4px;' oninput='saveCardioPersist(\"" + day.id + "\")'>";
+    html += "<div id='cardio-dur-single-" + day.id + "' style='margin-top:8px;'>";
+    html += "<input class='stat-input' type='text' inputmode='decimal' placeholder='Duration (min)...' id='cardio-dur-" + day.id + "' style='width:100%;' oninput='saveCardioPersist(\"" + day.id + "\")'>";
     html += "</div>";
+    html += "<div id='cardio-dur-multi-" + day.id + "' style='display:none;margin-top:8px;'></div>";
     html += "</div>";
     html += "<div class='hist-block' style='margin-top:10px;background:rgba(0,0,0,0.2);border:none;'>";
     html += "<div class='hist-block-title'>Last 3 Cardio Sessions</div>";
@@ -1151,9 +1157,9 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell){
     suggested = Math.round(suggested / roundTo) * roundTo;
     pct = Math.round((suggested / oneRM) * 100);
   } else if(phase === 'deload'){
-    // 60% of recent working max — no 1RM estimation needed
-    suggested = Math.round((avgMax * 0.60) / roundTo) * roundTo;
-    pct = 60;
+    // ~55% of recent working max — reduces load by ~45%, middle of the 40-50% guidance range
+    suggested = Math.round((avgMax * 0.55) / roundTo) * roundTo;
+    pct = 55;
     oneRM = null;
   } else {
     // Accumulation: match last session's weight — most intuitive for the user
@@ -1347,7 +1353,7 @@ function buildCard(container, ex, dayId, data, phase){
         var tgtRangeStr = (ex.type === 'compound') ? '5\u20136' : '8\u201310';
         formulaText = "Est. 1RM: ~" + suggestion.oneRM + " lbs via Epley \u00b7 " + suggestion.pct + "% for " + tgtRangeStr + " reps";
       } else if(phase === 'deload'){
-        formulaText = "60% of recent working max (~" + suggestion.avgMax + " lbs avg) \u00b7 active recovery";
+        formulaText = "~55% of recent working max (~" + suggestion.avgMax + " lbs avg) \u00b7 reduce 40\u201350%";
       } else {
         formulaText = "last session \u00b7 recent max: " + suggestion.lastMax + " lbs";
       }
@@ -1392,7 +1398,9 @@ function buildCard(container, ex, dayId, data, phase){
     var ph5 = displayEntry && displayEntry.s5 ? displayEntry.s5 : "-";
     var phAll = [ph1, ph2, ph3, ph4, ph5];
 
-    var numSetCols = (phase === 'intensification' && ex.type === 'compound') ? 5 : 3;
+    var numSetCols = (phase === 'intensification' && ex.type === 'compound') ? 5
+                   : (phase === 'deload' && ex.type === 'compound') ? 2
+                   : 3;
 
     var wsDiv = document.createElement("div");
     wsDiv.className = "weight-section";
@@ -2827,7 +2835,7 @@ function updateDeloadBanner(panelId, state){
   if(!state.isDeload) return;
   var banner = document.createElement('div');
   banner.className = 'deload-banner';
-  banner.textContent = '\uD83D\uDD04 DELOAD WEEK \u2014 Reduce load ~40%, focus on form & recovery';
+  banner.textContent = '\uD83D\uDD04 DELOAD WEEK \u2014 Compounds: 2 sets \xb7 Isolation & Core: 3 sets \xb7 Reduce load ~40\u201350%';
   el.appendChild(banner);
 }
 
@@ -2840,6 +2848,90 @@ function updateWeekBanner(panelId, state){
   banner.className = 'week-banner';
   banner.textContent = state.banner;
   el.appendChild(banner);
+}
+
+// ── Finisher phase-aware content ─────────────────────────────
+function updateFinisher(panelId, state){
+  var dayObj = null;
+  DAYS.forEach(function(d){ if(d.id===panelId) dayObj=d; });
+  if(!dayObj) return;
+  var phaseData = dayObj.finisherByPhase && dayObj.finisherByPhase[state.phase];
+  var zone = phaseData ? phaseData.zone : dayObj.finisherZone;
+  var note = phaseData ? phaseData.note : dayObj.finisherNote;
+  var zoneEl = document.getElementById("finisher-zone-" + panelId);
+  var noteEl = document.getElementById("finisher-note-" + panelId);
+  if(zoneEl) zoneEl.textContent = zone;
+  if(noteEl) noteEl.textContent = note;
+}
+
+// ── Finisher cardio pill toggle (multi-select) ────────────────
+function toggleFinisherPill(btn, dayId, value){
+  btn.classList.toggle("active");
+  updateMultiCardioDurationUI(dayId);
+  saveCardioPersist(dayId);
+}
+
+// ── Multi-cardio duration UI ──────────────────────────────────
+function updateMultiCardioDurationUI(dayId){
+  var pillsContainer = document.getElementById("cardio-pills-" + dayId);
+  if(!pillsContainer) return;
+  var activePills = [];
+  pillsContainer.querySelectorAll(".cardio-pill.active").forEach(function(p){ activePills.push(p.textContent.trim()); });
+
+  var singleContainer = document.getElementById("cardio-dur-single-" + dayId);
+  var multiContainer  = document.getElementById("cardio-dur-multi-"  + dayId);
+  var textInput = document.getElementById("cardio-" + dayId);
+
+  if(activePills.length <= 1){
+    // Single or no selection — standard single-duration input
+    if(singleContainer) singleContainer.style.display = "";
+    if(multiContainer){
+      multiContainer.style.display = "none";
+      while(multiContainer.firstChild) multiContainer.removeChild(multiContainer.firstChild);
+    }
+    if(textInput) textInput.value = activePills.length === 1 ? activePills[0] : "";
+  } else {
+    // Multiple selection — per-type duration inputs
+    if(singleContainer) singleContainer.style.display = "none";
+    if(multiContainer) multiContainer.style.display = "";
+
+    // Preserve any values already entered before rebuilding
+    var existingVals = {};
+    if(multiContainer){
+      multiContainer.querySelectorAll("input[data-cardio-type]").forEach(function(inp){
+        existingVals[inp.dataset.cardioType] = inp.value;
+      });
+    }
+
+    // Rebuild per-type rows with DOM methods (avoids innerHTML)
+    while(multiContainer.firstChild) multiContainer.removeChild(multiContainer.firstChild);
+    activePills.forEach(function(type){
+      var row = document.createElement("div");
+      row.style.cssText = "display:flex;align-items:center;gap:8px;margin-bottom:6px;";
+
+      var lbl = document.createElement("span");
+      lbl.style.cssText = "font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.65);min-width:64px;flex-shrink:0;";
+      lbl.textContent = type;
+
+      var inp = document.createElement("input");
+      inp.className = "stat-input";
+      inp.type = "text";
+      inp.inputMode = "decimal";
+      inp.placeholder = "min";
+      inp.dataset.cardioType = type;
+      inp.id = "cardio-dur-" + dayId + "-" + type.toLowerCase();
+      inp.style.flex = "1";
+      inp.oninput = (function(did){ return function(){ saveCardioPersist(did); }; })(dayId);
+      if(existingVals[type]) inp.value = existingVals[type];
+
+      row.appendChild(lbl);
+      row.appendChild(inp);
+      multiContainer.appendChild(row);
+    });
+
+    // Update text input with combined type string (used by saveWorkout)
+    if(textInput) textInput.value = activePills.join(" + ");
+  }
 }
 
 function showRestScreen(state){
@@ -2945,6 +3037,7 @@ function showDayForDate(panelId, date){
     restoreWarmupStates();
     updateDeloadBanner(panelId, state);
     updateWeekBanner(panelId, state);
+    updateFinisher(panelId, state);
   }
 
   window.scrollTo(0,0);
@@ -3035,15 +3128,37 @@ function toggleSetCheck(exId, setIdx){
 
 // ── Cardio finisher persist ───────────────────────────────────
 function saveCardioPersist(dayId){
-  var typeEl = document.getElementById("cardio-" + dayId);
-  var durEl = document.getElementById("cardio-dur-" + dayId);
+  var pillsContainer = document.getElementById("cardio-pills-" + dayId);
+  var multiContainer  = document.getElementById("cardio-dur-multi-"  + dayId);
+  var typeEl  = document.getElementById("cardio-"     + dayId);
+  var durEl   = document.getElementById("cardio-dur-" + dayId);
   var doneBtn = document.getElementById("finisher-done-" + dayId);
+
+  var activePills = [];
+  if(pillsContainer) pillsContainer.querySelectorAll(".cardio-pill.active").forEach(function(p){ activePills.push(p.textContent.trim()); });
+
+  var cardioType = "", cardioDur = "";
+  if(activePills.length >= 2 && multiContainer && multiContainer.style.display !== "none"){
+    var durs = [];
+    activePills.forEach(function(type){
+      var inp = multiContainer.querySelector("[data-cardio-type='" + type + "']");
+      durs.push(inp ? inp.value.trim() : "");
+    });
+    cardioType = activePills.join(" + ");
+    cardioDur  = durs.join(" + ");
+    // Keep aggregate duration in sync so saveWorkout can read it from the DOM
+    if(durEl) durEl.value = cardioDur;
+  } else {
+    cardioType = typeEl ? typeEl.value.trim() : "";
+    cardioDur  = durEl  ? durEl.value.trim()  : "";
+  }
+
   var _now = _panelDates[dayId] || new Date();
   var cardioData = {
     weekKey: getPacificWeekKey(),
     date: _now.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"}),
-    type: typeEl ? typeEl.value : "",
-    duration: durEl ? durEl.value : "",
+    type: cardioType,
+    duration: cardioDur,
     done: doneBtn ? doneBtn.classList.contains("done") : false
   };
   try{ localStorage.setItem("pgymplan_cardio_" + dayId, JSON.stringify(cardioData)); }catch(e){}
@@ -3053,7 +3168,7 @@ function saveCardioPersist(dayId){
     var dStr = now.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
     var cdata = loadData();
     if(!cdata.cardioHistory) cdata.cardioHistory = {};
-    cdata.cardioHistory[dayId + "_" + dStr] = {type:cardioData.type, duration:cardioData.duration, done:cardioData.done};
+    cdata.cardioHistory[dayId + "_" + dStr] = {type:cardioType, duration:cardioDur, done:cardioData.done};
     saveData(cdata);
   }catch(e){}
 }
@@ -3073,22 +3188,55 @@ function loadCardioPersist(dayId){
       saved = data.cardioHistory ? (data.cardioHistory[dayId + "_" + panelDateStr] || null) : null;
     }
     // Reset finisher state before applying saved values
-    var finEl0 = document.getElementById("finisher-" + dayId);
-    var doneBtn0 = document.getElementById("finisher-done-" + dayId);
-    var typeEl0 = document.getElementById("cardio-" + dayId);
-    var durEl0 = document.getElementById("cardio-dur-" + dayId);
-    if(finEl0){ finEl0.classList.remove("done"); finEl0.querySelectorAll(".cardio-pill").forEach(function(p){ p.classList.remove("active"); }); }
+    var finEl0      = document.getElementById("finisher-"           + dayId);
+    var doneBtn0    = document.getElementById("finisher-done-"      + dayId);
+    var typeEl0     = document.getElementById("cardio-"             + dayId);
+    var durEl0      = document.getElementById("cardio-dur-"         + dayId);
+    var multiCont0  = document.getElementById("cardio-dur-multi-"   + dayId);
+    var singleCont0 = document.getElementById("cardio-dur-single-"  + dayId);
+    var pillsCont0  = document.getElementById("cardio-pills-"       + dayId);
+    if(finEl0) finEl0.classList.remove("done");
+    if(pillsCont0) pillsCont0.querySelectorAll(".cardio-pill").forEach(function(p){ p.classList.remove("active"); });
     if(doneBtn0){ doneBtn0.classList.remove("done"); doneBtn0.textContent = ""; }
     if(typeEl0) typeEl0.value = "";
-    if(durEl0) durEl0.value = "";
+    if(durEl0)  durEl0.value  = "";
+    if(multiCont0){
+      multiCont0.style.display = "none";
+      while(multiCont0.firstChild) multiCont0.removeChild(multiCont0.firstChild);
+    }
+    if(singleCont0) singleCont0.style.display = "";
     if(!saved) return;
-    var typeEl = document.getElementById("cardio-" + dayId);
-    var durEl = document.getElementById("cardio-dur-" + dayId);
-    if(typeEl && saved.type) typeEl.value = saved.type;
-    if(durEl && saved.duration) durEl.value = saved.duration;
+
     if(saved.type){
-      var finEl = document.getElementById("finisher-" + dayId);
-      if(finEl){ finEl.querySelectorAll(".cardio-pill").forEach(function(p){ if(p.textContent === saved.type) p.classList.add("active"); }); }
+      var types = saved.type.split(" + ").map(function(t){ return t.trim(); }).filter(function(t){ return t; });
+      var durs  = (saved.duration || "").split(" + ").map(function(d){ return d.trim(); });
+      var pillsCont = document.getElementById("cardio-pills-" + dayId);
+      if(types.length >= 2 && pillsCont){
+        // Multi-type: activate each pill then build per-type inputs
+        types.forEach(function(type){
+          pillsCont.querySelectorAll(".cardio-pill").forEach(function(p){
+            if(p.textContent.trim() === type) p.classList.add("active");
+          });
+        });
+        updateMultiCardioDurationUI(dayId);
+        var multiCont = document.getElementById("cardio-dur-multi-" + dayId);
+        if(multiCont){
+          types.forEach(function(type, i){
+            var inp = multiCont.querySelector("[data-cardio-type='" + type + "']");
+            if(inp && durs[i]) inp.value = durs[i];
+          });
+        }
+      } else {
+        // Single type: original behavior
+        var typeElR = document.getElementById("cardio-"     + dayId);
+        var durElR  = document.getElementById("cardio-dur-" + dayId);
+        if(typeElR) typeElR.value = saved.type;
+        if(durElR && saved.duration) durElR.value = saved.duration;
+        if(pillsCont){ pillsCont.querySelectorAll(".cardio-pill").forEach(function(p){ if(p.textContent.trim() === saved.type) p.classList.add("active"); }); }
+      }
+    } else if(saved.duration){
+      var durElF = document.getElementById("cardio-dur-" + dayId);
+      if(durElF) durElF.value = saved.duration;
     }
     if(saved.done){
       var doneBtn = document.getElementById("finisher-done-" + dayId);

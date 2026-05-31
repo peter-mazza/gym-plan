@@ -220,6 +220,22 @@ header p{color:var(--muted);font-size:10px;margin-top:2px;letter-spacing:1.5px;t
 .callout{background:var(--surface);border-left:3px solid var(--amber);padding:12px 14px;border-radius:0 3px 3px 0;font-size:12px;color:var(--muted);margin:10px 0;line-height:1.8;}
 .callout strong{color:var(--ink);}
 
+/* ── Phase macro cards ───────────────────────────────── */
+.macro-phase-block{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--border);border-radius:3px;padding:14px 16px;margin-bottom:8px;transition:border-color .2s;}
+.macro-phase-block.current{border-color:var(--red);border-left-color:var(--red);}
+.macro-phase-block.deload-phase.current{border-color:var(--deload);border-left-color:var(--deload);}
+.macro-phase-title{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--ink);display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.macro-phase-weeks{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);font-weight:400;letter-spacing:.5px;margin-left:auto;}
+.macro-phase-badge{background:var(--red);color:white;font-family:'DM Mono',monospace;font-size:8px;font-weight:700;padding:2px 6px;border-radius:2px;letter-spacing:1.5px;display:none;}
+.macro-phase-block.current .macro-phase-badge{display:inline-block;}
+.macro-phase-badge.deload{background:var(--deload);}
+.macro-phase-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+.macro-phase-item{background:var(--surface);border-radius:2px;padding:8px 10px;}
+.macro-phase-label{font-family:'DM Mono',monospace;font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px;}
+.macro-phase-value{font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:800;color:var(--ink);line-height:1;}
+.macro-phase-unit{font-size:9px;color:var(--muted);margin-top:1px;letter-spacing:.5px;}
+.macro-phase-rationale{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.6;border-top:1px solid var(--border);padding-top:8px;}
+
 /* ── Alt items / refs ─────────────────────────────── */
 .alt-item{background:var(--white);border:1px solid var(--border);border-radius:3px;padding:11px 14px;margin-bottom:7px;}
 .alt-name{font-weight:600;font-size:14px;margin-bottom:2px;}
@@ -1045,21 +1061,69 @@ function buildStatsHTML(){
 }
 
 function buildMacrosHTML(){
-  return "<div class='day-label'>MACROS</div>"
-    + "<div class='day-subtitle' style='margin-bottom:18px;'>~165 lbs · Recomp goal · 4 training days</div>"
-    + "<div class='macro-card'><div class='macro-name'>Daily Calories</div><div class='macro-amount'>2,700-2,900</div><div class='macro-note'>kcal · Supports training volume without gaining weight</div></div>"
-    + "<div class='macro-card'><div class='macro-name'>Protein · Priority #1</div><div class='macro-amount'>165-180g</div><div class='macro-note'>~1g per lb bodyweight · Non-negotiable for muscle building</div></div>"
-    + "<div class='macro-card'><div class='macro-name'>Carbohydrates</div><div class='macro-amount'>300-340g</div><div class='macro-note'>Energy for training, mood, and endorphin release</div></div>"
-    + "<div class='macro-card'><div class='macro-name'>Fat</div><div class='macro-amount'>70-85g</div><div class='macro-note'>Testosterone production requires dietary fat - do not go very low</div></div>"
-    + "<div class='section-label'>Priority Order</div>"
-    + "<div class='callout'>1. <strong>Hit protein first</strong> - do not miss this one<br>2. <strong>Hit total calories</strong> - being significantly under slows recovery<br>3. <strong>Fill in carbs</strong> - especially pre-workout<br>4. <strong>Let fat flex</strong></div>"
-    + "<div class='section-label'>Protein Strategy</div>"
-    + "<div class='callout'><strong>Whey protein:</strong> 2 scoops/day = ~40-50g with zero meal planning.<br>1 scoop post-workout · 1 scoop at another meal.</div>"
-    + "<div class='section-label'>Drinking Days (3x/week)</div>"
-    + "<div class='callout'>~3 drinks = 300-400 kcal. <strong>Drop 100-150g of carbs, not fat.</strong> Keep protein high regardless.</div>"
-    + "<div class='section-label'>Quick References</div>"
-    + "<div class='callout'>1 cup cooked rice = 45g carbs<br>1 banana = 27g carbs<br>2 slices bread = 30g carbs<br>1 scoop whey = 24-25g protein<br>6oz chicken breast = 52g protein<br>2 eggs = 12g protein<br>1 cup Greek yogurt = 17-20g protein</div>"
-    + "<div class='callout'><strong>Hydration:</strong> Aim for 100+ oz water/day.</div>";
+  var h = "";
+  h += "<div class='day-label'>MACROS</div>";
+  h += "<div class='day-subtitle' style='margin-bottom:18px;'>~165 lbs \xb7 Recomp goal \xb7 Phase-specific targets</div>";
+
+  h += "<div class='section-label'>Phase Targets</div>";
+
+  // Accumulation
+  h += "<div class='macro-phase-block' data-phase='accumulation'>";
+  h += "<div class='macro-phase-title'>Accumulation<span class='macro-phase-badge'>CURRENT</span><span class='macro-phase-weeks'>Wks 1–6, 15–20</span></div>";
+  h += "<div class='macro-phase-grid'>";
+  h += "<div class='macro-phase-item'><div class='macro-phase-label'>Calories</div><div class='macro-phase-value'>2700-2900</div><div class='macro-phase-unit'>kcal / day</div></div>";
+  h += "<div class='macro-phase-item'><div class='macro-phase-label'>Protein</div><div class='macro-phase-value'>165-180g</div><div class='macro-phase-unit'>priority ±1</div></div>";
+  h += "<div class='macro-phase-item'><div class='macro-phase-label'>Carbs</div><div class='macro-phase-value'>300-340g</div><div class='macro-phase-unit'>fuel volume</div></div>";
+  h += "<div class='macro-phase-item'><div class='macro-phase-label'>Fat</div><div class='macro-phase-value'>70-85g</div><div class='macro-phase-unit'>test support</div></div>";
+  h += "</div>";
+  h += "<div class='macro-phase-rationale'>High-volume training demands carbs. Keep calories up to support back-to-back sessions and maximize muscle building stimulus.</div>";
+  h += "</div>";
+
+  // Intensification
+  h += "<div class='macro-phase-block' data-phase='intensification'>";
+  h += "<div class='macro-phase-title'>Intensification<span class='macro-phase-badge'>CURRENT</span><span class='macro-phase-weeks'>Wks 8–13, 22+</span></div>";
+  h += "<div class='macro-phase-grid'>";
+  h += "<div class='macro-phase-item'><div class='macro-phase-label'>Calories</div><div class='macro-phase-value'>2600-2800</div><div class='macro-phase-unit'>kcal / day</div></div>";
+  h += "<div class='macro-phase-item'><div class='macro-phase-label'>Protein</div><div class='macro-phase-value'>165-180g</div><div class='macro-phase-unit'>priority ±1</div></div>";
+  h += "<div class='macro-phase-item'><div class='macro-phase-label'>Carbs</div><div class='macro-phase-value'>280-320g</div><div class='macro-phase-unit'>fuel strength</div></div>";
+  h += "<div class='macro-phase-item'><div class='macro-phase-label'>Fat</div><div class='macro-phase-value'>80-90g</div><div class='macro-phase-unit'>CNS + test</div></div>";
+  h += "</div>";
+  h += "<div class='macro-phase-rationale'>Heavier loads, shorter sessions. Modest carb reduction, slightly higher fat — supports CNS recovery and testosterone output when training heavy.</div>";
+  h += "</div>";
+
+  // Deload
+  h += "<div class='macro-phase-block deload-phase' data-phase='deload'>";
+  h += "<div class='macro-phase-title'>Deload<span class='macro-phase-badge deload'>CURRENT</span><span class='macro-phase-weeks'>Wks 7, 14, 21</span></div>";
+  h += "<div class='macro-phase-grid'>";
+  h += "<div class='macro-phase-item'><div class='macro-phase-label'>Calories</div><div class='macro-phase-value'>2400-2600</div><div class='macro-phase-unit'>kcal / day</div></div>";
+  h += "<div class='macro-phase-item'><div class='macro-phase-label'>Protein</div><div class='macro-phase-value'>165-180g</div><div class='macro-phase-unit'>non-negotiable</div></div>";
+  h += "<div class='macro-phase-item'><div class='macro-phase-label'>Carbs</div><div class='macro-phase-value'>250-290g</div><div class='macro-phase-unit'>still needed</div></div>";
+  h += "<div class='macro-phase-item'><div class='macro-phase-label'>Fat</div><div class='macro-phase-value'>70-85g</div><div class='macro-phase-unit'>maintain</div></div>";
+  h += "</div>";
+  h += "<div class='macro-phase-rationale'>Low-volume week — calorie reduction is optional. Don’t overthink it. Keep protein locked regardless. If you’re not hungry, don’t force it.</div>";
+  h += "</div>";
+
+  // Guidance sections (unchanged)
+  h += "<div class='section-label'>Priority Order</div>";
+  h += "<div class='callout'>1. <strong>Hit protein first</strong> - do not miss this one<br>2. <strong>Hit total calories</strong> - being significantly under slows recovery<br>3. <strong>Fill in carbs</strong> - especially pre-workout<br>4. <strong>Let fat flex</strong></div>";
+  h += "<div class='section-label'>Protein Strategy</div>";
+  h += "<div class='callout'><strong>Whey protein:</strong> 2 scoops/day = ~40-50g with zero meal planning.<br>1 scoop post-workout \xb7 1 scoop at another meal.</div>";
+  h += "<div class='section-label'>Drinking Days (3x/week)</div>";
+  h += "<div class='callout'>~3 drinks = 300-400 kcal. <strong>Drop 100-150g of carbs, not fat.</strong> Keep protein high regardless.</div>";
+  h += "<div class='section-label'>Quick References</div>";
+  h += "<div class='callout'>1 cup cooked rice = 45g carbs<br>1 banana = 27g carbs<br>2 slices bread = 30g carbs<br>1 scoop whey = 24-25g protein<br>6oz chicken breast = 52g protein<br>2 eggs = 12g protein<br>1 cup Greek yogurt = 17-20g protein</div>";
+  h += "<div class='callout'><strong>Hydration:</strong> Aim for 100+ oz water/day.</div>";
+  return h;
+}
+
+function updateMacrosPhase(){
+  var state = getProgramState(new Date());
+  var phase = state.phase;
+  document.querySelectorAll('.macro-phase-block').forEach(function(el){
+    el.classList.remove('current');
+  });
+  var activeEl = document.querySelector('.macro-phase-block[data-phase="' + phase + '"]');
+  if(activeEl) activeEl.classList.add('current');
 }
 
 // ── Recovery tab content ───────────────────────────────────────
@@ -3128,6 +3192,7 @@ function showDay(id){
   window.scrollTo(0,0);
   try{ localStorage.setItem('pgymplan_lastday', id); }catch(e){}
   if(id==='stats') loadStats();
+  if(id==='macros') updateMacrosPhase();
   if(id==='activity'){
     loadActivityHistory();
     var dateEl=document.getElementById('activity-date');

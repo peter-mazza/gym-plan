@@ -508,7 +508,7 @@ var EXERCISES = {
     "exercises-d1": [
       { id:"d1_incline_db_press",
         nameByPhase:{ accumulation:"Incline DB Press", deload:"Incline DB Press", intensification:"Barbell Bench Press" },
-        type:"compound", isDumbbell:true,
+        type:"compound", isDumbbell:true, switchesToBarbell:true,
         tipByPhase:{ accumulation:"Working weight 50–55 lb DBs. Last 2 reps should feel hard.", intensification:"Start at 95–115 lbs. Last 2 reps should feel hard." },
         form:"Keep shoulder blades pinched back. No elbow flare past 45\xb0." },
       { id:"d1_chest_fly", legacyName:"Chest Fly Machine", name:"Chest Fly", type:"isolation",
@@ -561,7 +561,7 @@ var EXERCISES = {
     "exercises-d3": [
       { id:"d3_db_rdl", legacyName:"Dumbbell Romanian Deadlift",
         nameByPhase:{ accumulation:"Dumbbell RDL", deload:"Dumbbell RDL", intensification:"Barbell RDL" },
-        type:"compound", isDumbbell:true,
+        type:"compound", isDumbbell:true, switchesToBarbell:true,
         tipByPhase:{
           accumulation:"Primary anchor \u2014 do this first, fresh. Dumbbells allow a more natural path and reduce spinal loading vs barbell.",
           deload:"Primary anchor \u2014 do this first, fresh. Active recovery weight.",
@@ -597,7 +597,7 @@ var EXERCISES = {
     "exercises-d4": [
       { id:"d4_db_bench",
         nameByPhase:{ accumulation:"Dumbbell Bench Press", deload:"Dumbbell Bench Press", intensification:"Barbell Bench Press" },
-        type:"compound", isDumbbell:true,
+        type:"compound", isDumbbell:true, switchesToBarbell:true,
         tipByPhase:{ accumulation:"Working weight 55–60 lbs each DB.", intensification:"Barbell bench, start at 95–115 lbs." },
         form:"Flat bench. Lower to chest, press up. Shoulder blades retracted throughout." },
       { id:"d4_arnold_press", name:"Arnold Press", type:"compound", isDumbbell:true,
@@ -1124,9 +1124,24 @@ function buildRecoveryHTML(){
 // ── Weight suggestion from history (phase-aware) ──────────────
 // Uses Epley 1RM estimate when crossing a phase boundary so the
 // suggested weight is calibrated to the new rep range, not the old one.
-function computeWeightSuggestion(history, phase, exType, isDumbbell){
+function computeWeightSuggestion(history, phase, exType, isDumbbell, switchesToBarbell){
   if(!history || history.length === 0) return null;
-  var recent = history.slice(-3);
+
+  // ── Fix: exclude deload sessions from non-deload baselines ──
+  // Deload weights (~55% of max) skew accumulation and intensification suggestions
+  // if they fall within the last 3 sessions.
+  var recent;
+  if(phase !== 'deload'){
+    var nonDeload = history.filter(function(e){
+      if(!e.date) return true;
+      var d = new Date(e.date);
+      return isNaN(d.getTime()) || getProgramState(d).phase !== 'deload';
+    });
+    recent = (nonDeload.length > 0 ? nonDeload : history).slice(-3);
+  } else {
+    recent = history.slice(-3);
+  }
+
   var maxWeights = recent.map(function(e){
     var m = 0;
     [e.s1,e.s2,e.s3,e.s4,e.s5].forEach(function(v){ var n=parseFloat(v); if(!isNaN(n)&&n>m) m=n; });
@@ -1141,17 +1156,37 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell){
   // Dumbbells exist in 5 lb increments at most gyms; barbells/cables handle 2.5 lb steps
   var roundTo = isDumbbell ? 5 : 2.5;
 
-  var suggested, pct, oneRM;
+  var suggested, pct, oneRM, dbDoubled = false;
 
   if(phase === 'intensification'){
-    // Use Epley 1RM from source phase to calibrate to the intensification rep range
-    var lastHistEntry = history[history.length-1];
+    // Use Epley 1RM from source phase to calibrate to the intensification rep range.
+    // Walk history backwards to find the most recent non-deload session for srcPhase detection.
+    var lastHistEntry = null;
+    for(var hi = history.length - 1; hi >= 0; hi--){
+      var hd = new Date(history[hi].date || '');
+      if(isNaN(hd.getTime()) || getProgramState(hd).phase !== 'deload'){
+        lastHistEntry = history[hi]; break;
+      }
+    }
+    if(!lastHistEntry) lastHistEntry = history[history.length-1];
     var srcDate = (lastHistEntry && lastHistEntry.date) ? new Date(lastHistEntry.date) : new Date();
     var srcPhase = getProgramState(srcDate).phase;
     var srcReps = (srcPhase === 'intensification')
       ? (exType === 'compound' ? 5.5 : 9)
       : (exType === 'compound' ? 11 : 13);
-    oneRM = Math.round(avgMax * (1 + srcReps / 30) / 5) * 5;
+
+    // ── Fix: DB per-hand → barbell total weight conversion ──
+    // Exercises like DB Bench / DB RDL log per-hand weight in accumulation but
+    // switch to barbell (total weight) in intensification. Double the source
+    // weight before Epley so the 1RM reflects actual total loading.
+    var srcWeight = avgMax;
+    if(switchesToBarbell && srcPhase !== 'intensification'){
+      srcWeight = avgMax * 2;
+      dbDoubled = true;
+      roundTo = 5; // barbell increments in 5 lb steps
+    }
+
+    oneRM = Math.round(srcWeight * (1 + srcReps / 30) / 5) * 5;
     var tgtReps = (exType === 'compound') ? 5.5 : 9;
     suggested = oneRM / (1 + tgtReps / 30);
     suggested = Math.round(suggested / roundTo) * roundTo;
@@ -1168,7 +1203,7 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell){
     oneRM = null;
   }
 
-  return { weight:suggested, lastMax:lastMax, trending:trending, sessions:maxWeights.length, oneRM:oneRM, pct:pct, avgMax:Math.round(avgMax) };
+  return { weight:suggested, lastMax:lastMax, trending:trending, sessions:maxWeights.length, oneRM:oneRM, pct:pct, avgMax:Math.round(avgMax), dbDoubled:dbDoubled };
 }
 
 // ── Render exercise cards ────────────────────────────────────
@@ -1336,7 +1371,7 @@ function buildCard(container, ex, dayId, data, phase){
   detailDiv.className = "exercise-detail";
 
   if(!ex.noWeight){
-    var suggestion = computeWeightSuggestion(history, phase, ex.type, ex.isDumbbell);
+    var suggestion = computeWeightSuggestion(history, phase, ex.type, ex.isDumbbell, ex.switchesToBarbell);
     if(suggestion){
       var sugP = document.createElement("p");
       sugP.className = "tip-text";
@@ -1351,7 +1386,8 @@ function buildCard(container, ex, dayId, data, phase){
       var formulaText;
       if(phase === 'intensification' && suggestion.oneRM){
         var tgtRangeStr = (ex.type === 'compound') ? '5\u20136' : '8\u201310';
-        formulaText = "Est. 1RM: ~" + suggestion.oneRM + " lbs via Epley \u00b7 " + suggestion.pct + "% for " + tgtRangeStr + " reps";
+        var dbNote = suggestion.dbDoubled ? " (DB \xd72 \u2192 barbell total)" : "";
+        formulaText = "Est. 1RM: ~" + suggestion.oneRM + " lbs via Epley" + dbNote + " \u00b7 " + suggestion.pct + "% for " + tgtRangeStr + " reps";
       } else if(phase === 'deload'){
         formulaText = "~55% of recent working max (~" + suggestion.avgMax + " lbs avg) \u00b7 reduce 40\u201350%";
       } else {

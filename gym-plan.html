@@ -596,10 +596,10 @@ var EXERCISES = {
           intensification:"Primary anchor \u2014 do this first, fresh. Bar stays close to legs throughout. Brace hard before each rep."
         },
         form:"Hip hinge, soft knee bend, flat back throughout. Keep the weight close to your body. Feel hamstrings load. Stop well short of lower back rounding \u2014 depth is not the goal, tension is." },
-      { id:"d3_sl_rdl", legacyName:"Single-Leg RDL (kettlebell)", name:"Single-Leg RDL", type:"isolation",
+      { id:"d3_sl_rdl", legacyName:"Single-Leg RDL (kettlebell)", name:"Single-Leg RDL", type:"isolation", isDumbbell:true,
         tip:"Working weight: 35 lb kettlebell in contralateral hand (opposite to planted foot). Done second while balance and coordination are still sharp.",
         form:"Hinge at hip, flat back, free leg extends behind. Stop short if lower back rounds \u2014 flat back beats depth." },
-      { id:"d3_kb_swing", name:"Kettlebell Swing", type:"isolation",
+      { id:"d3_kb_swing", name:"Kettlebell Swing", type:"isolation", isDumbbell:true,
         tip:"Working weight: moderate KB \u2014 same one used for single-leg RDL or one step heavier. 3\xd715-20 reps. Hip hinge finisher, not a cardio circuit.",
         form:"Hinge back, let KB swing between legs, then drive hips forward explosively. The power comes from the hip drive, not the arms. Let it float to shoulder height \u2014 do not pull it up. Smooth and controlled, not frantic." },
       { id:"d3_hip_thrust", legacyName:"Hip Thrust (barbell or machine)", name:"Hip Thrust", type:"compound",
@@ -1263,7 +1263,9 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell, switchesToB
     // When the most recent session is already intensification (barbell), accumulation DB
     // entries have different units and would drag avgMax to a nonsensical middle value.
     // Re-derive avgMax using only intensification-phase entries in that case.
-    if(srcPhase === 'intensification'){
+    // Only applies to exercises that switch units (DB per-hand → barbell total).
+    // Non-switchesToBarbell exercises (face pulls, curls, etc.) keep full history.
+    if(srcPhase === 'intensification' && switchesToBarbell){
       var intOnly = history.filter(function(e){
         if(!e.date) return false;
         var _d = new Date(e.date);
@@ -1494,7 +1496,11 @@ function buildCard(container, ex, dayId, data, phase){
   detailDiv.className = "exercise-detail";
 
   if(!ex.noWeight){
-    var suggestion = computeWeightSuggestion(history, phase, ex.type, ex.isDumbbell, ex.switchesToBarbell);
+    // fixedSets exercises (face pulls, Pallof press, etc.) are shoulder-health/stability
+    // movements whose rep targets don't change in intensification — treat them like
+    // accumulation so we get a lastMax match rather than an Epley-9-rep calculation.
+    var suggPhase = (ex.fixedSets && phase === 'intensification') ? 'accumulation' : phase;
+    var suggestion = computeWeightSuggestion(history, suggPhase, ex.type, ex.isDumbbell, ex.switchesToBarbell);
     if(suggestion){
       var sugP = document.createElement("p");
       sugP.className = "tip-text";
@@ -1511,6 +1517,8 @@ function buildCard(container, ex, dayId, data, phase){
         var tgtRangeStr = (ex.type === 'compound') ? '5\u20136' : '8\u201310';
         var dbNote = suggestion.dbDoubled ? " (DB \xd72 \u2192 barbell total)" : "";
         formulaText = "Est. 1RM: ~" + suggestion.oneRM + " lbs via Epley" + dbNote + " \u00b7 " + suggestion.pct + "% for " + tgtRangeStr + " reps";
+      } else if(phase === 'intensification' && !suggestion.oneRM){
+        formulaText = "fixed rep range \u00b7 matches accumulation weight \u00b7 recent max: " + suggestion.lastMax + " lbs";
       } else if(phase === 'deload'){
         formulaText = "~55% of recent working max (~" + suggestion.avgMax + " lbs avg) \u00b7 reduce 40\u201350%";
       } else {

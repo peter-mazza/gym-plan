@@ -532,7 +532,7 @@ var EXERCISES = {
         nameByPhase:{ accumulation:"Incline DB Press", deload:"Incline DB Press", intensification:"Incline Barbell Bench Press" },
         nameByIntensificationWeek:{ 1:"Barbell Bench Press", 2:"Incline Barbell Bench Press" },
         type:"compound", isDumbbell:true, switchesToBarbell:true,
-        supersetWith:"Face Pulls \xb7 15 reps",
+        supersetWith:"Band Pull-Aparts \xb7 20 reps",
         tipByPhase:{ accumulation:"Working weight 50–55 lb DBs. Last 2 reps should feel hard.", intensification:"Start at 95–105 lbs. Bar path angles slightly up toward upper chest — different from flat bench." },
         form:"Keep shoulder blades pinched back. No elbow flare past 45\xb0." },
       { id:"d1_chest_fly", legacyName:"Chest Fly Machine", name:"Chest Fly", type:"isolation",
@@ -578,7 +578,7 @@ var EXERCISES = {
     ],
     "core-d2": [
       { id:"d2_pallof_press", name:"Pallof Press", type:"isolation", fixedSets:"3 × 10 each side",
-        tip:"Cable or band at chest height. Start light (10-15 lbs). Anti-rotation — resist the pull, do not rotate.",
+        tip:"Working weight: 15-20 lbs. Increase when 10 reps feel fully controlled — this is a loadable exercise, not just a stability drill. Progress is slow and intentional.",
         form:"Set cable or band at chest height. Stand sideways to anchor, feet shoulder-width. Hold handle at chest with both hands. Press straight out, hold 1-2 sec, return. The cable pulls you sideways — resist it. Do not rotate. Keep hips square and core braced. 10 reps each side, 3 sets. Weight: light enough to hold for 1-2 sec without twisting." },
       { id:"d2_bird_dog", name:"Bird Dog", noWeight:true, coreSets:"10 each side",
         form:"Extend opposite arm and leg simultaneously. Keep hips level \u2014 no rotation. Pause 1 sec at full extension." }
@@ -628,7 +628,7 @@ var EXERCISES = {
       { id:"d4_db_bench",
         nameByPhase:{ accumulation:"Dumbbell Bench Press", deload:"Dumbbell Bench Press", intensification:"Barbell Bench Press" },
         nameByIntensificationWeek:{ 1:"Incline Barbell Bench Press", 2:"Barbell Bench Press" },
-        weightHistoryByIntensificationWeek:{ 1:"d1_incline_db_press" },
+        weightHistoryByIntensificationWeek:{ 1:"d1_incline_db_press", 2:"d1_incline_db_press" },
         type:"compound", isDumbbell:true, switchesToBarbell:true,
         supersetWith:"Chest-Supported Row",
         tipByPhase:{ accumulation:"Working weight 55–60 lbs each DB.", intensification:"Antagonist superset: bench a set, go directly to chest-supported row, then rest." },
@@ -1258,6 +1258,30 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell, switchesToB
     if(!lastHistEntry) lastHistEntry = history[history.length-1];
     var srcDate = (lastHistEntry && lastHistEntry.date) ? new Date(lastHistEntry.date) : new Date();
     var srcPhase = getProgramState(srcDate).phase;
+
+    // ── Fix: avoid mixing DB per-hand with barbell totals in avgMax ──
+    // When the most recent session is already intensification (barbell), accumulation DB
+    // entries have different units and would drag avgMax to a nonsensical middle value.
+    // Re-derive avgMax using only intensification-phase entries in that case.
+    if(srcPhase === 'intensification'){
+      var intOnly = history.filter(function(e){
+        if(!e.date) return false;
+        var _d = new Date(e.date);
+        return !isNaN(_d.getTime()) && getProgramState(_d).phase === 'intensification';
+      });
+      if(intOnly.length > 0){
+        var intMaxW = intOnly.slice(-3).map(function(e){
+          var m=0; [e.s1,e.s2,e.s3,e.s4,e.s5].forEach(function(v){ var n=parseFloat(v); if(!isNaN(n)&&n>m) m=n; }); return m;
+        }).filter(function(w){ return w>0; });
+        if(intMaxW.length > 0){
+          maxWeights = intMaxW;
+          lastMax = maxWeights[maxWeights.length-1];
+          avgMax = maxWeights.reduce(function(a,b){ return a+b; },0) / maxWeights.length;
+          trending = maxWeights.length >= 2 && maxWeights[maxWeights.length-1] > maxWeights[maxWeights.length-2];
+        }
+      }
+    }
+
     var srcReps = (srcPhase === 'intensification')
       ? (exType === 'compound' ? 5.5 : 9)
       : (exType === 'compound' ? 11 : 13);

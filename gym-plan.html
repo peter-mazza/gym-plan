@@ -450,7 +450,12 @@ function getSetsForExercise(ex, phase){
   return { display:(ex.type==='compound'?'3 \xd7 10-12':'3 \xd7 12-15') };
 }
 
-function getExerciseName(ex, phase){
+function getExerciseName(ex, phase, weekInPhase){
+  if(phase === 'intensification' && ex.nameByIntensificationWeek && weekInPhase !== undefined){
+    var wip = weekInPhase;
+    var keys = Object.keys(ex.nameByIntensificationWeek).map(Number).sort(function(a,b){return b-a;});
+    for(var ki=0; ki<keys.length; ki++){ if(wip>=keys[ki]) return ex.nameByIntensificationWeek[keys[ki]]; }
+  }
   if(ex.nameByPhase) return ex.nameByPhase[phase] || ex.nameByPhase.accumulation || ex.name;
   return ex.name;
 }
@@ -524,11 +529,11 @@ var EXERCISES = {
   d1: {
     "exercises-d1": [
       { id:"d1_incline_db_press",
-        nameByPhase:{ accumulation:"Incline DB Press", deload:"Incline DB Press", intensification:"Barbell Bench Press" },
+        nameByPhase:{ accumulation:"Incline DB Press", deload:"Incline DB Press", intensification:"Incline Barbell Bench Press" },
+        nameByIntensificationWeek:{ 1:"Barbell Bench Press", 2:"Incline Barbell Bench Press" },
         type:"compound", isDumbbell:true, switchesToBarbell:true,
-        historyAlso:"Barbell Bench Press — Upper",
         supersetWith:"Face Pulls \xb7 15 reps",
-        tipByPhase:{ accumulation:"Working weight 50–55 lb DBs. Last 2 reps should feel hard.", intensification:"Start at 95–115 lbs. Last 2 reps should feel hard." },
+        tipByPhase:{ accumulation:"Working weight 50–55 lb DBs. Last 2 reps should feel hard.", intensification:"Start at 95–105 lbs. Bar path angles slightly up toward upper chest — different from flat bench." },
         form:"Keep shoulder blades pinched back. No elbow flare past 45\xb0." },
       { id:"d1_chest_fly", legacyName:"Chest Fly Machine", name:"Chest Fly", type:"isolation",
         tip:"Machine. Working weight: 100-105 lbs on the stack.",
@@ -621,11 +626,11 @@ var EXERCISES = {
   d4: {
     "exercises-d4": [
       { id:"d4_db_bench",
-        nameByPhase:{ accumulation:"Dumbbell Bench Press", deload:"Dumbbell Bench Press", intensification:"Barbell Bench Press — Upper" },
+        nameByPhase:{ accumulation:"Dumbbell Bench Press", deload:"Dumbbell Bench Press", intensification:"Barbell Bench Press" },
+        nameByIntensificationWeek:{ 1:"Incline Barbell Bench Press", 2:"Barbell Bench Press" },
         type:"compound", isDumbbell:true, switchesToBarbell:true,
-        historyAlso:"Barbell Bench Press",
         supersetWith:"Chest-Supported Row",
-        tipByPhase:{ accumulation:"Working weight 55–60 lbs each DB.", intensification:"Barbell bench, start at 95–115 lbs. Antagonist superset: bench a set, go directly to chest-supported row, then rest." },
+        tipByPhase:{ accumulation:"Working weight 55–60 lbs each DB.", intensification:"Antagonist superset: bench a set, go directly to chest-supported row, then rest." },
         form:"Flat bench. Lower to chest, press up. Shoulder blades retracted throughout." },
       { id:"d4_arnold_press", name:"Arnold Press", type:"compound", isDumbbell:true,
         supersetWith:"Face Pulls \xb7 15 reps",
@@ -1312,6 +1317,7 @@ function renderAll(){
 
 function buildCard(container, ex, dayId, data, phase){
   phase = phase || getProgramState(new Date()).phase;
+  var weekInPhase = getProgramState(_panelDates[dayId] || new Date()).weekInPhase;
   var history = (data.history && data.history[ex.id]) || [];
   var lastEntry = history.length ? history[history.length-1] : null;
 
@@ -1378,7 +1384,7 @@ function buildCard(container, ex, dayId, data, phase){
   infoDiv.className = "exercise-info";
   var nameDiv = document.createElement("div");
   nameDiv.className = "exercise-name";
-  nameDiv.textContent = getExerciseName(ex, phase);
+  nameDiv.textContent = getExerciseName(ex, phase, weekInPhase);
   nameDiv.dataset.exId = ex.id;
   infoDiv.appendChild(nameDiv);
   var metaDiv = document.createElement("div");
@@ -1415,7 +1421,7 @@ function buildCard(container, ex, dayId, data, phase){
   var infoBtn = document.createElement("button");
   infoBtn.className = "info-btn";
   infoBtn.textContent = "i";
-  infoBtn.onclick = (function(eid, ename, btn){ return function(){ toggleTip(btn, eid, ename); }; })(ex.id, getExerciseName(ex, phase), infoBtn);
+  infoBtn.onclick = (function(eid, ename, btn){ return function(){ toggleTip(btn, eid, ename); }; })(ex.id, getExerciseName(ex, phase, weekInPhase), infoBtn);
   if(isDone){
     var editBtn = document.createElement("button");
     editBtn.className = "edit-entry-btn";
@@ -1578,7 +1584,7 @@ function buildCard(container, ex, dayId, data, phase){
     graphLink.className = "show-graph-link";
     graphLink.textContent = "Show progression graph";
     graphLink.id = "graph-link-" + ex.id;
-    graphLink.onclick = (function(eid, ename){ return function(){ toggleExGraph(eid, ename, this); }; })(ex.id, getExerciseName(ex, phase));
+    graphLink.onclick = (function(eid, ename){ return function(){ toggleExGraph(eid, ename, this); }; })(ex.id, getExerciseName(ex, phase, weekInPhase));
     wsDiv.appendChild(graphLink);
 
     var graphContainer = document.createElement("div");
@@ -1643,7 +1649,9 @@ async function backfillFromSheets(panelId, targetDate){
   var viewedDateStr = targetDate.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
   var sections = EXERCISES[panelId];
   if(!sections) return;
-  var phase = getProgramState(targetDate).phase;
+  var _bfState = getProgramState(targetDate);
+  var phase = _bfState.phase;
+  var weekInPhase = _bfState.weekInPhase;
   var data = loadData();
   var needed = [];
   Object.keys(sections).forEach(function(sectionId){
@@ -1657,7 +1665,7 @@ async function backfillFromSheets(panelId, targetDate){
   if(!needed.length) return;
   var promises = [];
   needed.forEach(function(ex){
-    var exName = getExerciseName(ex, phase);
+    var exName = getExerciseName(ex, phase, weekInPhase);
     var p = fetch(SHEETS_URL + "?type=history&exercise=" + encodeURIComponent(exName))
       .then(function(r){ return r.json(); })
       .then(function(json){ return json.rows||[]; })
@@ -1754,7 +1762,9 @@ async function prefetchTodayHistory(panelId){
   var sections = EXERCISES[panelId];
   if(!sections) return;
   var panelDate = _panelDates[panelId] || new Date();
-  var phase = getProgramState(panelDate).phase;
+  var _pfState = getProgramState(panelDate);
+  var phase = _pfState.phase;
+  var weekInPhase = _pfState.weekInPhase;
   var data = loadData();
   var needed = [];
   Object.keys(sections).forEach(function(sectionId){
@@ -1767,7 +1777,7 @@ async function prefetchTodayHistory(panelId){
   if(!needed.length) return;
   var promises = [];
   needed.forEach(function(ex){
-    var exName = getExerciseName(ex, phase);
+    var exName = getExerciseName(ex, phase, weekInPhase);
     var p = fetch(SHEETS_URL + "?type=history&exercise=" + encodeURIComponent(exName))
       .then(function(r){ return r.json(); })
       .then(function(json){ return json.rows||[]; })
@@ -2082,9 +2092,10 @@ function restoreWarmupStates(){
 
 function getExName(exId){
   var found = exId;
+  var _exState = getProgramState(new Date());
   Object.keys(EXERCISES).forEach(function(d){
     Object.keys(EXERCISES[d]).forEach(function(s){
-      EXERCISES[d][s].forEach(function(ex){ if(ex.id === exId) found = getExerciseName(ex, getProgramState(new Date()).phase); });
+      EXERCISES[d][s].forEach(function(ex){ if(ex.id === exId) found = getExerciseName(ex, _exState.phase, _exState.weekInPhase); });
     });
   });
   return found;

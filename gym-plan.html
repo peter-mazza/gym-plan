@@ -235,6 +235,7 @@ header p{color:var(--muted);font-size:10px;margin-top:2px;letter-spacing:1.5px;t
 .macro-phase-value{font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:800;color:var(--ink);line-height:1;}
 .macro-phase-unit{font-size:9px;color:var(--muted);margin-top:1px;letter-spacing:.5px;}
 .macro-phase-rationale{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.6;border-top:1px solid var(--border);padding-top:8px;}
+.superset-hint{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.5px;color:var(--amber);margin-top:4px;display:flex;align-items:center;gap:4px;}
 
 /* ── Alt items / refs ─────────────────────────────── */
 .alt-item{background:var(--white);border:1px solid var(--border);border-radius:3px;padding:11px 14px;margin-bottom:7px;}
@@ -525,12 +526,15 @@ var EXERCISES = {
       { id:"d1_incline_db_press",
         nameByPhase:{ accumulation:"Incline DB Press", deload:"Incline DB Press", intensification:"Barbell Bench Press" },
         type:"compound", isDumbbell:true, switchesToBarbell:true,
+        historyAlso:"Barbell Bench Press — Upper",
+        supersetWith:"Face Pulls \xb7 15 reps",
         tipByPhase:{ accumulation:"Working weight 50–55 lb DBs. Last 2 reps should feel hard.", intensification:"Start at 95–115 lbs. Last 2 reps should feel hard." },
         form:"Keep shoulder blades pinched back. No elbow flare past 45\xb0." },
       { id:"d1_chest_fly", legacyName:"Chest Fly Machine", name:"Chest Fly", type:"isolation",
         tip:"Machine. Working weight: 100-105 lbs on the stack.",
         form:"Think hugging a tree, not pushing. Full stretch at open position, controlled close." },
       { id:"d1_seated_db_press", name:"Seated DB Shoulder Press", type:"compound", isDumbbell:true,
+        supersetWith:"Dead Bug \xb7 10 ea side",
         tip:"Working weight: 30 lbs each.",
         form:"Press in a slight forward arc. Stop just before lockout to keep tension." },
       { id:"d1_cable_lateral", name:"Cable Lateral Raise", type:"isolation",
@@ -550,9 +554,11 @@ var EXERCISES = {
   d2: {
     "exercises-d2": [
       { id:"d2_cable_row", legacyName:"Seated Cable Row (V-bar, narrow)", name:"Cable Row", type:"compound",
+        supersetWith:"Bird Dog \xb7 10 ea side",
         tip:"Working weight: 100-110 lbs. Stop 1-2 reps short of failure \u2014 lower back feeds directly into Wednesday\u2019s RDL.",
         form:"Sit tall, pull to lower sternum, squeeze shoulder blades together. Minimal lean back." },
       { id:"d2_lat_pulldown", legacyName:"Lat Pulldown (wide grip)", name:"Lat Pulldown", type:"compound",
+        supersetWith:"Pallof Press \xb7 10 ea side",
         tip:"Wide grip. Working weight: 80-90 lbs.",
         form:"Lean back slightly, pull bar to upper chest, lead with elbows. No jerking or momentum." },
       { id:"d2_db_row", legacyName:"Single-Arm Dumbbell Row", name:"DB Row", type:"compound", isDumbbell:true,
@@ -578,6 +584,7 @@ var EXERCISES = {
       { id:"d3_db_rdl", legacyName:"Dumbbell Romanian Deadlift",
         nameByPhase:{ accumulation:"Dumbbell RDL", deload:"Dumbbell RDL", intensification:"Barbell RDL" },
         type:"compound", isDumbbell:true, switchesToBarbell:true,
+        supersetWith:"Side Plank \xb7 30 sec ea side",
         tipByPhase:{
           accumulation:"Primary anchor \u2014 do this first, fresh. Dumbbells allow a more natural path and reduce spinal loading vs barbell.",
           deload:"Primary anchor \u2014 do this first, fresh. Active recovery weight.",
@@ -591,6 +598,7 @@ var EXERCISES = {
         tip:"Working weight: moderate KB \u2014 same one used for single-leg RDL or one step heavier. 3\xd715-20 reps. Hip hinge finisher, not a cardio circuit.",
         form:"Hinge back, let KB swing between legs, then drive hips forward explosively. The power comes from the hip drive, not the arms. Let it float to shoulder height \u2014 do not pull it up. Smooth and controlled, not frantic." },
       { id:"d3_hip_thrust", legacyName:"Hip Thrust (barbell or machine)", name:"Hip Thrust", type:"compound",
+        supersetWith:"Leg Curl set",
         tipByPhase:{
           accumulation:"Pin to a specific weight each session \u2014 if you hit 12, add 10 lbs next time.",
           deload:"Active recovery. Light weight, feel the contraction.",
@@ -598,6 +606,7 @@ var EXERCISES = {
         },
         form:"Upper back on bench, feet flat and close to glutes. Drive through heels, squeeze glutes at top. No low back hyperextension." },
       { id:"d3_leg_press", name:"Leg Press", type:"compound",
+        supersetWith:"Single-Leg RDL set",
         tip:"Working weight: 200-230 lbs. Lower and wider foot placement = more glute and hamstring.",
         form:"No knee lockout at top. Lower until hips start to tuck \u2014 stop there." },
       { id:"d3_leg_curl", legacyName:"Leg Curl Machine", name:"Leg Curl", type:"isolation",
@@ -612,17 +621,21 @@ var EXERCISES = {
   d4: {
     "exercises-d4": [
       { id:"d4_db_bench",
-        nameByPhase:{ accumulation:"Dumbbell Bench Press", deload:"Dumbbell Bench Press", intensification:"Barbell Bench Press" },
+        nameByPhase:{ accumulation:"Dumbbell Bench Press", deload:"Dumbbell Bench Press", intensification:"Barbell Bench Press — Upper" },
         type:"compound", isDumbbell:true, switchesToBarbell:true,
-        tipByPhase:{ accumulation:"Working weight 55–60 lbs each DB.", intensification:"Barbell bench, start at 95–115 lbs." },
+        historyAlso:"Barbell Bench Press",
+        supersetWith:"Chest-Supported Row",
+        tipByPhase:{ accumulation:"Working weight 55–60 lbs each DB.", intensification:"Barbell bench, start at 95–115 lbs. Antagonist superset: bench a set, go directly to chest-supported row, then rest." },
         form:"Flat bench. Lower to chest, press up. Shoulder blades retracted throughout." },
       { id:"d4_arnold_press", name:"Arnold Press", type:"compound", isDumbbell:true,
+        supersetWith:"Face Pulls \xb7 15 reps",
         tip:"Working weight: 30 lbs each dumbbell.",
         form:"Start with palms facing you, rotate outward as you press up. Hits all three heads of the shoulder." },
       { id:"d4_cable_chest_fly", name:"Cable Chest Fly", type:"isolation", fixedSets:"3 \xd7 12",
         tip:"Working weight: ~17 lbs per side. Cables at shoulder height, one in each hand.",
         form:"Slight forward lean, soft elbow bend. Sweep arms together in a wide arc \u2014 think hugging a barrel. Squeeze at center, slow on the return." },
       { id:"d4_chest_supported_row", legacyName:"Chest-Supported Single-Arm DB Row", name:"Chest-Supported Row", type:"compound", isDumbbell:true,
+        supersetWith:"Barbell Bench Press",
         tip:"Single-arm dumbbell. Working weight: 40 lbs. Chest support removes lower back fatigue.",
         form:"Chest flat on incline bench. Pull elbow straight back past hip, squeeze at top. No torso rotation. Slow down." },
       { id:"d4_farmers_carry", name:"Farmer's Carry", type:"compound", isDumbbell:true, fixedSets:"3 \xd7 40 yards",
@@ -640,15 +653,19 @@ var EXERCISES = {
   d5: {
     "exercises-d5": [
       { id:"d5_hammer_curl", name:"Hammer Curl", type:"isolation", isDumbbell:true,
+        supersetWith:"Skull Crushers",
         tip:"Working weight: 20-25 lbs.",
         form:"Palms facing each other, curl straight up. Hits brachialis and forearm \u2014 adds thickness and grip." },
       { id:"d5_skull_crushers", legacyName:"Skull Crushers (light EZ bar)", name:"Skull Crushers", type:"isolation",
+        supersetWith:"Hammer Curl",
         tip:"Working weight: 50 lbs.",
         form:"Lie flat, lower bar toward forehead bending only at elbows. Elbows point at ceiling. No elbow flare." },
       { id:"d5_cable_curl", legacyName:"Cable Curl (straight bar or rope)", name:"Cable Curl", type:"isolation",
+        supersetWith:"OHT Extension",
         tip:"Working weight: 70 lbs. Cable keeps constant tension throughout.",
         form:"Stand at low pulley, elbows stay at sides, curl all the way up, slow on the way down." },
       { id:"d5_oh_tricep", legacyName:"Overhead Tricep Extension (cable)", name:"OHT Extension", type:"isolation",
+        supersetWith:"Cable Curl",
         tip:"Working weight: 50-60 lbs. Pairs with skull crushers to fully cover the long head.",
         form:"Face away from cable, rope at top. Keep elbows close to head. Full stretch down, squeeze up." },
       { id:"d5_rear_delt_fly", name:"Rear Delt Cable Fly", type:"isolation",
@@ -1387,6 +1404,12 @@ function buildCard(container, ex, dayId, data, phase){
     }
   }
   infoDiv.appendChild(metaDiv);
+  if(phase === 'intensification' && ex.supersetWith){
+    var ssHint = document.createElement("div");
+    ssHint.className = "superset-hint";
+    ssHint.textContent = "⇅ " + ex.supersetWith;
+    infoDiv.appendChild(ssHint);
+  }
   mainDiv.appendChild(infoDiv);
 
   var infoBtn = document.createElement("button");
@@ -1639,14 +1662,18 @@ async function backfillFromSheets(panelId, targetDate){
       .then(function(r){ return r.json(); })
       .then(function(json){ return json.rows||[]; })
       .catch(function(){ return []; });
-    if(ex.legacyName){
-      var ln = ex.legacyName;
-      var p2 = fetch(SHEETS_URL + "?type=history&exercise=" + encodeURIComponent(ln))
-        .then(function(r){ return r.json(); })
-        .then(function(json){ return json.rows||[]; })
-        .catch(function(){ return []; });
-      promises.push(Promise.all([p, p2]).then(function(res){
-        return {ex:ex, rows:res[0].concat(res[1])};
+    var extraNames = [];
+    if(ex.legacyName) extraNames.push(ex.legacyName);
+    if(ex.historyAlso) extraNames.push(ex.historyAlso);
+    if(extraNames.length){
+      var extraPs = extraNames.map(function(n){
+        return fetch(SHEETS_URL + "?type=history&exercise=" + encodeURIComponent(n))
+          .then(function(r){ return r.json(); })
+          .then(function(json){ return json.rows||[]; })
+          .catch(function(){ return []; });
+      });
+      promises.push(Promise.all([p].concat(extraPs)).then(function(res){
+        var all = []; res.forEach(function(r){ all = all.concat(r); }); return {ex:ex, rows:all};
       }));
     } else {
       promises.push(p.then(function(rows){ return {ex:ex, rows:rows}; }));
@@ -1745,13 +1772,19 @@ async function prefetchTodayHistory(panelId){
       .then(function(r){ return r.json(); })
       .then(function(json){ return json.rows||[]; })
       .catch(function(){ return []; });
-    if(ex.legacyName){
-      var ln = ex.legacyName;
-      var p2 = fetch(SHEETS_URL + "?type=history&exercise=" + encodeURIComponent(ln))
-        .then(function(r){ return r.json(); })
-        .then(function(json){ return json.rows||[]; })
-        .catch(function(){ return []; });
-      promises.push(Promise.all([p, p2]).then(function(res){ return {ex:ex, rows:res[0].concat(res[1])}; }));
+    var extraNames2 = [];
+    if(ex.legacyName) extraNames2.push(ex.legacyName);
+    if(ex.historyAlso) extraNames2.push(ex.historyAlso);
+    if(extraNames2.length){
+      var extraPs2 = extraNames2.map(function(n){
+        return fetch(SHEETS_URL + "?type=history&exercise=" + encodeURIComponent(n))
+          .then(function(r){ return r.json(); })
+          .then(function(json){ return json.rows||[]; })
+          .catch(function(){ return []; });
+      });
+      promises.push(Promise.all([p].concat(extraPs2)).then(function(res){
+        var all = []; res.forEach(function(r){ all = all.concat(r); }); return {ex:ex, rows:all};
+      }));
     } else {
       promises.push(p.then(function(rows){ return {ex:ex, rows:rows}; }));
     }

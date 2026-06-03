@@ -597,10 +597,20 @@ var EXERCISES = {
         },
         form:"Hip hinge, soft knee bend, flat back throughout. Keep the weight close to your body. Feel hamstrings load. Stop well short of lower back rounding \u2014 depth is not the goal, tension is." },
       { id:"d3_sl_rdl", legacyName:"Single-Leg RDL (kettlebell)", name:"Single-Leg RDL", type:"isolation", isDumbbell:true,
-        tip:"Working weight: 35 lb kettlebell in contralateral hand (opposite to planted foot). Done second while balance and coordination are still sharp.",
+        fixedSets:"3 \u00d7 8 each side",
+        tipByPhase:{
+          accumulation:"Working weight: 35 lb kettlebell in contralateral hand (opposite to planted foot). Done second while balance and coordination are still sharp.",
+          deload:"Working weight: 20\u201325 lbs. Active recovery \u2014 feel the hip hinge, not the load.",
+          intensification:"25\u201330 lbs \u2014 intentionally lighter than accumulation. Done as a superset during leg press rest periods. Stability and asymmetry correction, not a strength set. Form over weight."
+        },
         form:"Hinge at hip, flat back, free leg extends behind. Stop short if lower back rounds \u2014 flat back beats depth." },
       { id:"d3_kb_swing", name:"Kettlebell Swing", type:"isolation", isDumbbell:true,
-        tip:"Working weight: moderate KB \u2014 same one used for single-leg RDL or one step heavier. 3\xd715-20 reps. Hip hinge finisher, not a cardio circuit.",
+        fixedSets:"3 \xd7 15\u201320",
+        tipByPhase:{
+          accumulation:"Same KB used for single-leg RDL or one step heavier. Hip hinge finisher \u2014 explosive hip drive, not a cardio circuit.",
+          deload:"Lighter KB, 3\xd712. Focus on the hip drive pattern, not load.",
+          intensification:"Same KB as accumulation or one step heavier \u2014 do not chase weight here. Power comes from hip speed, not load. 15\u201320 explosive reps, full reset between each."
+        },
         form:"Hinge back, let KB swing between legs, then drive hips forward explosively. The power comes from the hip drive, not the arms. Let it float to shoulder height \u2014 do not pull it up. Smooth and controlled, not frantic." },
       { id:"d3_hip_thrust", legacyName:"Hip Thrust (barbell or machine)", name:"Hip Thrust", type:"compound",
         supersetWith:"Leg Curl set",
@@ -611,8 +621,12 @@ var EXERCISES = {
         },
         form:"Upper back on bench, feet flat and close to glutes. Drive through heels, squeeze glutes at top. No low back hyperextension." },
       { id:"d3_leg_press", name:"Leg Press", type:"compound",
-        supersetWith:"Single-Leg RDL set",
-        tip:"Working weight: 200-230 lbs. Lower and wider foot placement = more glute and hamstring.",
+        supersetWith:"Single-Leg RDL \xb7 8 ea side \xb7 25 lbs",
+        tipByPhase:{
+          accumulation:"Working weight: 200–230 lbs. Lower and wider foot placement = more glute and hamstring.",
+          deload:"Working weight: 130–150 lbs. Focus on full range of motion.",
+          intensification:"Working weight: build to heavy 5–6 reps. Lower and wider foot placement = more glute and hamstring. Use SL-RDL rest time between sets."
+        },
         form:"No knee lockout at top. Lower until hips start to tuck \u2014 stop there." },
       { id:"d3_leg_curl", legacyName:"Leg Curl Machine", name:"Leg Curl", type:"isolation",
         tip:"Working weight: 90 lbs.",
@@ -634,8 +648,13 @@ var EXERCISES = {
         tipByPhase:{ accumulation:"Working weight 55–60 lbs each DB.", intensification:"Antagonist superset: bench a set, go directly to chest-supported row, then rest." },
         form:"Flat bench. Lower to chest, press up. Shoulder blades retracted throughout." },
       { id:"d4_arnold_press", name:"Arnold Press", type:"compound", isDumbbell:true,
+        fixedSets:"3 \xd7 8–10",
         supersetWith:"Face Pulls \xb7 15 reps",
-        tip:"Working weight: 30 lbs each dumbbell.",
+        tipByPhase:{
+          accumulation:"Working weight: 30 lbs each dumbbell.",
+          deload:"Working weight: 20 lbs. Focus on the rotation — palms in at bottom, palms forward at top.",
+          intensification:"Working weight: 30–35 lbs. Keep at 8–10 reps — the rotation mechanics break down at near-max effort. Accessory movement, not a primary strength exercise."
+        },
         form:"Start with palms facing you, rotate outward as you press up. Hits all three heads of the shoulder." },
       { id:"d4_cable_chest_fly", name:"Cable Chest Fly", type:"isolation", fixedSets:"3 \xd7 12",
         tip:"Working weight: ~17 lbs per side. Cables at shoulder height, one in each hand.",

@@ -1365,11 +1365,23 @@ function buildCard(container, ex, dayId, data, phase){
   phase = phase || getProgramState(new Date()).phase;
   var weekInPhase = getProgramState(_panelDates[dayId] || new Date()).weekInPhase;
   var histId = ex.id;
+  var histAccumulationOnly = false;
   if(phase === 'intensification' && ex.weightHistoryByIntensificationWeek){
     var _whKeys = Object.keys(ex.weightHistoryByIntensificationWeek).map(Number).sort(function(a,b){return b-a;});
     for(var _whi=0; _whi<_whKeys.length; _whi++){ if(weekInPhase>=_whKeys[_whi]){ histId=ex.weightHistoryByIntensificationWeek[_whKeys[_whi]]; break; } }
+    // Week 1: the redirected exercise's intensification entries belong to a different
+    // movement (e.g. Monday flat bench contaminates Thursday incline bench lookup).
+    // Use accumulation data only until we have matching barbell history in week 2+.
+    if(weekInPhase === 1) histAccumulationOnly = true;
   }
   var history = (data.history && data.history[histId]) || [];
+  if(histAccumulationOnly){
+    history = history.filter(function(e){
+      if(!e.date) return false;
+      var _d = new Date(e.date);
+      return !isNaN(_d.getTime()) && getProgramState(_d).phase === 'accumulation';
+    });
+  }
   var lastEntry = history.length ? history[history.length-1] : null;
 
   // Find the entry logged on the specific date being viewed

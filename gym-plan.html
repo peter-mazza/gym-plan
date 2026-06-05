@@ -459,7 +459,12 @@ function getExerciseName(ex, phase, weekInPhase){
   if(ex.nameByPhase) return ex.nameByPhase[phase] || ex.nameByPhase.accumulation || ex.name;
   return ex.name;
 }
-function getExerciseTip(ex, phase){
+function getExerciseTip(ex, phase, weekInPhase){
+  if(phase === 'intensification' && ex.tipByIntensificationWeek && weekInPhase !== undefined){
+    var _twip = weekInPhase;
+    var _tkeys = Object.keys(ex.tipByIntensificationWeek).map(Number).sort(function(a,b){return b-a;});
+    for(var _tki=0; _tki<_tkeys.length; _tki++){ if(_twip>=_tkeys[_tki]) return ex.tipByIntensificationWeek[_tkeys[_tki]]; }
+  }
   if(ex.tipByPhase) return ex.tipByPhase[phase] || ex.tipByPhase.accumulation || ex.tip || '';
   return ex.tip || '';
 }
@@ -644,15 +649,19 @@ var EXERCISES = {
         nameByIntensificationWeek:{ 1:"Incline Barbell Bench Press", 2:"Barbell Bench Press" },
         weightHistoryByIntensificationWeek:{ 1:"d1_incline_db_press", 2:"d1_incline_db_press" },
         type:"compound", isDumbbell:true, switchesToBarbell:true,
-        supersetWith:"Chest-Supported Row",
-        tipByPhase:{ accumulation:"Working weight 55–60 lbs each DB.", intensification:"Antagonist superset: bench a set, go directly to chest-supported row, then rest." },
+        supersetWithByIntensificationWeek:{ 2:"Chest-Supported Row" },
+        tipByPhase:{ accumulation:"Working weight 55\u201360 lbs each DB." },
+        tipByIntensificationWeek:{
+          1:"Incline barbell bench \u2014 week 1 exception. Suggestion is based on your accumulation incline DB press, doubled for barbell total. Bar path angles slightly toward upper chest. No superset this week.",
+          2:"Flat barbell bench. Antagonist superset: bench a set, go directly to chest-supported row, then rest 2\u20133 min. Test it \u2014 separate them if bench form degrades on later sets."
+        },
         form:"Flat bench. Lower to chest, press up. Shoulder blades retracted throughout." },
       { id:"d4_chest_supported_row", legacyName:"Chest-Supported Single-Arm DB Row", name:"Chest-Supported Row", type:"compound", isDumbbell:true,
         supersetWith:"Bench Press set",
         tip:"Single-arm dumbbell. Working weight: 40 lbs. Chest support removes lower back fatigue.",
         form:"Chest flat on incline bench. Pull elbow straight back past hip, squeeze at top. No torso rotation. Slow down." },
       { id:"d4_arnold_press", name:"Arnold Press", type:"compound", isDumbbell:true,
-        fixedSets:"3 \xd7 8–10",
+        fixedSets:"4-5 \xd7 8–10",
         supersetWith:"Face Pulls \xb7 15 reps",
         tipByPhase:{
           accumulation:"Working weight: 30 lbs each dumbbell.",
@@ -1473,10 +1482,17 @@ function buildCard(container, ex, dayId, data, phase){
     }
   }
   infoDiv.appendChild(metaDiv);
-  if(phase === 'intensification' && ex.supersetWith){
+  var _ssText = null;
+  if(phase === 'intensification'){
+    if(ex.supersetWithByIntensificationWeek){
+      var _sswk = Object.keys(ex.supersetWithByIntensificationWeek).map(Number).sort(function(a,b){return b-a;});
+      for(var _sswi=0; _sswi<_sswk.length; _sswi++){ if(weekInPhase>=_sswk[_sswi]){ _ssText=ex.supersetWithByIntensificationWeek[_sswk[_sswi]]||null; break; } }
+    } else if(ex.supersetWith){ _ssText = ex.supersetWith; }
+  }
+  if(_ssText){
     var ssHint = document.createElement("div");
     ssHint.className = "superset-hint";
-    ssHint.textContent = "⇅ " + ex.supersetWith;
+    ssHint.textContent = "⇅ " + _ssText;
     infoDiv.appendChild(ssHint);
   }
   mainDiv.appendChild(infoDiv);
@@ -1558,7 +1574,7 @@ function buildCard(container, ex, dayId, data, phase){
       formulaP.textContent = formulaText;
       detailDiv.appendChild(formulaP);
     } else {
-      var tipText2 = getExerciseTip(ex, phase);
+      var tipText2 = getExerciseTip(ex, phase, weekInPhase);
       if(tipText2){
         var tipP = document.createElement("p");
         tipP.className = "tip-text";
@@ -1570,7 +1586,7 @@ function buildCard(container, ex, dayId, data, phase){
       }
     }
   } else {
-    var tipText3 = getExerciseTip(ex, phase);
+    var tipText3 = getExerciseTip(ex, phase, weekInPhase);
     if(tipText3){
       var tipP = document.createElement("p");
       tipP.className = "tip-text";
@@ -1596,9 +1612,16 @@ function buildCard(container, ex, dayId, data, phase){
     var ph5 = displayEntry && displayEntry.s5 ? displayEntry.s5 : "-";
     var phAll = [ph1, ph2, ph3, ph4, ph5];
 
-    var numSetCols = (phase === 'intensification' && ex.type === 'compound') ? 5
-                   : (phase === 'deload' && ex.type === 'compound') ? 2
-                   : 3;
+    var numSetCols;
+    if(ex.fixedSets){
+      var _fsm = ex.fixedSets.match(/^(\d+)(?:-(\d+))?/);
+      numSetCols = _fsm ? parseInt(_fsm[2] || _fsm[1]) : 3;
+      numSetCols = Math.min(5, Math.max(2, numSetCols));
+    } else {
+      numSetCols = (phase === 'intensification' && ex.type === 'compound') ? 5
+                 : (phase === 'deload' && ex.type === 'compound') ? 2
+                 : 3;
+    }
 
     var wsDiv = document.createElement("div");
     wsDiv.className = "weight-section";

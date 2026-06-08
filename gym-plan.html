@@ -702,7 +702,7 @@ var EXERCISES = {
         supersetWith:"Cable Curl",
         tip:"Working weight: 50-60 lbs. Pairs with skull crushers to fully cover the long head.",
         form:"Face away from cable, rope at top. Keep elbows close to head. Full stretch down, squeeze up." },
-      { id:"d5_rear_delt_fly", name:"Rear Delt Cable Fly", type:"isolation",
+      { id:"d5_rear_delt_fly", name:"Rear Delt Cable Fly", type:"isolation", fixedSets:"3 × 12–15",
         tip:"Working weight: 7 lbs per side.",
         form:"Set cables low or mid height, one in each hand crossed over. Pull back and out in a wide arc, squeeze rear delts at peak." },
       { id:"d5_reverse_curl", legacyName:"Reverse Curl (EZ bar or cable)", name:"Reverse Curl", type:"isolation",
@@ -1293,7 +1293,7 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell, switchesToB
     // Re-derive avgMax using only intensification-phase entries in that case.
     // Only applies to exercises that switch units (DB per-hand → barbell total).
     // Non-switchesToBarbell exercises (face pulls, curls, etc.) keep full history.
-    if(srcPhase === 'intensification' && switchesToBarbell){
+    if(srcPhase === 'intensification'){
       var intOnly = history.filter(function(e){
         if(!e.date) return false;
         var _d = new Date(e.date);
@@ -1344,16 +1344,7 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell, switchesToB
     oneRM = null;
   }
 
-  // Back-calculate realistic rep count for the rounded-to-available-increment weight.
-  // When rounding to 10 lb snaps to 70 instead of 65, tell the user how many reps to
-  // do at 70 to achieve the same training stimulus as the ideal weight.
-  var backCalcReps = null;
-  if(oneRM && suggested > 0){
-    var _rawReps = Math.round(30 * (oneRM / suggested - 1));
-    if(_rawReps >= 1 && _rawReps <= 20) backCalcReps = _rawReps;
-  }
-
-  return { weight:suggested, lastMax:lastMax, trending:trending, sessions:maxWeights.length, oneRM:oneRM, pct:pct, avgMax:Math.round(avgMax), dbDoubled:dbDoubled, backCalcReps:backCalcReps };
+  return { weight:suggested, lastMax:lastMax, trending:trending, sessions:maxWeights.length, oneRM:oneRM, pct:pct, avgMax:Math.round(avgMax), dbDoubled:dbDoubled };
 }
 
 // ── Render exercise cards ────────────────────────────────────
@@ -1564,11 +1555,6 @@ function buildCard(container, ex, dayId, data, phase){
       sugStrong.textContent = "Suggested: ";
       sugP.appendChild(sugStrong);
       var _wtTxt = "~" + suggestion.weight + " lbs";
-      if(phase === 'intensification' && suggestion.oneRM && suggestion.backCalcReps !== null){
-        var _rlo = Math.max(1, suggestion.backCalcReps - 1);
-        var _rhi = suggestion.backCalcReps + 1;
-        _wtTxt += " \xd7 " + _rlo + "\u2013" + _rhi + " reps";
-      }
       sugP.appendChild(document.createTextNode(_wtTxt));
       detailDiv.appendChild(sugP);
       var formulaP = document.createElement("p");
@@ -1576,8 +1562,7 @@ function buildCard(container, ex, dayId, data, phase){
       formulaP.style.cssText = "margin-top:2px;font-size:11px;color:var(--muted);";
       var formulaText;
       if(phase === 'intensification' && suggestion.oneRM){
-        var _bcr = suggestion.backCalcReps;
-        var tgtRangeStr = (_bcr !== null) ? (Math.max(1,_bcr-1) + '\u2013' + (_bcr+1)) : (ex.type === 'compound' ? '5\u20136' : '8\u201310');
+        var tgtRangeStr = (ex.type === 'compound') ? '5\u20136' : '8\u201310';
         var dbNote = suggestion.dbDoubled ? " (DB \xd72 \u2192 barbell total)" : "";
         formulaText = "Est. 1RM: ~" + suggestion.oneRM + " lbs via Epley" + dbNote + " \u00b7 " + suggestion.pct + "% for " + tgtRangeStr + " reps";
       } else if(phase === 'intensification' && !suggestion.oneRM){

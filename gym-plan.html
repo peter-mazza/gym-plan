@@ -1557,6 +1557,12 @@ function buildCard(container, ex, dayId, data, phase){
       sugP.appendChild(sugStrong);
       var _wtTxt = "~" + suggestion.weight + " lbs";
       sugP.appendChild(document.createTextNode(_wtTxt));
+      if(suggestion.trending && phase !== 'deload'){
+        var _trendSpan = document.createElement("span");
+        _trendSpan.textContent = " ↑";
+        _trendSpan.style.cssText = "color:var(--green);font-weight:700;";
+        sugP.appendChild(_trendSpan);
+      }
       detailDiv.appendChild(sugP);
       var formulaP = document.createElement("p");
       formulaP.className = "tip-text";

@@ -553,6 +553,7 @@ var EXERCISES = {
       { id:"d1_incline_db_press",
         nameByPhase:{ accumulation:"Incline DB Press", deload:"Incline DB Press", intensification:"Incline Barbell Bench Press" },
         nameByIntensificationWeek:{ 1:"Barbell Bench Press", 2:"Incline Barbell Bench Press" },
+        historyAlso:"Incline DB Press",
         type:"compound", isDumbbell:true, switchesToBarbell:true,
         supersetWith:"Band Pull-Aparts \xb7 20 reps",
         tipByPhase:{ accumulation:"Working weight 50–55 lb DBs. Last 2 reps should feel hard." },
@@ -609,7 +610,7 @@ var EXERCISES = {
   },
   d3: {
     "exercises-d3": [
-      { id:"d3_db_rdl", legacyName:"Dumbbell Romanian Deadlift",
+      { id:"d3_db_rdl", legacyName:"Dumbbell RDL",
         nameByPhase:{ accumulation:"Dumbbell RDL", deload:"Dumbbell RDL", intensification:"Barbell RDL" },
         type:"compound", isDumbbell:true, switchesToBarbell:true,
         supersetWith:"Side Plank \xb7 30 sec ea side",
@@ -665,7 +666,8 @@ var EXERCISES = {
       { id:"d4_db_bench",
         nameByPhase:{ accumulation:"Dumbbell Bench Press", deload:"Dumbbell Bench Press", intensification:"Barbell Bench Press" },
         nameByIntensificationWeek:{ 1:"Incline Barbell Bench Press", 2:"Barbell Bench Press" },
-        weightHistoryByIntensificationWeek:{ 1:"d1_incline_db_press", 2:"d1_incline_db_press" },
+        weightHistoryByIntensificationWeek:{ 1:"d1_incline_db_press" },
+        historyAlso:"Dumbbell Bench Press",
         type:"compound", isDumbbell:true, switchesToBarbell:true,
         supersetWithByIntensificationWeek:{ 2:"Chest-Supported Row" },
         tipByPhase:{ accumulation:"Working weight 55\u201360 lbs each DB." },

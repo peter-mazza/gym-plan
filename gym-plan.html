@@ -1399,7 +1399,11 @@ function buildCard(container, ex, dayId, data, phase){
   var _dispEx = _benchSwapEx || ex;
   var histId = ex.id;
   var histAccumulationOnly = false;
-  if(phase === 'intensification' && ex.weightHistoryByIntensificationWeek){
+  if(_benchSwapEx){
+    // Swap active: pull history from the partner exercise directly so the
+    // suggestion and last-session display reflect the actual movement being done.
+    histId = _dispEx.id;
+  } else if(phase === 'intensification' && ex.weightHistoryByIntensificationWeek){
     var _whKeys = Object.keys(ex.weightHistoryByIntensificationWeek).map(Number).sort(function(a,b){return b-a;});
     for(var _whi=0; _whi<_whKeys.length; _whi++){ if(weekInPhase>=_whKeys[_whi]){ histId=ex.weightHistoryByIntensificationWeek[_whKeys[_whi]]; break; } }
     // Week 1: the redirected exercise's intensification entries belong to a different

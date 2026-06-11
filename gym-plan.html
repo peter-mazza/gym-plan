@@ -1700,7 +1700,7 @@ function buildCard(container, ex, dayId, data, phase){
     var saveBtn = document.createElement("button");
     saveBtn.className = "save-btn";
     saveBtn.textContent = "Save Sets";
-    saveBtn.onclick = (function(eid, did){ return function(){ saveWeight(eid, did); }; })(ex.id, dayId);
+    saveBtn.onclick = (function(eid, did, deid){ return function(){ saveWeight(eid, did, deid); }; })(ex.id, dayId, _dispEx.id);
     wsDiv.appendChild(saveBtn);
 
     var savedMsg = document.createElement("div");
@@ -2240,7 +2240,8 @@ function getExName(exId){
 }
 
 // ── Save weight - no renderAll to prevent mid-workout issues ─
-async function saveWeight(exId, dayId){
+async function saveWeight(exId, dayId, displayExId){
+  displayExId = displayExId || exId;
   var s1el = document.getElementById("input-" + exId + "-s1");
   var s2el = document.getElementById("input-" + exId + "-s2");
   var s3el = document.getElementById("input-" + exId + "-s3");
@@ -2328,7 +2329,7 @@ async function saveWeight(exId, dayId){
       prBadge.textContent = 'PR';
       var metaEl = card.querySelector('.exercise-meta');
       if(metaEl) metaEl.appendChild(prBadge);
-      showToast('New PR — ' + getExName(exId));
+      showToast('New PR — ' + getExName(displayExId));
     } else if(!_prMap[exId]){
       _prMap[exId] = newMax;
     }
@@ -2351,7 +2352,7 @@ async function saveWeight(exId, dayId){
   }, 400);
 
   // Post to Sheets with pending queue for reliability
-  var exName = getExName(exId);
+  var exName = getExName(displayExId);
   var params = "type=exercise&date=" + encodeURIComponent(dateStr) + "&day=" + encodeURIComponent(dayTitle) + "&exercise=" + encodeURIComponent(exName) + "&set1=" + encodeURIComponent(s1) + "&set2=" + encodeURIComponent(s2) + "&set3=" + encodeURIComponent(s3) + "&set4=" + encodeURIComponent(s4) + "&set5=" + encodeURIComponent(s5);
   queuePending(params);
   updatePendingIndicator();

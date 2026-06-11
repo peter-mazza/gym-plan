@@ -102,6 +102,8 @@ header p{color:var(--muted);font-size:10px;margin-top:2px;letter-spacing:1.5px;t
 .exercise-sets{font-family:'DM Mono',monospace;font-weight:500;color:var(--red);font-size:11px;}
 .prev-weight{font-family:'DM Mono',monospace;font-size:10px;color:var(--amber);}
 .pr-badge{background:var(--green);color:white;font-family:'DM Mono',monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;letter-spacing:1px;margin-left:6px;}
+.bench-swap-chip{background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;font-weight:600;padding:3px 8px;border-radius:2px;cursor:pointer;letter-spacing:.5px;margin-top:4px;display:block;text-align:left;}
+.bench-swap-chip.active{background:var(--amber);border-color:var(--amber);color:white;}
 .info-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);width:26px;height:26px;border-radius:50%;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Mono',monospace;transition:all .15s;}
 .info-btn.open{background:var(--ink);border-color:var(--ink);color:var(--bg);}
 .edit-entry-btn{background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;cursor:pointer;letter-spacing:.5px;}
@@ -467,6 +469,21 @@ function getExerciseTip(ex, phase, weekInPhase){
   }
   if(ex.tipByPhase) return ex.tipByPhase[phase] || ex.tipByPhase.accumulation || ex.tip || '';
   return ex.tip || '';
+}
+
+function getBenchSwapState(){
+  var d = loadData();
+  return !!(d.benchSwap && d.benchSwap[getPacificWeekKey()]);
+}
+function toggleBenchSwap(){
+  var d = loadData();
+  if(!d.benchSwap) d.benchSwap = {};
+  var wk = getPacificWeekKey();
+  d.benchSwap[wk] = !d.benchSwap[wk];
+  saveData(d);
+  var st = getProgramState(viewedDate);
+  renderPanel('d1', st.phase);
+  renderPanel('d4', st.phase);
 }
 
 function findExercise(exId){
@@ -1374,6 +1391,12 @@ function renderAll(){
 function buildCard(container, ex, dayId, data, phase){
   phase = phase || getProgramState(new Date()).phase;
   var weekInPhase = getProgramState(_panelDates[dayId] || new Date()).weekInPhase;
+  // Bench swap: allows flipping incline/flat bench between D1 and D4 for the week
+  var _benchSwapEx = null;
+  if(phase === 'intensification' && (ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench') && getBenchSwapState()){
+    _benchSwapEx = findExercise(ex.id === 'd1_incline_db_press' ? 'd4_db_bench' : 'd1_incline_db_press');
+  }
+  var _dispEx = _benchSwapEx || ex;
   var histId = ex.id;
   var histAccumulationOnly = false;
   if(phase === 'intensification' && ex.weightHistoryByIntensificationWeek){
@@ -1457,7 +1480,7 @@ function buildCard(container, ex, dayId, data, phase){
   infoDiv.className = "exercise-info";
   var nameDiv = document.createElement("div");
   nameDiv.className = "exercise-name";
-  nameDiv.textContent = getExerciseName(ex, phase, weekInPhase);
+  nameDiv.textContent = getExerciseName(_dispEx, phase, weekInPhase);
   nameDiv.dataset.exId = ex.id;
   infoDiv.appendChild(nameDiv);
   var metaDiv = document.createElement("div");
@@ -1483,12 +1506,21 @@ function buildCard(container, ex, dayId, data, phase){
     }
   }
   infoDiv.appendChild(metaDiv);
+  if((ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench') && phase === 'intensification'){
+    var _altEx = _benchSwapEx ? ex : findExercise(ex.id === 'd1_incline_db_press' ? 'd4_db_bench' : 'd1_incline_db_press');
+    var _swpChip = document.createElement("button");
+    _swpChip.className = "bench-swap-chip" + (_benchSwapEx ? " active" : "");
+    _swpChip.textContent = _benchSwapEx ? "⇄ Swapped this week — tap to restore" : ("⇄ Swap to " + getExerciseName(_altEx, phase, weekInPhase) + " today");
+    _swpChip.onclick = function(){ toggleBenchSwap(); };
+    infoDiv.appendChild(_swpChip);
+  }
   var _ssText = null;
+  var _ssEx = (_benchSwapEx && ex.id === 'd4_db_bench') ? _dispEx : ex;
   if(phase === 'intensification'){
-    if(ex.supersetWithByIntensificationWeek){
-      var _sswk = Object.keys(ex.supersetWithByIntensificationWeek).map(Number).sort(function(a,b){return b-a;});
-      for(var _sswi=0; _sswi<_sswk.length; _sswi++){ if(weekInPhase>=_sswk[_sswi]){ _ssText=ex.supersetWithByIntensificationWeek[_sswk[_sswi]]||null; break; } }
-    } else if(ex.supersetWith){ _ssText = ex.supersetWith; }
+    if(_ssEx.supersetWithByIntensificationWeek){
+      var _sswk = Object.keys(_ssEx.supersetWithByIntensificationWeek).map(Number).sort(function(a,b){return b-a;});
+      for(var _sswi=0; _sswi<_sswk.length; _sswi++){ if(weekInPhase>=_sswk[_sswi]){ _ssText=_ssEx.supersetWithByIntensificationWeek[_sswk[_sswi]]||null; break; } }
+    } else if(_ssEx.supersetWith){ _ssText = _ssEx.supersetWith; }
   }
   if(_ssText){
     var ssHint = document.createElement("div");
@@ -1501,7 +1533,7 @@ function buildCard(container, ex, dayId, data, phase){
   var infoBtn = document.createElement("button");
   infoBtn.className = "info-btn";
   infoBtn.textContent = "i";
-  infoBtn.onclick = (function(eid, ename, btn){ return function(){ toggleTip(btn, eid, ename); }; })(ex.id, getExerciseName(ex, phase, weekInPhase), infoBtn);
+  infoBtn.onclick = (function(eid, ename, btn){ return function(){ toggleTip(btn, eid, ename); }; })(ex.id, getExerciseName(_dispEx, phase, weekInPhase), infoBtn);
   if(isDone){
     var editBtn = document.createElement("button");
     editBtn.className = "edit-entry-btn";
@@ -1582,7 +1614,7 @@ function buildCard(container, ex, dayId, data, phase){
       formulaP.textContent = formulaText;
       detailDiv.appendChild(formulaP);
     } else {
-      var tipText2 = getExerciseTip(ex, phase, weekInPhase);
+      var tipText2 = getExerciseTip(_dispEx, phase, weekInPhase);
       if(tipText2){
         var tipP = document.createElement("p");
         tipP.className = "tip-text";

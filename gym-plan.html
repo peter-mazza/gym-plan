@@ -472,15 +472,21 @@ function getExerciseTip(ex, phase, weekInPhase){
 }
 
 function getBenchSwapState(){
-  var d = loadData();
-  return !!(d.benchSwap && d.benchSwap[getPacificWeekKey()]);
+  var s = loadSettings();
+  // One-time migration from pgymplan_v5 → pgymplan_settings.
+  // Only runs when settings has NO benchSwap yet (guards against clobbering a fresh toggle).
+  if(!s.benchSwap){
+    var d = loadData();
+    if(d.benchSwap){ s.benchSwap = d.benchSwap; saveSettings(s); }
+  }
+  return !!(s.benchSwap && s.benchSwap[getPacificWeekKey()]);
 }
 function toggleBenchSwap(){
-  var d = loadData();
-  if(!d.benchSwap) d.benchSwap = {};
+  var s = loadSettings();
+  if(!s.benchSwap) s.benchSwap = {};
   var wk = getPacificWeekKey();
-  d.benchSwap[wk] = !d.benchSwap[wk];
-  saveData(d);
+  s.benchSwap[wk] = !s.benchSwap[wk];
+  saveSettings(s);
   var st = getProgramState(viewedDate);
   renderPanel('d1', st.phase);
   renderPanel('d4', st.phase);
@@ -554,6 +560,7 @@ var EXERCISES = {
         nameByPhase:{ accumulation:"Incline DB Press", deload:"Incline DB Press", intensification:"Incline Barbell Bench Press" },
         nameByIntensificationWeek:{ 1:"Barbell Bench Press", 2:"Incline Barbell Bench Press" },
         historyAlso:"Incline DB Press",
+        weightHistoryByIntensificationWeek:{ 2:"d4_db_bench" },
         type:"compound", isDumbbell:true, switchesToBarbell:true,
         supersetWith:"Band Pull-Aparts \xb7 20 reps",
         tipByPhase:{ accumulation:"Working weight 50–55 lb DBs. Last 2 reps should feel hard." },
@@ -680,8 +687,7 @@ var EXERCISES = {
         supersetWith:"Bench Press set",
         tip:"Single-arm dumbbell. Working weight: 40 lbs. Chest support removes lower back fatigue.",
         form:"Chest flat on incline bench. Pull elbow straight back past hip, squeeze at top. No torso rotation. Slow down." },
-      { id:"d4_arnold_press", name:"Arnold Press", type:"compound", isDumbbell:true,
-        fixedSets:"4-5 \xd7 8–10",
+      { id:"d4_arnold_press", name:"Arnold Press", type:"isolation", isDumbbell:true,
         supersetWith:"Face Pulls \xb7 15 reps",
         tipByPhase:{
           accumulation:"Working weight: 30 lbs each dumbbell.",
@@ -690,6 +696,7 @@ var EXERCISES = {
         },
         form:"Start with palms facing you, rotate outward as you press up. Hits all three heads of the shoulder." },
       { id:"d4_face_pull", legacyName:"Face Pulls (cable)", name:"Face Pulls", type:"isolation", fixedSets:"3 \xd7 12-15",
+        prevSessionId:"d2_face_pull",
         tip:"Shoulder health staple. Working weight: 50-60 lbs.",
         form:"Cable at face height, rope attachment. Pull to ears, elbows high, wrists behind elbows. Slow and controlled." },
       { id:"d4_cable_chest_fly", name:"Cable Chest Fly", type:"isolation", fixedSets:"3 \xd7 12",
@@ -747,8 +754,11 @@ var _prMap = {};
 
 // ── Storage ──────────────────────────────────────────────────
 var LS_KEY = "pgymplan_v5";
+var SETTINGS_KEY = "pgymplan_settings";
 function loadData(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||{}; }catch(e){ return {}; } }
 function saveData(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
+function loadSettings(){ try{ return JSON.parse(localStorage.getItem(SETTINGS_KEY))||{}; }catch(e){ return {}; } }
+function saveSettings(s){ localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
 function clearStaleChecks(){
   var data = loadData();
   var curWeek = getPacificWeekKey();
@@ -1401,13 +1411,9 @@ function buildCard(container, ex, dayId, data, phase){
   var _dispEx = _benchSwapEx || ex;
   var histId = ex.id;
   var histAccumulationOnly = false;
-  if(_benchSwapEx){
-    // Swap active: pull history from the partner exercise directly so the
-    // suggestion and last-session display reflect the actual movement being done.
-    histId = _dispEx.id;
-  } else if(phase === 'intensification' && ex.weightHistoryByIntensificationWeek){
+  if(phase === 'intensification' && ex.weightHistoryByIntensificationWeek && !_benchSwapEx){
     var _whKeys = Object.keys(ex.weightHistoryByIntensificationWeek).map(Number).sort(function(a,b){return b-a;});
-    for(var _whi=0; _whi<_whKeys.length; _whi++){ if(weekInPhase>=_whKeys[_whi]){ histId=ex.weightHistoryByIntensificationWeek[_whKeys[_whi]]; break; } }
+    for(var _whi=0; _whi<_whKeys.length; _whi++){ if(weekInPhase===_whKeys[_whi]){ histId=ex.weightHistoryByIntensificationWeek[_whKeys[_whi]]; break; } }
     // Week 1: the redirected exercise's intensification entries belong to a different
     // movement (e.g. Monday flat bench contaminates Thursday incline bench lookup).
     // Use accumulation data only until we have matching barbell history in week 2+.
@@ -1421,7 +1427,31 @@ function buildCard(container, ex, dayId, data, phase){
       return !isNaN(_d.getTime()) && getProgramState(_d).phase === 'accumulation';
     });
   }
-  var lastEntry = history.length ? history[history.length-1] : null;
+  // Bench swap exercises store both movements under the same slot key.
+  // Use the stamped movement tag (set at save time) to pick only matching sessions.
+  // For old sessions without the tag, fall back to the swap-state heuristic.
+  var _lastEntryHistory = history;
+  if((ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench') && phase === 'intensification' && histId === ex.id){
+    var _targetMovement = _dispEx.id;
+    var _currSwap = getBenchSwapState();
+    var _swapSettings = loadSettings();
+    _lastEntryHistory = history.filter(function(e){
+      if(e.movement) return e.movement === _targetMovement;
+      // Old sessions without movement tag — fall back to swap-state heuristic
+      if(!e.date) return true;
+      var _d = new Date(e.date); if(isNaN(_d.getTime())) return true;
+      var _wasSwapped = !!(_swapSettings.benchSwap && _swapSettings.benchSwap[_isoWeekKey(_d)]);
+      return _wasSwapped === _currSwap;
+    });
+  }
+  var lastEntry = _lastEntryHistory.length ? _lastEntryHistory[_lastEntryHistory.length-1] : null;
+  // If no history yet for this exercise, fall back to the most recent session of the
+  // same movement on a different day (e.g. d4_face_pull borrows d2_face_pull's last entry
+  // so Thursday's boxes pre-fill with Tuesday's weights until Thursday has its own log).
+  if(!lastEntry && ex.prevSessionId && data.history && data.history[ex.prevSessionId]){
+    var _prevHist = data.history[ex.prevSessionId];
+    if(_prevHist.length) lastEntry = _prevHist[_prevHist.length-1];
+  }
 
   // Find the entry logged on the specific date being viewed
   var panelDate = _panelDates[dayId];
@@ -1527,6 +1557,8 @@ function buildCard(container, ex, dayId, data, phase){
       var _sswk = Object.keys(_ssEx.supersetWithByIntensificationWeek).map(Number).sort(function(a,b){return b-a;});
       for(var _sswi=0; _sswi<_sswk.length; _sswi++){ if(weekInPhase>=_sswk[_sswi]){ _ssText=_ssEx.supersetWithByIntensificationWeek[_sswk[_sswi]]||null; break; } }
     } else if(_ssEx.supersetWith){ _ssText = _ssEx.supersetWith; }
+    // When D4 bench is swapped to incline, chest-supported row can't superset with it
+    if(ex.id === 'd4_chest_supported_row' && getBenchSwapState()){ _ssText = null; }
   }
   if(_ssText){
     var ssHint = document.createElement("div");
@@ -1586,7 +1618,12 @@ function buildCard(container, ex, dayId, data, phase){
     // movements whose rep targets don't change in intensification — treat them like
     // accumulation so we get a lastMax match rather than an Epley-9-rep calculation.
     var suggPhase = (ex.fixedSets && phase === 'intensification') ? 'accumulation' : phase;
-    var suggestion = computeWeightSuggestion(history, suggPhase, ex.type, ex.isDumbbell, ex.switchesToBarbell);
+    var suggestion = computeWeightSuggestion(_lastEntryHistory, suggPhase, ex.type, ex.isDumbbell, ex.switchesToBarbell);
+    // If movement filter returned empty (e.g. first incline session after reset) but the slot
+    // has other-movement history, use that as a weight-range reference for the suggestion.
+    if(!suggestion && _lastEntryHistory !== history && history.length){
+      suggestion = computeWeightSuggestion(history, suggPhase, ex.type, ex.isDumbbell, ex.switchesToBarbell);
+    }
     if(suggestion){
       var sugP = document.createElement("p");
       sugP.className = "tip-text";
@@ -1651,11 +1688,13 @@ function buildCard(container, ex, dayId, data, phase){
   }
 
   if(!ex.noWeight){
-    var ph1 = displayEntry && displayEntry.s1 ? displayEntry.s1 : "-";
-    var ph2 = displayEntry && displayEntry.s2 ? displayEntry.s2 : "-";
-    var ph3 = displayEntry && displayEntry.s3 ? displayEntry.s3 : "-";
-    var ph4 = displayEntry && displayEntry.s4 ? displayEntry.s4 : "-";
-    var ph5 = displayEntry && displayEntry.s5 ? displayEntry.s5 : "-";
+    // When no previous session exists, use the suggestion weight as a starting reference
+    var _phFallback = (!displayEntry && suggestion && suggestion.weight) ? String(suggestion.weight) : "-";
+    var ph1 = displayEntry && displayEntry.s1 ? displayEntry.s1 : _phFallback;
+    var ph2 = displayEntry && displayEntry.s2 ? displayEntry.s2 : _phFallback;
+    var ph3 = displayEntry && displayEntry.s3 ? displayEntry.s3 : _phFallback;
+    var ph4 = displayEntry && displayEntry.s4 ? displayEntry.s4 : _phFallback;
+    var ph5 = displayEntry && displayEntry.s5 ? displayEntry.s5 : _phFallback;
     var phAll = [ph1, ph2, ph3, ph4, ph5];
 
     var numSetCols;
@@ -2263,7 +2302,7 @@ async function saveWeight(exId, dayId, displayExId){
   var data = loadData();
   if(!data.history) data.history = {};
   if(!data.history[exId]) data.history[exId] = [];
-  data.history[exId].push({date:dateStr, dayLabel:dayTitle, s1:s1, s2:s2, s3:s3, s4:s4, s5:s5});
+  data.history[exId].push({date:dateStr, dayLabel:dayTitle, movement:displayExId, s1:s1, s2:s2, s3:s3, s4:s4, s5:s5});
   var hist = data.history[exId];
   if(hist.length >= 2 && hist[hist.length-2].date === dateStr){
     hist.splice(hist.length-2, 1);

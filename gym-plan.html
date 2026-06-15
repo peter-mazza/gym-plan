@@ -1449,7 +1449,14 @@ function buildCard(container, ex, dayId, data, phase){
         if(!_eDispEx) return false;
         return getExerciseName(_eDispEx, 'intensification', _eState.weekInPhase) === _movementKey;
       }
-      // Oldest entries with no tags at all: can't safely infer exercise, exclude
+      // Pre-swap entries (no tags): swap didn't exist when saved, so exercise was
+      // always the slot's default (non-swapped) assignment for that weekInPhase.
+      if(e.date){
+        var _td = new Date(e.date); if(isNaN(_td.getTime())) return false;
+        var _tState = getProgramState(_td);
+        if(_tState.phase !== 'intensification') return false;
+        return getExerciseName(ex, 'intensification', _tState.weekInPhase) === _movementKey;
+      }
       return false;
     });
   }

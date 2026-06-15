@@ -1432,19 +1432,37 @@ function buildCard(container, ex, dayId, data, phase){
   // For old sessions without the tag, fall back to the swap-state heuristic.
   var _lastEntryHistory = history;
   if((ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench') && phase === 'intensification' && histId === ex.id){
+    var _movementKey = getExerciseName(_dispEx, phase, weekInPhase);
     var _targetMovement = _dispEx.id;
     var _currSwap = getBenchSwapState();
     var _swapSettings = loadSettings();
     _lastEntryHistory = history.filter(function(e){
+      // New entries carry the exact display name — most precise match
+      if(e.movementName) return e.movementName === _movementKey;
+      // Pre-movementName entries: match by slot-ID tag
       if(e.movement) return e.movement === _targetMovement;
-      // Old sessions without movement tag — fall back to swap-state heuristic
-      if(!e.date) return true;
-      var _d = new Date(e.date); if(isNaN(_d.getTime())) return true;
+      // Oldest entries with no tag: heuristic — but exclude accumulation-phase data
+      // so 35 lb dumbbell sets never leak into barbell placeholders
+      if(!e.date) return false;
+      var _d = new Date(e.date); if(isNaN(_d.getTime())) return false;
+      if(getProgramState(_d).phase !== 'intensification') return false;
       var _wasSwapped = !!(_swapSettings.benchSwap && _swapSettings.benchSwap[_isoWeekKey(_d)]);
       return _wasSwapped === _currSwap;
     });
   }
   var lastEntry = _lastEntryHistory.length ? _lastEntryHistory[_lastEntryHistory.length-1] : null;
+  // Don't show accumulation dumbbell weights as placeholder boxes in intensification
+  if(histAccumulationOnly) lastEntry = null;
+  // Cross-slot redirects (different slot): only use intensification entries as placeholders
+  if(lastEntry && histId !== ex.id && phase === 'intensification'){
+    if(!lastEntry.date || getProgramState(new Date(lastEntry.date)).phase !== 'intensification'){
+      lastEntry = null;
+      for(var _xli = _lastEntryHistory.length - 1; _xli >= 0; _xli--){
+        var _xle = _lastEntryHistory[_xli];
+        if(_xle.date && getProgramState(new Date(_xle.date)).phase === 'intensification'){ lastEntry = _xle; break; }
+      }
+    }
+  }
   // If no history yet for this exercise, fall back to the most recent session of the
   // same movement on a different day (e.g. d4_face_pull borrows d2_face_pull's last entry
   // so Thursday's boxes pre-fill with Tuesday's weights until Thursday has its own log).
@@ -1739,7 +1757,8 @@ function buildCard(container, ex, dayId, data, phase){
     var saveBtn = document.createElement("button");
     saveBtn.className = "save-btn";
     saveBtn.textContent = "Save Sets";
-    saveBtn.onclick = (function(eid, did, deid){ return function(){ saveWeight(eid, did, deid); }; })(ex.id, dayId, _dispEx.id);
+    var _movementName = getExerciseName(_dispEx, phase, weekInPhase);
+    saveBtn.onclick = (function(eid, did, deid, dename){ return function(){ saveWeight(eid, did, deid, dename); }; })(ex.id, dayId, _dispEx.id, _movementName);
     wsDiv.appendChild(saveBtn);
 
     var savedMsg = document.createElement("div");
@@ -2279,7 +2298,7 @@ function getExName(exId){
 }
 
 // ── Save weight - no renderAll to prevent mid-workout issues ─
-async function saveWeight(exId, dayId, displayExId){
+async function saveWeight(exId, dayId, displayExId, movementName){
   displayExId = displayExId || exId;
   var s1el = document.getElementById("input-" + exId + "-s1");
   var s2el = document.getElementById("input-" + exId + "-s2");
@@ -2302,7 +2321,7 @@ async function saveWeight(exId, dayId, displayExId){
   var data = loadData();
   if(!data.history) data.history = {};
   if(!data.history[exId]) data.history[exId] = [];
-  data.history[exId].push({date:dateStr, dayLabel:dayTitle, movement:displayExId, s1:s1, s2:s2, s3:s3, s4:s4, s5:s5});
+  data.history[exId].push({date:dateStr, dayLabel:dayTitle, movement:displayExId, movementName:movementName||displayExId, s1:s1, s2:s2, s3:s3, s4:s4, s5:s5});
   var hist = data.history[exId];
   if(hist.length >= 2 && hist[hist.length-2].date === dateStr){
     hist.splice(hist.length-2, 1);

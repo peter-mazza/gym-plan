@@ -1433,21 +1433,24 @@ function buildCard(container, ex, dayId, data, phase){
   var _lastEntryHistory = history;
   if((ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench') && phase === 'intensification' && histId === ex.id){
     var _movementKey = getExerciseName(_dispEx, phase, weekInPhase);
-    var _targetMovement = _dispEx.id;
-    var _currSwap = getBenchSwapState();
-    var _swapSettings = loadSettings();
     _lastEntryHistory = history.filter(function(e){
       // New entries carry the exact display name — most precise match
       if(e.movementName) return e.movementName === _movementKey;
-      // Pre-movementName entries: match by slot-ID tag
-      if(e.movement) return e.movement === _targetMovement;
-      // Oldest entries with no tag: heuristic — but exclude accumulation-phase data
-      // so 35 lb dumbbell sets never leak into barbell placeholders
-      if(!e.date) return false;
-      var _d = new Date(e.date); if(isNaN(_d.getTime())) return false;
-      if(getProgramState(_d).phase !== 'intensification') return false;
-      var _wasSwapped = !!(_swapSettings.benchSwap && _swapSettings.benchSwap[_isoWeekKey(_d)]);
-      return _wasSwapped === _currSwap;
+      // Old entries with slot-ID movement tag: infer which exercise was shown at save time
+      // by looking up the display slot's name at the entry's weekInPhase.
+      // This correctly resolves all 4 permutations (wk1/wk2 × swap/no-swap) without
+      // needing to reconstruct historical swap state.
+      if(e.movement){
+        if(!e.date) return false;
+        var _d = new Date(e.date); if(isNaN(_d.getTime())) return false;
+        var _eState = getProgramState(_d);
+        if(_eState.phase !== 'intensification') return false;
+        var _eDispEx = findExercise(e.movement);
+        if(!_eDispEx) return false;
+        return getExerciseName(_eDispEx, 'intensification', _eState.weekInPhase) === _movementKey;
+      }
+      // Oldest entries with no tags at all: can't safely infer exercise, exclude
+      return false;
     });
   }
   var lastEntry = _lastEntryHistory.length ? _lastEntryHistory[_lastEntryHistory.length-1] : null;

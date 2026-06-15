@@ -1427,38 +1427,42 @@ function buildCard(container, ex, dayId, data, phase){
       return !isNaN(_d.getTime()) && getProgramState(_d).phase === 'accumulation';
     });
   }
-  // Bench swap exercises store both movements under the same slot key.
-  // Use the stamped movement tag (set at save time) to pick only matching sessions.
-  // For old sessions without the tag, fall back to the swap-state heuristic.
+  // Bench swap exercises: filter history to only entries matching the displayed movement.
+  // When swap is active, sessions for the displayed movement may be stored under EITHER
+  // slot (e.g. Monday flat bench: wk8 saved under d1, wk9 saved under d4). Combine both.
   var _lastEntryHistory = history;
   if((ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench') && phase === 'intensification' && histId === ex.id){
     var _movementKey = getExerciseName(_dispEx, phase, weekInPhase);
-    _lastEntryHistory = history.filter(function(e){
-      // New entries carry the exact display name — most precise match
+    var _filterEntry = function(e, slotEx){
       if(e.movementName) return e.movementName === _movementKey;
-      // Old entries with slot-ID movement tag: infer which exercise was shown at save time
-      // by looking up the display slot's name at the entry's weekInPhase.
-      // This correctly resolves all 4 permutations (wk1/wk2 × swap/no-swap) without
-      // needing to reconstruct historical swap state.
       if(e.movement){
         if(!e.date) return false;
-        var _d = new Date(e.date); if(isNaN(_d.getTime())) return false;
-        var _eState = getProgramState(_d);
-        if(_eState.phase !== 'intensification') return false;
-        var _eDispEx = findExercise(e.movement);
-        if(!_eDispEx) return false;
-        return getExerciseName(_eDispEx, 'intensification', _eState.weekInPhase) === _movementKey;
+        var _ed = new Date(e.date); if(isNaN(_ed.getTime())) return false;
+        var _es = getProgramState(_ed);
+        if(_es.phase !== 'intensification') return false;
+        var _eDisp = findExercise(e.movement);
+        if(!_eDisp) return false;
+        return getExerciseName(_eDisp, 'intensification', _es.weekInPhase) === _movementKey;
       }
-      // Pre-swap entries (no tags): swap didn't exist when saved, so exercise was
-      // always the slot's default (non-swapped) assignment for that weekInPhase.
       if(e.date){
         var _td = new Date(e.date); if(isNaN(_td.getTime())) return false;
-        var _tState = getProgramState(_td);
-        if(_tState.phase !== 'intensification') return false;
-        return getExerciseName(ex, 'intensification', _tState.weekInPhase) === _movementKey;
+        var _ts = getProgramState(_td);
+        if(_ts.phase !== 'intensification') return false;
+        return getExerciseName(slotEx, 'intensification', _ts.weekInPhase) === _movementKey;
       }
       return false;
-    });
+    };
+    _lastEntryHistory = history.filter(function(e){ return _filterEntry(e, ex); });
+    if(_benchSwapEx){
+      // The other slot's history also contains sessions for the same movement (different weeks)
+      var _otherHist = (data.history && data.history[_dispEx.id]) || [];
+      var _otherFiltered = _otherHist.filter(function(e){ return _filterEntry(e, _dispEx); });
+      _lastEntryHistory = _lastEntryHistory.concat(_otherFiltered).sort(function(a, b){
+        var da = a.date ? new Date(a.date) : new Date(0);
+        var db = b.date ? new Date(b.date) : new Date(0);
+        return da - db;
+      });
+    }
   }
   var lastEntry = _lastEntryHistory.length ? _lastEntryHistory[_lastEntryHistory.length-1] : null;
   // Don't show accumulation dumbbell weights as placeholder boxes in intensification

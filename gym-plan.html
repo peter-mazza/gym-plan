@@ -345,14 +345,16 @@ var EXCEPTION_DATES = {
   '2026-08-14': { rest:true, note:'Unavailable today' },
   '2026-05-13': { rest:true, note:'Sick day — cold' },
   '2026-05-14': { rest:true, note:'Sick day — cold' },
-  '2026-05-15': { rest:true, note:'Sick day — cold' }
+  '2026-05-15': { rest:true, note:'Sick day — cold' },
+  '2026-06-17': { rest:true, note:'Lower back issue — rest day. Legs + Glutes skipped this week.' }
 };
 
 // Keyed by the Monday of that calendar week (YYYY-MM-DD)
 var WEEK_BANNERS = {
   '2026-04-27': 'Abbreviated week \u2014 Mon/Tue/Wed unavailable. Thu: Legs + Glutes \xb7 Fri: Upper (Push/Pull).',
   '2026-08-10': 'Note: Fri Aug 14 is a rest day this week \u2014 no Arms session.',
-  '2026-05-11': 'Sick week \u2014 cold. Wed/Thu/Fri all rest days. Only Mon (Push) + Tue (Pull) completed. Week 6 (accumulation) continues May 18 \u2014 deload starts May 25.'
+  '2026-05-11': 'Sick week \u2014 cold. Wed/Thu/Fri all rest days. Only Mon (Push) + Tue (Pull) completed. Week 6 (accumulation) continues May 18 \u2014 deload starts May 25.',
+  '2026-06-15': 'Lower back issue \u2014 Wed (Legs) rest day. Thu: Active recovery yoga in place of Upper. Fri TBD. Resume normal schedule next week.'
 };
 
 // Maps JS day-of-week (1=Mon...5=Fri) to workout panel ID
@@ -362,7 +364,8 @@ var DOW_TO_PANEL = { 1:'d1', 2:'d2', 3:'d3', 4:'d4', 5:'d5' };
 // { dayIndex(0=Mon..4=Fri): panelId } — overrides which workout shows on that day
 var WEEK_DOW_OVERRIDES = {
   '2026-04-27': { 3:'d3', 4:'d4' },  // Thu: Legs+Glutes, Fri: Upper (abbreviated week — skip Arms)
-  '2026-05-11': {}                     // Full sick week — no day overrides needed
+  '2026-05-11': {},                    // Full sick week — no day overrides needed
+  '2026-06-15': { 3:'activity' }      // Thu: Active recovery yoga (lower back week)
 };
 
 // ── Schedule logic ────────────────────────────────────────────
@@ -867,7 +870,7 @@ function renderWeekNav(){
   var data = loadData();
   var mondayKey = toDateKey(monday);
   var weekOverride = WEEK_DOW_OVERRIDES[mondayKey] || {};
-  var overrideWorkoutLabels = { d1:'Push', d2:'Pull', d3:'Legs', d4:'Upper', d5:'Arms' };
+  var overrideWorkoutLabels = { d1:'Push', d2:'Pull', d3:'Legs', d4:'Upper', d5:'Arms', activity:'Yoga' };
 
   for(var i=0; i<5; i++){
     var dayDate = new Date(monday); dayDate.setDate(monday.getDate()+i);
@@ -2544,6 +2547,16 @@ async function saveActivity(){
   if(!data.activities) data.activities = [];
   data.activities.push({date:dateStr, type:actType, dur:dur, cal:cal, hr:hr, notes:notes});
   saveData(data);
+
+  // If this activity is logged on a day overridden to the activity panel, mark it done
+  var _actDate = rawDate ? new Date(rawDate + "T12:00:00") : new Date();
+  var _actMon = toDateKey(getMondayOf(_actDate));
+  var _actOverride = WEEK_DOW_OVERRIDES[_actMon] || {};
+  var _actDowIdx = _actDate.getDay() - 1;
+  if(_actDowIdx >= 0 && _actOverride[_actDowIdx] === 'activity'){
+    markDayComplete('activity', _isoWeekKey(_actDate));
+    renderWeekNav();
+  }
 
   if(typeEl) typeEl.value = "";
   if(durEl) durEl.value = "";

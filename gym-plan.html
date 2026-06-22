@@ -356,7 +356,7 @@ var WEEK_BANNERS = {
   '2026-08-10': 'Note: Fri Aug 14 is a rest day this week \u2014 no Arms session.',
   '2026-05-11': 'Sick week \u2014 cold. Wed/Thu/Fri all rest days. Only Mon (Push) + Tue (Pull) completed. Week 6 (accumulation) continues May 18 \u2014 deload starts May 25.',
   '2026-06-15': 'Injury week \u2014 right hip & lower back. Wed: massage (rest). Thu: yoga (active recovery). Fri: rest. Mon + Tue completed normally.',
-  '2026-06-22': 'Back-off week \u2014 right hip & lower back still recovering. All exercises kept. Using accumulation loads (3 \xd7 10-12 compounds, 3 \xd7 12-15 isolation). Intensification resumes next week (week 12 of 13).'
+  '2026-06-22': 'Back-off week \u2014 right hip & lower back still recovering. All exercises kept. DB bench this week. Using accumulation loads (3 \xd7 10-12 compounds, 3 \xd7 12-15 isolation). Intensification resumes next week (week 5 of 6 in phase).'
 };
 
 // Maps JS day-of-week (1=Mon...5=Fri) to workout panel ID
@@ -1417,15 +1417,16 @@ function buildCard(container, ex, dayId, data, phase){
   phase = phase || _dayState.phase;
   var _displayPhase = _dayState.displayPhase || phase;
   var weekInPhase = _dayState.weekInPhase;
-  // Bench swap: allows flipping incline/flat bench between D1 and D4 for the week
+  // Bench swap: allows flipping incline/flat bench between D1 and D4 for the week.
+  // Disabled during phase-override weeks (back-off accumulation) — DB exercises don't swap.
   var _benchSwapEx = null;
-  if(phase === 'intensification' && (ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench') && getBenchSwapState()){
+  if(_displayPhase === 'intensification' && (ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench') && getBenchSwapState()){
     _benchSwapEx = findExercise(ex.id === 'd1_incline_db_press' ? 'd4_db_bench' : 'd1_incline_db_press');
   }
   var _dispEx = _benchSwapEx || ex;
   var histId = ex.id;
   var histAccumulationOnly = false;
-  if(phase === 'intensification' && ex.weightHistoryByIntensificationWeek && !_benchSwapEx){
+  if(_displayPhase === 'intensification' && ex.weightHistoryByIntensificationWeek && !_benchSwapEx){
     var _whKeys = Object.keys(ex.weightHistoryByIntensificationWeek).map(Number).sort(function(a,b){return b-a;});
     for(var _whi=0; _whi<_whKeys.length; _whi++){ if(weekInPhase===_whKeys[_whi]){ histId=ex.weightHistoryByIntensificationWeek[_whKeys[_whi]]; break; } }
     // Week 1: the redirected exercise's intensification entries belong to a different
@@ -1445,8 +1446,8 @@ function buildCard(container, ex, dayId, data, phase){
   // When swap is active, sessions for the displayed movement may be stored under EITHER
   // slot (e.g. Monday flat bench: wk8 saved under d1, wk9 saved under d4). Combine both.
   var _lastEntryHistory = history;
-  if((ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench') && phase === 'intensification' && histId === ex.id){
-    var _movementKey = getExerciseName(_dispEx, phase, weekInPhase);
+  if((ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench') && _displayPhase === 'intensification' && histId === ex.id){
+    var _movementKey = getExerciseName(_dispEx, _displayPhase, weekInPhase);
     var _filterEntry = function(e, slotEx){
       if(e.movementName) return e.movementName === _movementKey;
       if(e.movement){
@@ -1482,7 +1483,7 @@ function buildCard(container, ex, dayId, data, phase){
   // Don't show accumulation dumbbell weights as placeholder boxes in intensification
   if(histAccumulationOnly) lastEntry = null;
   // Cross-slot redirects (different slot): only use intensification entries as placeholders
-  if(lastEntry && histId !== ex.id && phase === 'intensification'){
+  if(lastEntry && histId !== ex.id && _displayPhase === 'intensification'){
     if(!lastEntry.date || getProgramState(new Date(lastEntry.date)).phase !== 'intensification'){
       lastEntry = null;
       for(var _xli = _lastEntryHistory.length - 1; _xli >= 0; _xli--){
@@ -1562,7 +1563,7 @@ function buildCard(container, ex, dayId, data, phase){
   infoDiv.className = "exercise-info";
   var nameDiv = document.createElement("div");
   nameDiv.className = "exercise-name";
-  nameDiv.textContent = getExerciseName(_dispEx, phase, weekInPhase);
+  nameDiv.textContent = getExerciseName(_dispEx, _displayPhase, weekInPhase);
   nameDiv.dataset.exId = ex.id;
   infoDiv.appendChild(nameDiv);
   var metaDiv = document.createElement("div");
@@ -1592,7 +1593,7 @@ function buildCard(container, ex, dayId, data, phase){
     var _altEx = _benchSwapEx ? ex : findExercise(ex.id === 'd1_incline_db_press' ? 'd4_db_bench' : 'd1_incline_db_press');
     var _swpChip = document.createElement("button");
     _swpChip.className = "bench-swap-chip" + (_benchSwapEx ? " active" : "");
-    _swpChip.textContent = _benchSwapEx ? "⇄ Swapped this week — tap to restore" : ("⇄ Swap to " + getExerciseName(_altEx, phase, weekInPhase) + " today");
+    _swpChip.textContent = _benchSwapEx ? "⇄ Swapped this week — tap to restore" : ("⇄ Swap to " + getExerciseName(_altEx, _displayPhase, weekInPhase) + " today");
     _swpChip.onclick = function(){ toggleBenchSwap(); };
     infoDiv.appendChild(_swpChip);
   }
@@ -1617,7 +1618,7 @@ function buildCard(container, ex, dayId, data, phase){
   var infoBtn = document.createElement("button");
   infoBtn.className = "info-btn";
   infoBtn.textContent = "i";
-  infoBtn.onclick = (function(eid, ename, btn){ return function(){ toggleTip(btn, eid, ename); }; })(ex.id, getExerciseName(_dispEx, phase, weekInPhase), infoBtn);
+  infoBtn.onclick = (function(eid, ename, btn){ return function(){ toggleTip(btn, eid, ename); }; })(ex.id, getExerciseName(_dispEx, _displayPhase, weekInPhase), infoBtn);
   if(isDone){
     var editBtn = document.createElement("button");
     editBtn.className = "edit-entry-btn";
@@ -1664,7 +1665,18 @@ function buildCard(container, ex, dayId, data, phase){
     // movements whose rep targets don't change in intensification — treat them like
     // accumulation so we get a lastMax match rather than an Epley-9-rep calculation.
     var suggPhase = (ex.fixedSets && _displayPhase === 'intensification') ? 'accumulation' : _displayPhase;
-    var suggestion = computeWeightSuggestion(_lastEntryHistory, suggPhase, ex.type, ex.isDumbbell, ex.switchesToBarbell);
+    // Phase-override back-off weeks: scope the suggestion to entries from the display phase
+    // so accumulation rep-range weights (not heavy intensification weights) are used as the base.
+    var _suggHistory = _lastEntryHistory;
+    if(_displayPhase !== phase){
+      var _phFiltered = history.filter(function(e){
+        if(!e.date) return false;
+        var _d = new Date(e.date);
+        return !isNaN(_d.getTime()) && getProgramState(_d).phase === _displayPhase;
+      });
+      if(_phFiltered.length > 0) _suggHistory = _phFiltered;
+    }
+    var suggestion = computeWeightSuggestion(_suggHistory, suggPhase, ex.type, ex.isDumbbell, ex.switchesToBarbell);
     // If movement filter returned empty (e.g. first incline session after reset) but the slot
     // has other-movement history, use that as a weight-range reference for the suggestion.
     if(!suggestion && _lastEntryHistory !== history && history.length){
@@ -1785,7 +1797,7 @@ function buildCard(container, ex, dayId, data, phase){
     var saveBtn = document.createElement("button");
     saveBtn.className = "save-btn";
     saveBtn.textContent = "Save Sets";
-    var _movementName = getExerciseName(_dispEx, phase, weekInPhase);
+    var _movementName = getExerciseName(_dispEx, _displayPhase, weekInPhase);
     saveBtn.onclick = (function(eid, did, deid, dename){ return function(){ saveWeight(eid, did, deid, dename); }; })(ex.id, dayId, _dispEx.id, _movementName);
     wsDiv.appendChild(saveBtn);
 
@@ -1808,7 +1820,7 @@ function buildCard(container, ex, dayId, data, phase){
     graphLink.className = "show-graph-link";
     graphLink.textContent = "Show progression graph";
     graphLink.id = "graph-link-" + ex.id;
-    graphLink.onclick = (function(eid, ename){ return function(){ toggleExGraph(eid, ename, this); }; })(ex.id, getExerciseName(ex, phase, weekInPhase));
+    graphLink.onclick = (function(eid, ename){ return function(){ toggleExGraph(eid, ename, this); }; })(ex.id, getExerciseName(ex, _displayPhase, weekInPhase));
     wsDiv.appendChild(graphLink);
 
     var graphContainer = document.createElement("div");

@@ -355,11 +355,18 @@ var WEEK_BANNERS = {
   '2026-04-27': 'Abbreviated week \u2014 Mon/Tue/Wed unavailable. Thu: Legs + Glutes \xb7 Fri: Upper (Push/Pull).',
   '2026-08-10': 'Note: Fri Aug 14 is a rest day this week \u2014 no Arms session.',
   '2026-05-11': 'Sick week \u2014 cold. Wed/Thu/Fri all rest days. Only Mon (Push) + Tue (Pull) completed. Week 6 (accumulation) continues May 18 \u2014 deload starts May 25.',
-  '2026-06-15': 'Injury week \u2014 right hip & lower back. Wed: massage (rest). Thu: yoga (active recovery). Fri: rest. Mon + Tue completed normally.'
+  '2026-06-15': 'Injury week \u2014 right hip & lower back. Wed: massage (rest). Thu: yoga (active recovery). Fri: rest. Mon + Tue completed normally.',
+  '2026-06-22': 'Back-off week \u2014 right hip & lower back still recovering. All exercises kept. Using accumulation loads (3 \xd7 10-12 compounds, 3 \xd7 12-15 isolation). Intensification resumes next week (week 12 of 13).'
 };
 
 // Maps JS day-of-week (1=Mon...5=Fri) to workout panel ID
 var DOW_TO_PANEL = { 1:'d1', 2:'d2', 3:'d3', 4:'d4', 5:'d5' };
+
+// Keyed by Monday of that calendar week (YYYY-MM-DD)
+// Overrides the phase used for rep schemes and set counts only (not history/swap logic)
+var WEEK_PHASE_OVERRIDES = {
+  '2026-06-22': 'accumulation'  // Back-off week — hip/lower back recovery
+};
 
 // Keyed by Monday of that calendar week (YYYY-MM-DD)
 // { dayIndex(0=Mon..4=Fri): panelId } — overrides which workout shows on that day
@@ -418,24 +425,25 @@ function getProgramState(date){
   var phaseLength = phaseBlock.end >= 999 ? null : (phaseBlock.end - phaseBlock.start + 1);
 
   var monday = getMondayOf(d);
-  var banner = WEEK_BANNERS[toDateKey(monday)] || null;
+  var mondayKey = toDateKey(monday);
+  var banner = WEEK_BANNERS[mondayKey] || null;
 
+  var displayPhaseKey = WEEK_PHASE_OVERRIDES[mondayKey] || phaseKey;
   var repScheme;
-  if(phaseKey === 'deload')               repScheme = '2 \xd7 10-12 compounds \xb7 3 \xd7 10-12 isolation & core \xb7 reduce load ~40–50%';
-  else if(phaseKey === 'intensification') repScheme = '4-5 \xd7 5-6 compounds \xb7 3 \xd7 8-10 accessories \xb7 rest 2-3 min between sets';
-  else                                    repScheme = '3 \xd7 10-12 compounds \xb7 3 \xd7 12-15 isolation';
+  if(displayPhaseKey === 'deload')               repScheme = '2 \xd7 10-12 compounds \xb7 3 \xd7 10-12 isolation & core \xb7 reduce load ~40–50%';
+  else if(displayPhaseKey === 'intensification') repScheme = '4-5 \xd7 5-6 compounds \xb7 3 \xd7 8-10 accessories \xb7 rest 2-3 min between sets';
+  else                                           repScheme = '3 \xd7 10-12 compounds \xb7 3 \xd7 12-15 isolation';
 
   var dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   var workoutNames = {1:'Push', 2:'Pull', 3:'Legs + Glutes', 4:'Upper', 5:'Arms (Optional)'};
   var panelWorkoutNames = { d1:'Push', d2:'Pull', d3:'Legs + Glutes', d4:'Upper', d5:'Arms (Optional)' };
 
-  var mondayKey = toDateKey(monday);
   var weekOverride = WEEK_DOW_OVERRIDES[mondayKey] || {};
   var dowIndex = dow - 1; // 0=Mon..4=Fri
   var panelId = (weekOverride[dowIndex] !== undefined) ? weekOverride[dowIndex] : (DOW_TO_PANEL[dow] || null);
 
   return {
-    preProgram:false, weekNum:weekNum, phase:phaseKey,
+    preProgram:false, weekNum:weekNum, phase:phaseKey, displayPhase:displayPhaseKey,
     phaseName:PHASES[phaseKey].name, weekInPhase:weekInPhase, phaseLength:phaseLength,
     isRest:isRest, restNote:restNote, banner:banner, isDeload:phaseKey==='deload',
     repScheme:repScheme, dayOfWeek:dow, isOptional:dow===5,
@@ -1405,8 +1413,10 @@ function renderAll(){
 }
 
 function buildCard(container, ex, dayId, data, phase){
-  phase = phase || getProgramState(new Date()).phase;
-  var weekInPhase = getProgramState(_panelDates[dayId] || new Date()).weekInPhase;
+  var _dayState = getProgramState(_panelDates[dayId] || new Date());
+  phase = phase || _dayState.phase;
+  var _displayPhase = _dayState.displayPhase || phase;
+  var weekInPhase = _dayState.weekInPhase;
   // Bench swap: allows flipping incline/flat bench between D1 and D4 for the week
   var _benchSwapEx = null;
   if(phase === 'intensification' && (ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench') && getBenchSwapState()){
@@ -1559,7 +1569,7 @@ function buildCard(container, ex, dayId, data, phase){
   metaDiv.className = "exercise-meta";
   var setsSpan = document.createElement("span");
   setsSpan.className = "exercise-sets";
-  setsSpan.textContent = getSetsForExercise(ex, phase).display;
+  setsSpan.textContent = getSetsForExercise(ex, _displayPhase).display;
   setsSpan.dataset.exId = ex.id;
   metaDiv.appendChild(setsSpan);
   if(lastSummary){
@@ -1653,7 +1663,7 @@ function buildCard(container, ex, dayId, data, phase){
     // fixedSets exercises (face pulls, Pallof press, etc.) are shoulder-health/stability
     // movements whose rep targets don't change in intensification — treat them like
     // accumulation so we get a lastMax match rather than an Epley-9-rep calculation.
-    var suggPhase = (ex.fixedSets && phase === 'intensification') ? 'accumulation' : phase;
+    var suggPhase = (ex.fixedSets && _displayPhase === 'intensification') ? 'accumulation' : _displayPhase;
     var suggestion = computeWeightSuggestion(_lastEntryHistory, suggPhase, ex.type, ex.isDumbbell, ex.switchesToBarbell);
     // If movement filter returned empty (e.g. first incline session after reset) but the slot
     // has other-movement history, use that as a weight-range reference for the suggestion.
@@ -1679,13 +1689,13 @@ function buildCard(container, ex, dayId, data, phase){
       formulaP.className = "tip-text";
       formulaP.style.cssText = "margin-top:2px;font-size:11px;color:var(--muted);";
       var formulaText;
-      if(phase === 'intensification' && suggestion.oneRM){
+      if(_displayPhase === 'intensification' && suggestion.oneRM){
         var tgtRangeStr = (ex.type === 'compound') ? '5\u20136' : '8\u201310';
         var dbNote = suggestion.dbDoubled ? " (DB \xd72 \u2192 barbell total)" : "";
         formulaText = "Est. 1RM: ~" + suggestion.oneRM + " lbs via Epley" + dbNote + " \u00b7 " + suggestion.pct + "% for " + tgtRangeStr + " reps";
-      } else if(phase === 'intensification' && !suggestion.oneRM){
+      } else if(_displayPhase === 'intensification' && !suggestion.oneRM){
         formulaText = "fixed rep range \u00b7 matches accumulation weight \u00b7 recent max: " + suggestion.lastMax + " lbs";
-      } else if(phase === 'deload'){
+      } else if(_displayPhase === 'deload'){
         formulaText = "~55% of recent working max (~" + suggestion.avgMax + " lbs avg) \u00b7 reduce 40\u201350%";
       } else {
         formulaText = "last session \u00b7 recent max: " + suggestion.lastMax + " lbs";
@@ -1739,8 +1749,8 @@ function buildCard(container, ex, dayId, data, phase){
       numSetCols = _fsm ? parseInt(_fsm[2] || _fsm[1]) : 3;
       numSetCols = Math.min(5, Math.max(2, numSetCols));
     } else {
-      numSetCols = (phase === 'intensification' && ex.type === 'compound') ? 5
-                 : (phase === 'deload' && ex.type === 'compound') ? 2
+      numSetCols = (_displayPhase === 'intensification' && ex.type === 'compound') ? 5
+                 : (_displayPhase === 'deload' && ex.type === 'compound') ? 2
                  : 3;
     }
 

@@ -358,7 +358,7 @@ var WEEK_BANNERS = {
   '2026-05-11': 'Sick week \u2014 cold. Wed/Thu/Fri all rest days. Only Mon (Push) + Tue (Pull) completed. Week 6 (accumulation) continues May 18 \u2014 deload starts May 25.',
   '2026-06-15': 'Injury week \u2014 right hip & lower back. Wed: massage (rest). Thu: yoga (active recovery). Fri: rest. Mon + Tue completed normally.',
   '2026-06-22': 'Back-off week \u2014 right hip & lower back still recovering. All exercises kept. DB bench this week. Using accumulation loads (3 \xd7 10-12 compounds, 3 \xd7 12-15 isolation). Intensification resumes next week (week 5 of 6 in phase).',
-  '2026-06-29': 'Adjusted week \u2014 Mon unavailable. Push moved to Tue \xb7 Pull skipped \xb7 Legs Wed \xb7 Upper Thu \xb7 Arms Fri (optional).'
+  '2026-06-29': 'Adjusted week \u2014 Mon unavailable. Push Tue \xb7 Pull Wed \xb7 Legs Thu \xb7 Upper Fri. Arms (optional) skipped.'
 };
 
 // Maps JS day-of-week (1=Mon...5=Fri) to workout panel ID
@@ -376,7 +376,7 @@ var WEEK_DOW_OVERRIDES = {
   '2026-04-27': { 3:'d3', 4:'d4' },  // Thu: Legs+Glutes, Fri: Upper (abbreviated week — skip Arms)
   '2026-05-11': {},                    // Full sick week — no day overrides needed
   '2026-06-15': { 3:'activity' },     // Thu: Active recovery yoga (lower back week)
-  '2026-06-29': { 1:'d1' }           // Tue: Push (Mon unavailable, shift d1 here)
+  '2026-06-29': { 1:'d1', 2:'d2', 3:'d3', 4:'d4' }  // Mon unavailable: shift Push→Tue, Pull→Wed, Legs→Thu, Upper→Fri; Arms skipped
 };
 
 // ── Schedule logic ────────────────────────────────────────────

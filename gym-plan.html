@@ -348,8 +348,7 @@ var EXCEPTION_DATES = {
   '2026-05-15': { rest:true, note:'Sick day — cold' },
   '2026-06-17': { rest:true, note:'Injury rest day — right hip & lower back. Legs + Glutes skipped. Active recovery: massage.' },
   '2026-06-19': { rest:true, note:'Injury rest day — right hip & lower back still limiting. No exercise.' },
-  '2026-06-29': { rest:true, note:'Unavailable — Push session moved to Tuesday this week.' },
-  '2026-07-03': { rest:true, note:'Gym closed — July 4th holiday. No Arms session this week.' }
+  '2026-06-29': { rest:true, note:'Unavailable — Push session moved to Tuesday this week.' }
 };
 
 // Keyed by the Monday of that calendar week (YYYY-MM-DD)
@@ -359,7 +358,7 @@ var WEEK_BANNERS = {
   '2026-05-11': 'Sick week \u2014 cold. Wed/Thu/Fri all rest days. Only Mon (Push) + Tue (Pull) completed. Week 6 (accumulation) continues May 18 \u2014 deload starts May 25.',
   '2026-06-15': 'Injury week \u2014 right hip & lower back. Wed: massage (rest). Thu: yoga (active recovery). Fri: rest. Mon + Tue completed normally.',
   '2026-06-22': 'Back-off week \u2014 right hip & lower back still recovering. All exercises kept. DB bench this week. Using accumulation loads (3 \xd7 10-12 compounds, 3 \xd7 12-15 isolation). Intensification resumes next week (week 5 of 6 in phase).',
-  '2026-06-29': 'Compressed week \u2014 Tue/Wed/Thu only. Mon unavailable, Fri gym closed (July 4th). Push moved to Tue \xb7 Legs Wed \xb7 Upper Thu. Pull day skipped \u2014 Lat Pulldown added to Thursday to cover the vertical pull.'
+  '2026-06-29': 'Adjusted week \u2014 Mon unavailable. Push moved to Tue \xb7 Pull skipped \xb7 Legs Wed \xb7 Upper Thu \xb7 Arms Fri (optional).'
 };
 
 // Maps JS day-of-week (1=Mon...5=Fri) to workout panel ID
@@ -703,10 +702,6 @@ var EXERCISES = {
         supersetWith:"Bench Press set",
         tip:"Single-arm dumbbell. Working weight: 40 lbs. Chest support removes lower back fatigue.",
         form:"Chest flat on incline bench. Pull elbow straight back past hip, squeeze at top. No torso rotation. Slow down." },
-      { id:"d4_lat_pulldown", name:"Lat Pulldown", type:"compound",
-        prevSessionId:"d2_lat_pulldown",
-        tip:"Wide grip. Working weight: 80-90 lbs. Vertical pull to complement the chest-supported row.",
-        form:"Lean back slightly, pull bar to upper chest, lead with elbows. No jerking or momentum." },
       { id:"d4_arnold_press", name:"Arnold Press", type:"isolation", isDumbbell:true,
         supersetWith:"Face Pulls \xb7 15 reps",
         tipByPhase:{

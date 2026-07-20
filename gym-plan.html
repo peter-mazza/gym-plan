@@ -1404,6 +1404,8 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell, switchesToB
       }
     }
     var _recentSrcPhase = (_lastNonDeload && _lastNonDeload.date) ? getProgramState(new Date(_lastNonDeload.date)).phase : null;
+    var _wasFloored = false;
+    var _prevAccumPeak = 0;
     if(_recentSrcPhase === 'intensification'){
       // Re-derive avgMax from intensification entries only — avoids mixing barbell totals
       // with old accumulation per-hand DB weights which have different units.
@@ -1436,6 +1438,22 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell, switchesToB
       } else {
         suggested = Math.round(_accumTotal / roundTo) * roundTo;
       }
+      // Floor: after intensification you should never go below your previous accumulation peak.
+      // Both suggested and prevAccumPeak are in the same units here (per-hand DB for
+      // switchesToBarbell exercises, total weight for everything else).
+      history.forEach(function(e){
+        if(!e.date) return;
+        var _d = new Date(e.date);
+        if(!isNaN(_d.getTime()) && getProgramState(_d).phase === 'accumulation'){
+          [e.s1,e.s2,e.s3,e.s4,e.s5].forEach(function(v){
+            var n = parseFloat(v); if(!isNaN(n) && n > _prevAccumPeak) _prevAccumPeak = n;
+          });
+        }
+      });
+      if(_prevAccumPeak > 0 && _prevAccumPeak > suggested){
+        suggested = Math.round(_prevAccumPeak / roundTo) * roundTo;
+        _wasFloored = true;
+      }
     } else {
       // Most recent history is already accumulation — match last session
       suggested = Math.round(lastMax / roundTo) * roundTo;
@@ -1444,7 +1462,7 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell, switchesToB
     }
   }
 
-  return { weight:suggested, lastMax:lastMax, trending:trending, sessions:maxWeights.length, oneRM:oneRM, pct:pct, avgMax:Math.round(avgMax), dbDoubled:dbDoubled };
+  return { weight:suggested, lastMax:lastMax, trending:trending, sessions:maxWeights.length, oneRM:oneRM, pct:pct, avgMax:Math.round(avgMax), dbDoubled:dbDoubled, floored:_wasFloored, prevAccumPeak:_prevAccumPeak };
 }
 
 // ── Render exercise cards ────────────────────────────────────
@@ -1767,6 +1785,9 @@ function buildCard(container, ex, dayId, data, phase){
         formulaText = "fixed rep range \u00b7 matches accumulation weight \u00b7 recent max: " + suggestion.lastMax + " lbs";
       } else if(_displayPhase === 'deload'){
         formulaText = "~55% of recent working max (~" + suggestion.avgMax + " lbs avg) \u00b7 reduce 40\u201350%";
+      } else if(_displayPhase === 'accumulation' && suggestion.floored){
+        var _dbNote3 = ex.switchesToBarbell ? ' per DB' : ' lbs';
+        formulaText = "Floored to accum. phase 1 peak: " + suggestion.prevAccumPeak + _dbNote3 + " \xb7 reverse Epley was lower";
       } else if(_displayPhase === 'accumulation' && suggestion.oneRM){
         var _accRangeStr = (ex.type === 'compound') ? '10\u201312' : '12\u201315';
         var _dbNote2 = ex.switchesToBarbell ? ' \xb7 per DB (barbell \xf7 2)' : '';

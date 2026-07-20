@@ -342,7 +342,12 @@ var EXCEPTION_DATES = {
   '2026-07-15': { rest:true, note:'Extended rest \u2014 resume Jul 21' },
   '2026-07-16': { rest:true, note:'Extended rest \u2014 resume Jul 21' },
   '2026-07-17': { rest:true, note:'Extended rest \u2014 resume Jul 21' },
-  '2026-08-14': { rest:true, note:'Unavailable today' },
+  '2026-08-04': { rest:true, note:'Work trip — out of town through Aug 7.' },
+  '2026-08-05': { rest:true, note:'Work trip — out of town through Aug 7.' },
+  '2026-08-06': { rest:true, note:'Work trip — out of town through Aug 7.' },
+  '2026-08-07': { rest:true, note:'Work trip — out of town through Aug 7.' },
+  '2026-08-14': { rest:true, note:'Unavailable — no Arms session this week.' },
+  '2026-08-17': { rest:true, note:'Unavailable — Push moves to Tuesday this week.' },
   '2026-05-13': { rest:true, note:'Sick day — cold' },
   '2026-05-14': { rest:true, note:'Sick day — cold' },
   '2026-05-15': { rest:true, note:'Sick day — cold' },
@@ -355,12 +360,15 @@ var EXCEPTION_DATES = {
 // Keyed by the Monday of that calendar week (YYYY-MM-DD)
 var WEEK_BANNERS = {
   '2026-04-27': 'Abbreviated week \u2014 Mon/Tue/Wed unavailable. Thu: Legs + Glutes \xb7 Fri: Upper (Push/Pull).',
-  '2026-08-10': 'Note: Fri Aug 14 is a rest day this week \u2014 no Arms session.',
   '2026-05-11': 'Sick week \u2014 cold. Wed/Thu/Fri all rest days. Only Mon (Push) + Tue (Pull) completed. Week 6 (accumulation) continues May 18 \u2014 deload starts May 25.',
   '2026-06-15': 'Injury week \u2014 right hip & lower back. Wed: massage (rest). Thu: yoga (active recovery). Fri: rest. Mon + Tue completed normally.',
   '2026-06-22': 'Back-off week \u2014 right hip & lower back still recovering. All exercises kept. DB bench this week. Using accumulation loads (3 \xd7 10-12 compounds, 3 \xd7 12-15 isolation). Intensification resumes next week (week 5 of 6 in phase).',
   '2026-06-29': 'Disrupted week \u2014 Mon unavailable + sick Thu. Push Tue \xb7 Pull Wed \xb7 Legs Fri. Upper + Arms skipped.',
-  '2026-07-06': 'Final week of intensification \u2014 week 6 of 6. Week off starts Jul 13. Finish strong.'
+  '2026-07-06': 'Final week of intensification \u2014 week 6 of 6. Week off starts Jul 13. Finish strong.',
+  '2026-07-20': 'First week back after Yosemite \u2014 accumulation phase 2 begins. Weight suggestions are calibrated from your intensification 1RM via reverse Epley. Start conservatively this first session \u2014 you should be recovered but expect to ramp back up to those numbers over 1\u20132 weeks.',
+  '2026-08-03': 'Work trip week \u2014 Mon only this week. Tue\u2013Fri (Aug 4\u20137) are rest days. Use the hotel gym if available, otherwise rest and resume next Monday.',
+  '2026-08-10': 'Note: Fri Aug 14 is a rest day this week \u2014 no Arms session.',
+  '2026-08-17': 'Mon Aug 17 off \u2014 Push starts Tue. Push Tue \xb7 Pull Wed \xb7 Legs Thu \xb7 Upper Fri \xb7 Arms skipped.'
 };
 
 // Maps JS day-of-week (1=Mon...5=Fri) to workout panel ID
@@ -378,7 +386,8 @@ var WEEK_DOW_OVERRIDES = {
   '2026-04-27': { 3:'d3', 4:'d4' },  // Thu: Legs+Glutes, Fri: Upper (abbreviated week — skip Arms)
   '2026-05-11': {},                    // Full sick week — no day overrides needed
   '2026-06-15': { 3:'activity' },     // Thu: Active recovery yoga (lower back week)
-  '2026-06-29': { 1:'d1', 2:'d2', 4:'d3' }  // Mon unavailable + sick Thu: Push→Tue, Pull→Wed, Legs→Fri; Upper+Arms skipped
+  '2026-06-29': { 1:'d1', 2:'d2', 4:'d3' },  // Mon unavailable + sick Thu: Push→Tue, Pull→Wed, Legs→Fri; Upper+Arms skipped
+  '2026-08-17': { 1:'d1', 2:'d2', 3:'d3', 4:'d4' }  // Mon off: Push→Tue, Pull→Wed, Legs→Thu, Upper→Fri; Arms skipped
 };
 
 // ── Schedule logic ────────────────────────────────────────────
@@ -1385,10 +1394,54 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell, switchesToB
     pct = 55;
     oneRM = null;
   } else {
-    // Accumulation: match last session's weight — most intuitive for the user
-    suggested = Math.round(lastMax / roundTo) * roundTo;
-    pct = null;
-    oneRM = null;
+    // Accumulation: if recent history is from intensification, apply reverse Epley
+    // to calibrate to the accumulation rep range rather than returning heavy barbell weights.
+    var _lastNonDeload = null;
+    for(var _rai = history.length - 1; _rai >= 0; _rai--){
+      if(history[_rai].date){
+        var _rad = new Date(history[_rai].date);
+        if(!isNaN(_rad.getTime()) && getProgramState(_rad).phase !== 'deload'){ _lastNonDeload = history[_rai]; break; }
+      }
+    }
+    var _recentSrcPhase = (_lastNonDeload && _lastNonDeload.date) ? getProgramState(new Date(_lastNonDeload.date)).phase : null;
+    if(_recentSrcPhase === 'intensification'){
+      // Re-derive avgMax from intensification entries only — avoids mixing barbell totals
+      // with old accumulation per-hand DB weights which have different units.
+      var _intOnlyA = history.filter(function(e){
+        if(!e.date) return false;
+        var _d = new Date(e.date);
+        return !isNaN(_d.getTime()) && getProgramState(_d).phase === 'intensification';
+      });
+      if(_intOnlyA.length > 0){
+        var _intWA = _intOnlyA.slice(-3).map(function(e){
+          var m=0; [e.s1,e.s2,e.s3,e.s4,e.s5].forEach(function(v){ var n=parseFloat(v); if(!isNaN(n)&&n>m) m=n; }); return m;
+        }).filter(function(w){ return w>0; });
+        if(_intWA.length > 0){
+          avgMax = _intWA.reduce(function(a,b){ return a+b; },0) / _intWA.length;
+          lastMax = _intWA[_intWA.length-1];
+          trending = _intWA.length >= 2 && _intWA[_intWA.length-1] > _intWA[_intWA.length-2];
+        }
+      }
+      // Reverse Epley: 1RM from intensification weight → back-calculate for accumulation reps
+      var _intSrcReps = exType === 'compound' ? 5.5 : 9;
+      var _accumTgtReps = exType === 'compound' ? 11 : 13;
+      var _1rmEst = avgMax * (1 + _intSrcReps / 30);
+      var _accumTotal = _1rmEst / (1 + _accumTgtReps / 30);
+      oneRM = Math.round(_1rmEst / 5) * 5;
+      pct = Math.round((_accumTotal / _1rmEst) * 100);
+      if(switchesToBarbell){
+        // Intensification logged barbell total; accumulation uses per-hand DB — halve it
+        suggested = Math.round((_accumTotal / 2) / 5) * 5;
+        roundTo = 5;
+      } else {
+        suggested = Math.round(_accumTotal / roundTo) * roundTo;
+      }
+    } else {
+      // Most recent history is already accumulation — match last session
+      suggested = Math.round(lastMax / roundTo) * roundTo;
+      oneRM = null;
+      pct = null;
+    }
   }
 
   return { weight:suggested, lastMax:lastMax, trending:trending, sessions:maxWeights.length, oneRM:oneRM, pct:pct, avgMax:Math.round(avgMax), dbDoubled:dbDoubled };
@@ -1714,6 +1767,10 @@ function buildCard(container, ex, dayId, data, phase){
         formulaText = "fixed rep range \u00b7 matches accumulation weight \u00b7 recent max: " + suggestion.lastMax + " lbs";
       } else if(_displayPhase === 'deload'){
         formulaText = "~55% of recent working max (~" + suggestion.avgMax + " lbs avg) \u00b7 reduce 40\u201350%";
+      } else if(_displayPhase === 'accumulation' && suggestion.oneRM){
+        var _accRangeStr = (ex.type === 'compound') ? '10\u201312' : '12\u201315';
+        var _dbNote2 = ex.switchesToBarbell ? ' \xb7 per DB (barbell \xf7 2)' : '';
+        formulaText = "Est. ~" + suggestion.oneRM + " lbs 1RM from intensification \xb7 " + suggestion.pct + "% for " + _accRangeStr + " reps" + _dbNote2;
       } else {
         formulaText = "last session \u00b7 recent max: " + suggestion.lastMax + " lbs";
       }

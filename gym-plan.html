@@ -588,7 +588,6 @@ var EXERCISES = {
         historyAlso:"Incline DB Press",
         weightHistoryByIntensificationWeek:{ 2:"d4_db_bench" },
         type:"compound", isDumbbell:true, switchesToBarbell:true,
-        supersetWith:"Band Pull-Aparts \xb7 20 reps",
         tipByPhase:{ accumulation:"Working weight 50–55 lb DBs. Last 2 reps should feel hard." },
         tipByIntensificationWeek:{ 1:"Flat barbell bench — week 1 swap. Bar path is flat, focus on mid-chest contraction. Retract shoulder blades before unracking. Start at 95–110 lbs.", 2:"Incline barbell bench. Bar path angles slightly toward upper chest — different from flat bench. Retract shoulder blades, slight arch." },
         form:"Keep shoulder blades pinched back. No elbow flare past 45\xb0." },
@@ -600,6 +599,7 @@ var EXERCISES = {
         tip:"Working weight: 30 lbs each.",
         form:"Press in a slight forward arc. Stop just before lockout to keep tension." },
       { id:"d1_cable_lateral", name:"Cable Lateral Raise", type:"isolation", fixedSets:"3 × 12-15",
+        supersetWith:"Plank Shoulder Taps \xb7 40 sec",
         tip:"Working weight: 13 lbs.",
         form:"Stand sideways to cable. Lead with elbow, not wrist. No shrugging at the top." },
       { id:"d1_rope_pushdown", name:"Tricep Rope Pushdown", type:"isolation",
@@ -653,14 +653,6 @@ var EXERCISES = {
           intensification:"Primary anchor \u2014 do this first, fresh. Bar stays close to legs throughout. Brace hard before each rep."
         },
         form:"Hip hinge, soft knee bend, flat back throughout. Keep the weight close to your body. Feel hamstrings load. Stop well short of lower back rounding \u2014 depth is not the goal, tension is." },
-      { id:"d3_sl_rdl", legacyName:"Single-Leg RDL (kettlebell)", name:"Single-Leg RDL", type:"isolation", isDumbbell:true,
-        fixedSets:"3 \u00d7 8 each side",
-        tipByPhase:{
-          accumulation:"Working weight: 35 lb kettlebell in contralateral hand (opposite to planted foot). Done second while balance and coordination are still sharp.",
-          deload:"Working weight: 20\u201325 lbs. Active recovery \u2014 feel the hip hinge, not the load.",
-          intensification:"25\u201330 lbs \u2014 intentionally lighter than accumulation. Done as a superset during leg press rest periods. Stability and asymmetry correction, not a strength set. Form over weight."
-        },
-        form:"Hinge at hip, flat back, free leg extends behind. Stop short if lower back rounds \u2014 flat back beats depth." },
       { id:"d3_kb_swing", name:"Kettlebell Swing", type:"isolation", isDumbbell:true,
         fixedSets:"3 \xd7 15\u201320",
         tipByPhase:{
@@ -670,15 +662,23 @@ var EXERCISES = {
         },
         form:"Hinge back, let KB swing between legs, then drive hips forward explosively. The power comes from the hip drive, not the arms. Let it float to shoulder height \u2014 do not pull it up. Smooth and controlled, not frantic." },
       { id:"d3_hip_thrust", legacyName:"Hip Thrust (barbell or machine)", name:"Hip Thrust", type:"compound",
-        supersetWith:"Leg Curl set",
+        supersetWith:"Leg Curl set", supersetIntensificationOnly:true,
         tipByPhase:{
           accumulation:"Pin to a specific weight each session \u2014 if you hit 12, add 10 lbs next time.",
           deload:"Active recovery. Light weight, feel the contraction.",
           intensification:"Heavy but controlled \u2014 feel contraction in glutes, not lumbar spine. Reduce weight immediately if you feel lower back loading."
         },
         form:"Upper back on bench, feet flat and close to glutes. Drive through heels, squeeze glutes at top. No low back hyperextension." },
+      { id:"d3_sl_rdl", legacyName:"Single-Leg RDL (kettlebell)", name:"Single-Leg RDL", type:"isolation", isDumbbell:true,
+        fixedSets:"3 × 8 each side",
+        tipByPhase:{
+          accumulation:"Working weight: 35 lb kettlebell in contralateral hand (opposite to planted foot). Placed here so lower back has partially recovered from RDL — balance and stability are still sharp.",
+          deload:"Working weight: 20–25 lbs. Active recovery — feel the hip hinge, not the load.",
+          intensification:"25–30 lbs — intentionally lighter than accumulation. Done as a superset during leg press rest periods. Stability and asymmetry correction, not a strength set. Form over weight."
+        },
+        form:"Hinge at hip, flat back, free leg extends behind. Stop short if lower back rounds — flat back beats depth." },
       { id:"d3_leg_press", name:"Leg Press", type:"compound",
-        supersetWith:"Single-Leg RDL \xb7 8 ea side \xb7 25 lbs",
+        supersetWith:"Single-Leg RDL \xb7 8 ea side \xb7 25 lbs", supersetIntensificationOnly:true,
         tipByPhase:{
           accumulation:"Working weight: 200–230 lbs. Lower and wider foot placement = more glute and hamstring.",
           deload:"Working weight: 130–150 lbs. Focus on full range of motion.",
@@ -710,7 +710,7 @@ var EXERCISES = {
         },
         form:"Flat bench. Lower to chest, press up. Shoulder blades retracted throughout." },
       { id:"d4_chest_supported_row", legacyName:"Chest-Supported Single-Arm DB Row", name:"Chest-Supported Row", type:"compound", isDumbbell:true,
-        supersetWith:"Bench Press set",
+        supersetWith:"Bench Press set", supersetIntensificationOnly:true,
         tip:"Single-arm dumbbell. Working weight: 40 lbs. Chest support removes lower back fatigue.",
         form:"Chest flat on incline bench. Pull elbow straight back past hip, squeeze at top. No torso rotation. Slow down." },
       { id:"d4_arnold_press", name:"Arnold Press", type:"isolation", isDumbbell:true,
@@ -728,13 +728,12 @@ var EXERCISES = {
       { id:"d4_cable_chest_fly", name:"Cable Chest Fly", type:"isolation", fixedSets:"3 \xd7 12",
         tip:"Working weight: ~17 lbs per side. Cables at shoulder height, one in each hand.",
         form:"Slight forward lean, soft elbow bend. Sweep arms together in a wide arc — think hugging a barrel. Squeeze at center, slow on the return." },
+      { id:"d4_cable_crunch", name:"Cable Crunch", type:"isolation", fixedSets:"3 \xd7 12-15",
+        tip:"Working weight: 30–40 lbs. Kneel at high cable with rope attachment.",
+        form:"Kneel facing the cable, rope behind your head. Hinge at the hips and drive your elbows toward your knees. The contraction is in your abs — do not pull with your arms or flex your hips. Slow and controlled on the return." },
       { id:"d4_farmers_carry", name:"Farmer's Carry", type:"compound", isDumbbell:true, fixedSets:"3 \xd7 40 yards",
         tip:"Working weight: 44 lbs each hand (20kg KB).",
         form:"Stand tall, shoulders packed back and down, neutral spine. Walk with short deliberate steps. Set down with control." }
-    ],
-    "core-d4": [
-      { id:"d4_core_circuit", name:"Core Circuit", noWeight:true, setsFormat:"rounds",
-        form:"Plank: 40 sec. Dead Bug: 10 each side. Bird Dog: 10 each side. Rest 30-45 sec between rounds." }
     ]
   },
   d5: {
@@ -763,8 +762,6 @@ var EXERCISES = {
         form:"Overhand grip (palms down). Keep elbows pinned at sides, curl to shoulder height. Slow on the way down." }
     ],
     "core-d5": [
-      { id:"d5_plank", name:"Plank Shoulder Taps", noWeight:true, coreSets:"45 sec",
-        form:"Standard plank. Lift one hand to tap opposite shoulder. Resist rotating hips. Go slow." },
       { id:"d5_ab_wheel", name:"Ab Wheel", noWeight:true, coreSets:"15 reps",
         form:"Start kneeling. Keep core tight, do not let lower back sag as you roll out. Only go as far as you can control." },
       { id:"d5_sl_rdl_bw", name:"Single-Leg RDL", noWeight:true, coreSets:"10 each side",
@@ -1028,7 +1025,6 @@ function buildPanels(){
         else if(sectionId.indexOf("shoulders") === 0) label = "Shoulders";
         else if(sectionId.indexOf("biceps") === 0) label = "Biceps";
         else if(sectionId.indexOf("triceps") === 0) label = "Triceps";
-        if(sectionId === "core-d4") label = "Core Circuit - 3 Rounds";
         html += "<div class='section-label'>" + label + "</div>";
         html += "<div id='" + sectionId + "'></div>";
       });
@@ -1682,6 +1678,8 @@ function buildCard(container, ex, dayId, data, phase){
     } else if(_ssEx.supersetWith){ _ssText = _ssEx.supersetWith; }
     // When D4 bench is swapped to incline, chest-supported row can't superset with it
     if(ex.id === 'd4_chest_supported_row' && getBenchSwapState()){ _ssText = null; }
+  } else if(phase === 'accumulation'){
+    if(_ssEx.supersetWith && !_ssEx.supersetIntensificationOnly){ _ssText = _ssEx.supersetWith; }
   }
   if(_ssText){
     var ssHint = document.createElement("div");

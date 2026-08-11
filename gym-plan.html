@@ -1485,9 +1485,9 @@ function buildCard(container, ex, dayId, data, phase){
   var _displayPhase = _dayState.displayPhase || phase;
   var weekInPhase = _dayState.weekInPhase;
   // Bench swap: allows flipping incline/flat bench between D1 and D4 for the week.
-  // Disabled during phase-override weeks (back-off accumulation) — DB exercises don't swap.
+  // Works in any phase — weight-history redirect logic below stays intensification-only.
   var _benchSwapEx = null;
-  if(_displayPhase === 'intensification' && (ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench') && getBenchSwapState()){
+  if((ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench') && getBenchSwapState()){
     _benchSwapEx = findExercise(ex.id === 'd1_incline_db_press' ? 'd4_db_bench' : 'd1_incline_db_press');
   }
   var _dispEx = _benchSwapEx || ex;
@@ -1656,7 +1656,7 @@ function buildCard(container, ex, dayId, data, phase){
     }
   }
   infoDiv.appendChild(metaDiv);
-  if((ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench') && phase === 'intensification'){
+  if(ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench'){
     var _altEx = _benchSwapEx ? ex : findExercise(ex.id === 'd1_incline_db_press' ? 'd4_db_bench' : 'd1_incline_db_press');
     var _swpChip = document.createElement("button");
     _swpChip.className = "bench-swap-chip" + (_benchSwapEx ? " active" : "");

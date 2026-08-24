@@ -102,8 +102,6 @@ header p{color:var(--muted);font-size:10px;margin-top:2px;letter-spacing:1.5px;t
 .exercise-sets{font-family:'DM Mono',monospace;font-weight:500;color:var(--red);font-size:11px;}
 .prev-weight{font-family:'DM Mono',monospace;font-size:10px;color:var(--amber);}
 .pr-badge{background:var(--green);color:white;font-family:'DM Mono',monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;letter-spacing:1px;margin-left:6px;}
-.bench-swap-chip{background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:9px;font-weight:600;padding:3px 8px;border-radius:2px;cursor:pointer;letter-spacing:.5px;margin-top:4px;display:block;text-align:left;}
-.bench-swap-chip.active{background:var(--amber);border-color:var(--amber);color:white;}
 .info-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);width:26px;height:26px;border-radius:50%;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Mono',monospace;transition:all .15s;}
 .info-btn.open{background:var(--ink);border-color:var(--ink);color:var(--bg);}
 .edit-entry-btn{background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;cursor:pointer;letter-spacing:.5px;}
@@ -322,14 +320,19 @@ var PHASES = {
 };
 
 // 1-based week numbers from PROGRAM_START. end:999 = open-ended.
+// Optional phaseWeekStart/phaseWeekTotal let a block's "week X of Y" label
+// run independently of its start/end range — used below so the sick week
+// (Aug 17) can be excluded from the accumulation count without shifting it.
 var SCHEDULE_WEEKS = [
   { start:1,  end:6,   phase:'accumulation'    },
   { start:7,  end:7,   phase:'deload'           },
   { start:8,  end:13,  phase:'intensification'  },
   { start:14, end:14,  phase:'deload'           },
-  { start:15, end:20,  phase:'accumulation'     },
-  { start:21, end:21,  phase:'deload'           },
-  { start:22, end:999, phase:'intensification'  }
+  { start:15, end:18,  phase:'accumulation'     },  // phase weeks 1-4
+  { start:19, end:19,  phase:'accumulation'     },  // sick week (Aug 17) — excluded from the count, see banner
+  { start:20, end:23,  phase:'accumulation', phaseWeekStart:16, phaseWeekTotal:8 },  // phase weeks 5-8 (count resumes from wk18, 8-week accumulation)
+  { start:24, end:24,  phase:'deload'           },
+  { start:25, end:999, phase:'intensification'  }
 ];
 
 // Dates that override normal training with rest (YYYY-MM-DD)
@@ -344,6 +347,8 @@ var EXCEPTION_DATES = {
   '2026-07-17': { rest:true, note:'Extended rest \u2014 resume Jul 21' },
   '2026-08-14': { rest:true, note:'Unavailable — no Arms session this week.' },
   '2026-08-17': { rest:true, note:'Unavailable — Push moves to Tuesday this week.' },
+  '2026-08-20': { rest:true, note:'Sick day — cold. Legs skipped.' },
+  '2026-08-21': { rest:true, note:'Sick day — cold. Upper skipped.' },
   '2026-05-13': { rest:true, note:'Sick day — cold' },
   '2026-05-14': { rest:true, note:'Sick day — cold' },
   '2026-05-15': { rest:true, note:'Sick day — cold' },
@@ -363,7 +368,8 @@ var WEEK_BANNERS = {
   '2026-07-06': 'Final week of intensification \u2014 week 6 of 6. Week off starts Jul 13. Finish strong.',
   '2026-07-20': 'First week back after Yosemite \u2014 accumulation phase 2 begins. Weight suggestions are calibrated from your intensification 1RM via reverse Epley. Start conservatively this first session \u2014 you should be recovered but expect to ramp back up to those numbers over 1\u20132 weeks.',
   '2026-08-10': 'Note: Fri Aug 14 is a rest day this week \u2014 no Arms session.',
-  '2026-08-17': 'Mon Aug 17 off \u2014 Push starts Tue. Push Tue \xb7 Pull Wed \xb7 Legs Thu \xb7 Upper Fri \xb7 Arms skipped.'
+  '2026-08-17': 'Mon Aug 17 off \u2014 Push starts Tue. Completed Push Tue + Pull Wed, then sick \u2014 Legs Thu and Upper Fri missed. Short week excluded from the accumulation count.',
+  '2026-08-24': 'Back at full strength \u2014 all 4 days this week. Accumulation extended to 8 weeks (was 6) \u2014 this is week 5 of 8, deload starts Sep 21.'
 };
 
 // Maps JS day-of-week (1=Mon...5=Fri) to workout panel ID
@@ -430,8 +436,8 @@ function getProgramState(date){
       phaseKey = SCHEDULE_WEEKS[i].phase; phaseBlock = SCHEDULE_WEEKS[i]; break;
     }
   }
-  var weekInPhase = weekNum - phaseBlock.start + 1;
-  var phaseLength = phaseBlock.end >= 999 ? null : (phaseBlock.end - phaseBlock.start + 1);
+  var weekInPhase = weekNum - (phaseBlock.phaseWeekStart || phaseBlock.start) + 1;
+  var phaseLength = phaseBlock.phaseWeekTotal || (phaseBlock.end >= 999 ? null : (phaseBlock.end - phaseBlock.start + 1));
 
   var monday = getMondayOf(d);
   var mondayKey = toDateKey(monday);
@@ -490,27 +496,6 @@ function getExerciseTip(ex, phase, weekInPhase){
   }
   if(ex.tipByPhase) return ex.tipByPhase[phase] || ex.tipByPhase.accumulation || ex.tip || '';
   return ex.tip || '';
-}
-
-function getBenchSwapState(){
-  var s = loadSettings();
-  // One-time migration from pgymplan_v5 → pgymplan_settings.
-  // Only runs when settings has NO benchSwap yet (guards against clobbering a fresh toggle).
-  if(!s.benchSwap){
-    var d = loadData();
-    if(d.benchSwap){ s.benchSwap = d.benchSwap; saveSettings(s); }
-  }
-  return !!(s.benchSwap && s.benchSwap[getPacificWeekKey()]);
-}
-function toggleBenchSwap(){
-  var s = loadSettings();
-  if(!s.benchSwap) s.benchSwap = {};
-  var wk = getPacificWeekKey();
-  s.benchSwap[wk] = !s.benchSwap[wk];
-  saveSettings(s);
-  var st = getProgramState(viewedDate);
-  renderPanel('d1', st.phase);
-  renderPanel('d4', st.phase);
 }
 
 function findExercise(exId){
@@ -1167,7 +1152,7 @@ function buildMacrosHTML(){
 
   // Accumulation
   h += "<div class='macro-phase-block' data-phase='accumulation'>";
-  h += "<div class='macro-phase-title'>Accumulation<span class='macro-phase-badge'>CURRENT</span><span class='macro-phase-weeks'>Wks 1–6, 15–20</span></div>";
+  h += "<div class='macro-phase-title'>Accumulation<span class='macro-phase-badge'>CURRENT</span><span class='macro-phase-weeks'>Wks 1–6, 15–23</span></div>";
   h += "<div class='macro-phase-grid'>";
   h += "<div class='macro-phase-item'><div class='macro-phase-label'>Calories</div><div class='macro-phase-value'>2700-2900</div><div class='macro-phase-unit'>kcal / day</div></div>";
   h += "<div class='macro-phase-item'><div class='macro-phase-label'>Protein</div><div class='macro-phase-value'>165-180g</div><div class='macro-phase-unit'>priority ±1</div></div>";
@@ -1179,7 +1164,7 @@ function buildMacrosHTML(){
 
   // Intensification
   h += "<div class='macro-phase-block' data-phase='intensification'>";
-  h += "<div class='macro-phase-title'>Intensification<span class='macro-phase-badge'>CURRENT</span><span class='macro-phase-weeks'>Wks 8–13, 22+</span></div>";
+  h += "<div class='macro-phase-title'>Intensification<span class='macro-phase-badge'>CURRENT</span><span class='macro-phase-weeks'>Wks 8–13, 25+</span></div>";
   h += "<div class='macro-phase-grid'>";
   h += "<div class='macro-phase-item'><div class='macro-phase-label'>Calories</div><div class='macro-phase-value'>2600-2800</div><div class='macro-phase-unit'>kcal / day</div></div>";
   h += "<div class='macro-phase-item'><div class='macro-phase-label'>Protein</div><div class='macro-phase-value'>165-180g</div><div class='macro-phase-unit'>priority ±1</div></div>";
@@ -1191,7 +1176,7 @@ function buildMacrosHTML(){
 
   // Deload
   h += "<div class='macro-phase-block deload-phase' data-phase='deload'>";
-  h += "<div class='macro-phase-title'>Deload<span class='macro-phase-badge deload'>CURRENT</span><span class='macro-phase-weeks'>Wks 7, 14, 21</span></div>";
+  h += "<div class='macro-phase-title'>Deload<span class='macro-phase-badge deload'>CURRENT</span><span class='macro-phase-weeks'>Wks 7, 14, 24</span></div>";
   h += "<div class='macro-phase-grid'>";
   h += "<div class='macro-phase-item'><div class='macro-phase-label'>Calories</div><div class='macro-phase-value'>2400-2600</div><div class='macro-phase-unit'>kcal / day</div></div>";
   h += "<div class='macro-phase-item'><div class='macro-phase-label'>Protein</div><div class='macro-phase-value'>165-180g</div><div class='macro-phase-unit'>non-negotiable</div></div>";
@@ -1484,16 +1469,9 @@ function buildCard(container, ex, dayId, data, phase){
   phase = phase || _dayState.phase;
   var _displayPhase = _dayState.displayPhase || phase;
   var weekInPhase = _dayState.weekInPhase;
-  // Bench swap: allows flipping incline/flat bench between D1 and D4 for the week.
-  // Works in any phase — weight-history redirect logic below stays intensification-only.
-  var _benchSwapEx = null;
-  if((ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench') && getBenchSwapState()){
-    _benchSwapEx = findExercise(ex.id === 'd1_incline_db_press' ? 'd4_db_bench' : 'd1_incline_db_press');
-  }
-  var _dispEx = _benchSwapEx || ex;
   var histId = ex.id;
   var histAccumulationOnly = false;
-  if(_displayPhase === 'intensification' && ex.weightHistoryByIntensificationWeek && !_benchSwapEx){
+  if(_displayPhase === 'intensification' && ex.weightHistoryByIntensificationWeek){
     var _whKeys = Object.keys(ex.weightHistoryByIntensificationWeek).map(Number).sort(function(a,b){return b-a;});
     for(var _whi=0; _whi<_whKeys.length; _whi++){ if(weekInPhase===_whKeys[_whi]){ histId=ex.weightHistoryByIntensificationWeek[_whKeys[_whi]]; break; } }
     // Week 1: the redirected exercise's intensification entries belong to a different
@@ -1509,12 +1487,13 @@ function buildCard(container, ex, dayId, data, phase){
       return !isNaN(_d.getTime()) && getProgramState(_d).phase === 'accumulation';
     });
   }
-  // Bench swap exercises: filter history to only entries matching the displayed movement.
-  // When swap is active, sessions for the displayed movement may be stored under EITHER
-  // slot (e.g. Monday flat bench: wk8 saved under d1, wk9 saved under d4). Combine both.
+  // D1/D4 bench: filter history to only entries matching the displayed movement.
+  // Week1/week2 of intensification swap which slot is "incline" vs "flat" (see
+  // nameByIntensificationWeek) — without this, a prior week's differently-named
+  // session would leak in as a placeholder for the current week's movement.
   var _lastEntryHistory = history;
   if((ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench') && _displayPhase === 'intensification' && histId === ex.id){
-    var _movementKey = getExerciseName(_dispEx, _displayPhase, weekInPhase);
+    var _movementKey = getExerciseName(ex, _displayPhase, weekInPhase);
     var _filterEntry = function(e, slotEx){
       if(e.movementName) return e.movementName === _movementKey;
       if(e.movement){
@@ -1535,16 +1514,6 @@ function buildCard(container, ex, dayId, data, phase){
       return false;
     };
     _lastEntryHistory = history.filter(function(e){ return _filterEntry(e, ex); });
-    if(_benchSwapEx){
-      // The other slot's history also contains sessions for the same movement (different weeks)
-      var _otherHist = (data.history && data.history[_dispEx.id]) || [];
-      var _otherFiltered = _otherHist.filter(function(e){ return _filterEntry(e, _dispEx); });
-      _lastEntryHistory = _lastEntryHistory.concat(_otherFiltered).sort(function(a, b){
-        var da = a.date ? new Date(a.date) : new Date(0);
-        var db = b.date ? new Date(b.date) : new Date(0);
-        return da - db;
-      });
-    }
   }
   var lastEntry = _lastEntryHistory.length ? _lastEntryHistory[_lastEntryHistory.length-1] : null;
   // Don't show accumulation dumbbell weights as placeholder boxes in intensification
@@ -1630,7 +1599,7 @@ function buildCard(container, ex, dayId, data, phase){
   infoDiv.className = "exercise-info";
   var nameDiv = document.createElement("div");
   nameDiv.className = "exercise-name";
-  nameDiv.textContent = getExerciseName(_dispEx, _displayPhase, weekInPhase);
+  nameDiv.textContent = getExerciseName(ex, _displayPhase, weekInPhase);
   nameDiv.dataset.exId = ex.id;
   infoDiv.appendChild(nameDiv);
   var metaDiv = document.createElement("div");
@@ -1656,23 +1625,13 @@ function buildCard(container, ex, dayId, data, phase){
     }
   }
   infoDiv.appendChild(metaDiv);
-  if(ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench'){
-    var _altEx = _benchSwapEx ? ex : findExercise(ex.id === 'd1_incline_db_press' ? 'd4_db_bench' : 'd1_incline_db_press');
-    var _swpChip = document.createElement("button");
-    _swpChip.className = "bench-swap-chip" + (_benchSwapEx ? " active" : "");
-    _swpChip.textContent = _benchSwapEx ? "⇄ Swapped this week — tap to restore" : ("⇄ Swap to " + getExerciseName(_altEx, _displayPhase, weekInPhase) + " today");
-    _swpChip.onclick = function(){ toggleBenchSwap(); };
-    infoDiv.appendChild(_swpChip);
-  }
   var _ssText = null;
-  var _ssEx = (_benchSwapEx && ex.id === 'd4_db_bench') ? _dispEx : ex;
+  var _ssEx = ex;
   if(phase === 'intensification'){
     if(_ssEx.supersetWithByIntensificationWeek){
       var _sswk = Object.keys(_ssEx.supersetWithByIntensificationWeek).map(Number).sort(function(a,b){return b-a;});
       for(var _sswi=0; _sswi<_sswk.length; _sswi++){ if(weekInPhase>=_sswk[_sswi]){ _ssText=_ssEx.supersetWithByIntensificationWeek[_sswk[_sswi]]||null; break; } }
     } else if(_ssEx.supersetWith){ _ssText = _ssEx.supersetWith; }
-    // When D4 bench is swapped to incline, chest-supported row can't superset with it
-    if(ex.id === 'd4_chest_supported_row' && getBenchSwapState()){ _ssText = null; }
   } else if(phase === 'accumulation'){
     if(_ssEx.supersetWith && !_ssEx.supersetIntensificationOnly){ _ssText = _ssEx.supersetWith; }
   }
@@ -1687,7 +1646,7 @@ function buildCard(container, ex, dayId, data, phase){
   var infoBtn = document.createElement("button");
   infoBtn.className = "info-btn";
   infoBtn.textContent = "i";
-  infoBtn.onclick = (function(eid, ename, btn){ return function(){ toggleTip(btn, eid, ename); }; })(ex.id, getExerciseName(_dispEx, _displayPhase, weekInPhase), infoBtn);
+  infoBtn.onclick = (function(eid, ename, btn){ return function(){ toggleTip(btn, eid, ename); }; })(ex.id, getExerciseName(ex, _displayPhase, weekInPhase), infoBtn);
   if(isDone){
     var editBtn = document.createElement("button");
     editBtn.className = "edit-entry-btn";
@@ -1791,7 +1750,7 @@ function buildCard(container, ex, dayId, data, phase){
       formulaP.textContent = formulaText;
       detailDiv.appendChild(formulaP);
     } else {
-      var tipText2 = getExerciseTip(_dispEx, phase, weekInPhase);
+      var tipText2 = getExerciseTip(ex, phase, weekInPhase);
       if(tipText2){
         var tipP = document.createElement("p");
         tipP.className = "tip-text";
@@ -1873,8 +1832,8 @@ function buildCard(container, ex, dayId, data, phase){
     var saveBtn = document.createElement("button");
     saveBtn.className = "save-btn";
     saveBtn.textContent = "Save Sets";
-    var _movementName = getExerciseName(_dispEx, _displayPhase, weekInPhase);
-    saveBtn.onclick = (function(eid, did, deid, dename){ return function(){ saveWeight(eid, did, deid, dename); }; })(ex.id, dayId, _dispEx.id, _movementName);
+    var _movementName = getExerciseName(ex, _displayPhase, weekInPhase);
+    saveBtn.onclick = (function(eid, did, deid, dename){ return function(){ saveWeight(eid, did, deid, dename); }; })(ex.id, dayId, ex.id, _movementName);
     wsDiv.appendChild(saveBtn);
 
     var savedMsg = document.createElement("div");

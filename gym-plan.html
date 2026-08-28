@@ -330,9 +330,10 @@ var SCHEDULE_WEEKS = [
   { start:14, end:14,  phase:'deload'           },
   { start:15, end:18,  phase:'accumulation'     },  // phase weeks 1-4
   { start:19, end:19,  phase:'accumulation'     },  // sick week (Aug 17) — excluded from the count, see banner
-  { start:20, end:23,  phase:'accumulation', phaseWeekStart:16, phaseWeekTotal:8 },  // phase weeks 5-8 (count resumes from wk18, 8-week accumulation)
-  { start:24, end:24,  phase:'deload'           },
-  { start:25, end:999, phase:'intensification'  }
+  { start:20, end:20,  phase:'accumulation'     },  // sick week (Aug 27-28) — excluded from the count, see banner
+  { start:21, end:24,  phase:'accumulation', phaseWeekStart:17, phaseWeekTotal:8 },  // phase weeks 5-8 (count resumes from wk18, 8-week accumulation)
+  { start:25, end:25,  phase:'deload'           },
+  { start:26, end:999, phase:'intensification'  }
 ];
 
 // Dates that override normal training with rest (YYYY-MM-DD)
@@ -349,6 +350,8 @@ var EXCEPTION_DATES = {
   '2026-08-17': { rest:true, note:'Unavailable — Push moves to Tuesday this week.' },
   '2026-08-20': { rest:true, note:'Sick day — cold. Legs skipped.' },
   '2026-08-21': { rest:true, note:'Sick day — cold. Upper skipped.' },
+  '2026-08-27': { rest:true, note:'Sick day — cold. Upper skipped.' },
+  '2026-08-28': { rest:true, note:'Sick day — cold. Arms (optional) skipped.' },
   '2026-05-13': { rest:true, note:'Sick day — cold' },
   '2026-05-14': { rest:true, note:'Sick day — cold' },
   '2026-05-15': { rest:true, note:'Sick day — cold' },
@@ -369,7 +372,7 @@ var WEEK_BANNERS = {
   '2026-07-20': 'First week back after Yosemite \u2014 accumulation phase 2 begins. Weight suggestions are calibrated from your intensification 1RM via reverse Epley. Start conservatively this first session \u2014 you should be recovered but expect to ramp back up to those numbers over 1\u20132 weeks.',
   '2026-08-10': 'Note: Fri Aug 14 is a rest day this week \u2014 no Arms session.',
   '2026-08-17': 'Mon Aug 17 off \u2014 Push starts Tue. Completed Push Tue + Pull Wed, then sick \u2014 Legs Thu and Upper Fri missed. Short week excluded from the accumulation count.',
-  '2026-08-24': 'Back at full strength \u2014 all 4 days this week. Accumulation extended to 8 weeks (was 6) \u2014 this is week 5 of 8, deload starts Sep 21.'
+  '2026-08-24': 'Mon\u2013Wed completed, then sick Thu/Fri \u2014 cold. Upper and Arms missed. Short week excluded from the accumulation count (same as Aug 17). Deload now starts Sep 28, intensification resumes Oct 5.'
 };
 
 // Maps JS day-of-week (1=Mon...5=Fri) to workout panel ID
@@ -1152,7 +1155,7 @@ function buildMacrosHTML(){
 
   // Accumulation
   h += "<div class='macro-phase-block' data-phase='accumulation'>";
-  h += "<div class='macro-phase-title'>Accumulation<span class='macro-phase-badge'>CURRENT</span><span class='macro-phase-weeks'>Wks 1–6, 15–23</span></div>";
+  h += "<div class='macro-phase-title'>Accumulation<span class='macro-phase-badge'>CURRENT</span><span class='macro-phase-weeks'>Wks 1–6, 15–24</span></div>";
   h += "<div class='macro-phase-grid'>";
   h += "<div class='macro-phase-item'><div class='macro-phase-label'>Calories</div><div class='macro-phase-value'>2700-2900</div><div class='macro-phase-unit'>kcal / day</div></div>";
   h += "<div class='macro-phase-item'><div class='macro-phase-label'>Protein</div><div class='macro-phase-value'>165-180g</div><div class='macro-phase-unit'>priority ±1</div></div>";
@@ -1164,7 +1167,7 @@ function buildMacrosHTML(){
 
   // Intensification
   h += "<div class='macro-phase-block' data-phase='intensification'>";
-  h += "<div class='macro-phase-title'>Intensification<span class='macro-phase-badge'>CURRENT</span><span class='macro-phase-weeks'>Wks 8–13, 25+</span></div>";
+  h += "<div class='macro-phase-title'>Intensification<span class='macro-phase-badge'>CURRENT</span><span class='macro-phase-weeks'>Wks 8–13, 26+</span></div>";
   h += "<div class='macro-phase-grid'>";
   h += "<div class='macro-phase-item'><div class='macro-phase-label'>Calories</div><div class='macro-phase-value'>2600-2800</div><div class='macro-phase-unit'>kcal / day</div></div>";
   h += "<div class='macro-phase-item'><div class='macro-phase-label'>Protein</div><div class='macro-phase-value'>165-180g</div><div class='macro-phase-unit'>priority ±1</div></div>";
@@ -1176,7 +1179,7 @@ function buildMacrosHTML(){
 
   // Deload
   h += "<div class='macro-phase-block deload-phase' data-phase='deload'>";
-  h += "<div class='macro-phase-title'>Deload<span class='macro-phase-badge deload'>CURRENT</span><span class='macro-phase-weeks'>Wks 7, 14, 24</span></div>";
+  h += "<div class='macro-phase-title'>Deload<span class='macro-phase-badge deload'>CURRENT</span><span class='macro-phase-weeks'>Wks 7, 14, 25</span></div>";
   h += "<div class='macro-phase-grid'>";
   h += "<div class='macro-phase-item'><div class='macro-phase-label'>Calories</div><div class='macro-phase-value'>2400-2600</div><div class='macro-phase-unit'>kcal / day</div></div>";
   h += "<div class='macro-phase-item'><div class='macro-phase-label'>Protein</div><div class='macro-phase-value'>165-180g</div><div class='macro-phase-unit'>non-negotiable</div></div>";

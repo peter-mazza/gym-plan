@@ -765,6 +765,71 @@ function loadData(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||{}; }
 function saveData(d){ localStorage.setItem(LS_KEY, JSON.stringify(d)); }
 function loadSettings(){ try{ return JSON.parse(localStorage.getItem(SETTINGS_KEY))||{}; }catch(e){ return {}; } }
 function saveSettings(s){ localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+
+// ── Unsaved-input drafts ────────────────────────────────────────
+// Separate from history/wrapHistory (which mean "confirmed, synced to Sheets") so an
+// in-progress draft can never be mistaken for a saved entry or corrupt the isEdit
+// create-vs-update detection those stores drive.
+function _isUserEditing(){
+  var ae = document.activeElement;
+  if(!ae) return false;
+  if(ae.classList && ae.classList.contains("weight-input")) return true;
+  if(ae.tagName === "TEXTAREA") return true;
+  if(ae.id && (ae.id.indexOf("stat-dur-")===0 || ae.id.indexOf("stat-cal-")===0 || ae.id.indexOf("stat-hr-")===0 || ae.id.indexOf("cardio-")===0)) return true;
+  return false;
+}
+
+function loadSetsDraft(exId, dateStr){
+  try{
+    var d = JSON.parse(localStorage.getItem("pgymplan_setsdraft_" + exId));
+    return (d && d.date === dateStr) ? d : null;
+  }catch(e){ return null; }
+}
+function saveSetsDraft(exId, dateStr, vals){
+  try{ localStorage.setItem("pgymplan_setsdraft_" + exId, JSON.stringify({date:dateStr, s1:vals.s1||"", s2:vals.s2||"", s3:vals.s3||"", s4:vals.s4||"", s5:vals.s5||""})); }catch(e){}
+}
+function clearSetsDraft(exId){ try{ localStorage.removeItem("pgymplan_setsdraft_" + exId); }catch(e){} }
+
+var _setsDraftTimers = {};
+function scheduleSetsDraftSave(exId, dayId){
+  clearTimeout(_setsDraftTimers[exId]);
+  _setsDraftTimers[exId] = setTimeout(function(){
+    var now = _panelDates[dayId] || new Date();
+    var dateStr = now.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
+    var vals = {};
+    ["s1","s2","s3","s4","s5"].forEach(function(s){
+      var el = document.getElementById("input-" + exId + "-" + s);
+      vals[s] = el ? el.value.trim() : "";
+    });
+    if(!vals.s1 && !vals.s2 && !vals.s3 && !vals.s4 && !vals.s5){ clearSetsDraft(exId); return; }
+    saveSetsDraft(exId, dateStr, vals);
+  }, 400);
+}
+
+function loadWrapDraft(dayId, dateStr){
+  try{
+    var d = JSON.parse(localStorage.getItem("pgymplan_wrapdraft_" + dayId));
+    return (d && d.date === dateStr) ? d : null;
+  }catch(e){ return null; }
+}
+function clearWrapDraft(dayId){ try{ localStorage.removeItem("pgymplan_wrapdraft_" + dayId); }catch(e){} }
+function saveWrapDraft(dayId){
+  try{
+    var now = _panelDates[dayId] || new Date();
+    var dateStr = now.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
+    var durEl = document.getElementById("stat-dur-" + dayId);
+    var calEl = document.getElementById("stat-cal-" + dayId);
+    var hrEl = document.getElementById("stat-hr-" + dayId);
+    var notesEl = document.getElementById("notes-" + dayId);
+    localStorage.setItem("pgymplan_wrapdraft_" + dayId, JSON.stringify({
+      date: dateStr,
+      dur: durEl ? durEl.value : "",
+      cal: calEl ? calEl.value : "",
+      hr: hrEl ? hrEl.value : "",
+      notes: notesEl ? notesEl.value : ""
+    }));
+  }catch(e){}
+}
 function clearStaleChecks(){
   var data = loadData();
   var curWeek = getPacificWeekKey();
@@ -1046,12 +1111,12 @@ function buildPanels(){
     html += "<div id='wrap-logged-" + day.id + "' style='display:none;font-size:11px;font-weight:600;color:var(--green);'>✓ Logged</div>";
     html += "</div>";
     html += "<div class='stats-grid'>";
-    html += "<div class='stat-col'><div class='stat-col-label'>Duration</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 55' id='stat-dur-" + day.id + "'></div>";
-    html += "<div class='stat-col'><div class='stat-col-label'>Calories</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 420' id='stat-cal-" + day.id + "'></div>";
-    html += "<div class='stat-col'><div class='stat-col-label'>Avg HR</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 142' id='stat-hr-" + day.id + "'></div>";
+    html += "<div class='stat-col'><div class='stat-col-label'>Duration</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 55' id='stat-dur-" + day.id + "' oninput='saveWrapDraft(\"" + day.id + "\")'></div>";
+    html += "<div class='stat-col'><div class='stat-col-label'>Calories</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 420' id='stat-cal-" + day.id + "' oninput='saveWrapDraft(\"" + day.id + "\")'></div>";
+    html += "<div class='stat-col'><div class='stat-col-label'>Avg HR</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 142' id='stat-hr-" + day.id + "' oninput='saveWrapDraft(\"" + day.id + "\")'></div>";
     html += "</div>";
     html += "<div class='notes-block'><div class='notes-label'>Notes</div>";
-    html += "<textarea class='notes-textarea' id='notes-" + day.id + "' placeholder='How did it feel? Energy level, PRs, anything notable...'></textarea></div>";
+    html += "<textarea class='notes-textarea' id='notes-" + day.id + "' placeholder='How did it feel? Energy level, PRs, anything notable...' oninput='saveWrapDraft(\"" + day.id + "\")'></textarea></div>";
     html += "<button class='stats-save-btn' style='margin-top:10px;' id='wrap-save-btn-" + day.id + "' onclick='saveWorkout(\"" + day.id + "\")'>Save Workout</button>";
     html += "</div>";
 
@@ -1792,6 +1857,7 @@ function buildCard(container, ex, dayId, data, phase){
     var ph4 = displayEntry && displayEntry.s4 ? displayEntry.s4 : _phFallback;
     var ph5 = displayEntry && displayEntry.s5 ? displayEntry.s5 : _phFallback;
     var phAll = [ph1, ph2, ph3, ph4, ph5];
+    var setsDraft = (!viewedEntry && panelDateStr) ? loadSetsDraft(ex.id, panelDateStr) : null;
 
     var numSetCols;
     if(ex.fixedSets){
@@ -1826,7 +1892,9 @@ function buildCard(container, ex, dayId, data, phase){
       inp.inputMode = "decimal";
       inp.placeholder = phAll[si];
       if(viewedEntry && phAll[si] && phAll[si] !== '-'){ inp.value = phAll[si]; }
+      else if(setsDraft && setsDraft["s" + (si + 1)]){ inp.value = setsDraft["s" + (si + 1)]; }
       inp.id = "input-" + ex.id + "-s" + (si + 1);
+      inp.addEventListener("input", (function(eid, did){ return function(){ scheduleSetsDraftSave(eid, did); }; })(ex.id, dayId));
       col.appendChild(inp);
       grid.appendChild(col);
     }
@@ -1988,6 +2056,11 @@ async function backfillFromSheets(panelId, targetDate){
     if(!data.history[ex.id]) data.history[ex.id] = [];
     data.history[ex.id].push(entry);
     dataChanged = true;
+    // Don't touch the DOM while the user has an input focused — inserting elements and
+    // overwriting weight-input values mid-keystroke is what causes the scroll bounce /
+    // "can't see what I'm typing" bug. The data is saved locally either way; the visual
+    // patch just waits for the next natural re-render (day switch, reload).
+    if(_isUserEditing()) return;
     var card = document.getElementById("card-" + ex.id);
     if(!card) return;
     card.classList.add("done");
@@ -2013,7 +2086,8 @@ async function backfillFromSheets(panelId, targetDate){
     }
     ["s1","s2","s3","s4","s5"].forEach(function(s, si){
       var inp = document.getElementById("input-" + ex.id + "-s" + (si+1));
-      if(inp && entry[s]){ inp.value = entry[s]; inp.placeholder = entry[s]; }
+      // Never stomp a value the user already typed in (draft), even unfocused.
+      if(inp && entry[s] && !inp.value){ inp.value = entry[s]; inp.placeholder = entry[s]; }
     });
     if(!card.querySelector(".edit-entry-btn")){
       var editBtn = document.createElement("button");
@@ -2102,8 +2176,12 @@ async function prefetchTodayHistory(panelId){
   });
   if(dataChanged){
     saveData(data);
-    renderPanel(panelId, phase);
-    restoreWarmupStates();
+    // A full re-render mid-keystroke would wipe out anything the user is typing —
+    // skip it while they're actively editing; the next natural render picks it up.
+    if(!_isUserEditing()){
+      renderPanel(panelId, phase);
+      restoreWarmupStates();
+    }
   }
 }
 
@@ -2178,8 +2256,12 @@ async function backfillWrapFromSheets(panelId, targetDate){
   if(changed){
     saveData(data);
     markDayComplete(panelId, _isoWeekKey(targetDate));
-    loadWrapPersist(panelId);
-    loadCardioPersist(panelId);
+    // loadWrapPersist/loadCardioPersist overwrite the dur/cal/hr/notes/cardio fields
+    // outright — skip while the user is actively typing into one of them.
+    if(!_isUserEditing()){
+      loadWrapPersist(panelId);
+      loadCardioPersist(panelId);
+    }
   }
 }
 
@@ -2408,6 +2490,7 @@ async function saveWeight(exId, dayId, displayExId, movementName){
   if(!data.checks) data.checks = {};
   data.checks[exId] = true;
   saveData(data);
+  clearSetsDraft(exId);
   markDayComplete(dayId, _isoWeekKey(now));
 
   // Update card display in-place without full re-render
@@ -2562,6 +2645,7 @@ async function saveWorkout(dayId){
       wdata.wrapHistory[dayId + "_" + dateStr] = {dur:dur, cal:cal, hr:hr, cardio:cardio, cardioMinutes:cardioMinutes, notes:notes};
       saveData(wdata);
     }catch(e){}
+    clearWrapDraft(dayId);
 
     var _wk = _panelDates[dayId] ? _isoWeekKey(_panelDates[dayId]) : getPacificWeekKey();
     markDayComplete(dayId, _wk);
@@ -3704,10 +3788,11 @@ function loadWrapPersist(dayId){
       var calEl0 = document.getElementById("stat-cal-" + dayId);
       var hrEl0 = document.getElementById("stat-hr-" + dayId);
       var notesEl0 = document.getElementById("notes-" + dayId);
-      if(durEl0) durEl0.value = "";
-      if(calEl0) calEl0.value = "";
-      if(hrEl0) hrEl0.value = "";
-      if(notesEl0) notesEl0.value = "";
+      var draft = panelDateStr ? loadWrapDraft(dayId, panelDateStr) : null;
+      if(durEl0) durEl0.value = draft ? (draft.dur || "") : "";
+      if(calEl0) calEl0.value = draft ? (draft.cal || "") : "";
+      if(hrEl0) hrEl0.value = draft ? (draft.hr || "") : "";
+      if(notesEl0) notesEl0.value = draft ? (draft.notes || "") : "";
       return;
     }
     var durEl = document.getElementById("stat-dur-" + dayId);

@@ -352,6 +352,7 @@ var EXCEPTION_DATES = {
   '2026-08-21': { rest:true, note:'Sick day — cold. Upper skipped.' },
   '2026-08-27': { rest:true, note:'Sick day — cold. Upper skipped.' },
   '2026-08-28': { rest:true, note:'Sick day — cold. Arms (optional) skipped.' },
+  '2026-09-07': { rest:true, note:'Labor Day — gym closed. Push moves to Tuesday.' },
   '2026-05-13': { rest:true, note:'Sick day — cold' },
   '2026-05-14': { rest:true, note:'Sick day — cold' },
   '2026-05-15': { rest:true, note:'Sick day — cold' },
@@ -372,7 +373,8 @@ var WEEK_BANNERS = {
   '2026-07-20': 'First week back after Yosemite \u2014 accumulation phase 2 begins. Weight suggestions are calibrated from your intensification 1RM via reverse Epley. Start conservatively this first session \u2014 you should be recovered but expect to ramp back up to those numbers over 1\u20132 weeks.',
   '2026-08-10': 'Note: Fri Aug 14 is a rest day this week \u2014 no Arms session.',
   '2026-08-17': 'Mon Aug 17 off \u2014 Push starts Tue. Completed Push Tue + Pull Wed, then sick \u2014 Legs Thu and Upper Fri missed. Short week excluded from the accumulation count.',
-  '2026-08-24': 'Mon\u2013Wed completed, then sick Thu/Fri \u2014 cold. Upper and Arms missed. Short week excluded from the accumulation count (same as Aug 17). Deload now starts Sep 28, intensification resumes Oct 5.'
+  '2026-08-24': 'Mon\u2013Wed completed, then sick Thu/Fri \u2014 cold. Upper and Arms missed. Short week excluded from the accumulation count (same as Aug 17). Deload now starts Sep 28, intensification resumes Oct 5.',
+  '2026-09-07': 'Mon Sep 7 off \u2014 Labor Day. Push moves to Tuesday \u00b7 Pull Wednesday \u00b7 Legs Thursday \u00b7 Upper Friday \u00b7 Arms skipped. Still a full 4-day week \u2014 counts normally toward accumulation.'
 };
 
 // Maps JS day-of-week (1=Mon...5=Fri) to workout panel ID
@@ -391,7 +393,8 @@ var WEEK_DOW_OVERRIDES = {
   '2026-05-11': {},                    // Full sick week — no day overrides needed
   '2026-06-15': { 3:'activity' },     // Thu: Active recovery yoga (lower back week)
   '2026-06-29': { 1:'d1', 2:'d2', 4:'d3' },  // Mon unavailable + sick Thu: Push→Tue, Pull→Wed, Legs→Fri; Upper+Arms skipped
-  '2026-08-17': { 1:'d1', 2:'d2', 3:'d3', 4:'d4' }  // Mon off: Push→Tue, Pull→Wed, Legs→Thu, Upper→Fri; Arms skipped
+  '2026-08-17': { 1:'d1', 2:'d2', 3:'d3', 4:'d4' },  // Mon off: Push→Tue, Pull→Wed, Legs→Thu, Upper→Fri; Arms skipped
+  '2026-09-07': { 1:'d1', 2:'d2', 3:'d3', 4:'d4' }   // Mon off (Labor Day): Push→Tue, Pull→Wed, Legs→Thu, Upper→Fri; Arms skipped
 };
 
 // ── Schedule logic ────────────────────────────────────────────

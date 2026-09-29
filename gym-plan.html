@@ -809,6 +809,50 @@ function scheduleSetsDraftSave(exId, dayId){
   }, 400);
 }
 
+// Activity Log has no per-day identity (it's a standalone form, not tied to a
+// program day/date the way wrap-up and sets drafts are), so one draft slot is enough.
+function loadActivityDraft(){
+  try{ return JSON.parse(localStorage.getItem("pgymplan_activitydraft")); }catch(e){ return null; }
+}
+function clearActivityDraft(){ try{ localStorage.removeItem("pgymplan_activitydraft"); }catch(e){} }
+function saveActivityDraft(){
+  try{
+    var typeEl = document.getElementById("activity-type");
+    var durEl = document.getElementById("activity-dur");
+    var calEl = document.getElementById("activity-cal");
+    var hrEl = document.getElementById("activity-hr");
+    var notesEl = document.getElementById("activity-notes");
+    var dateEl = document.getElementById("activity-date");
+    var vals = {
+      type: typeEl ? typeEl.value : "",
+      dur: durEl ? durEl.value : "",
+      cal: calEl ? calEl.value : "",
+      hr: hrEl ? hrEl.value : "",
+      notes: notesEl ? notesEl.value : "",
+      date: dateEl ? dateEl.value : ""
+    };
+    if(!vals.type && !vals.dur && !vals.cal && !vals.hr && !vals.notes){ clearActivityDraft(); return; }
+    localStorage.setItem("pgymplan_activitydraft", JSON.stringify(vals));
+  }catch(e){}
+}
+function restoreActivityDraft(){
+  var draft = loadActivityDraft();
+  if(!draft) return;
+  var typeEl = document.getElementById("activity-type");
+  var durEl = document.getElementById("activity-dur");
+  var calEl = document.getElementById("activity-cal");
+  var hrEl = document.getElementById("activity-hr");
+  var notesEl = document.getElementById("activity-notes");
+  var dateEl = document.getElementById("activity-date");
+  // Never stomp anything already typed (e.g. a second call after the tab's been open a while).
+  if(typeEl && !typeEl.value && draft.type) typeEl.value = draft.type;
+  if(durEl && !durEl.value && draft.dur) durEl.value = draft.dur;
+  if(calEl && !calEl.value && draft.cal) calEl.value = draft.cal;
+  if(hrEl && !hrEl.value && draft.hr) hrEl.value = draft.hr;
+  if(notesEl && !notesEl.value && draft.notes) notesEl.value = draft.notes;
+  if(dateEl && !dateEl.value && draft.date) dateEl.value = draft.date;
+}
+
 function loadWrapDraft(dayId, dateStr){
   try{
     var d = JSON.parse(localStorage.getItem("pgymplan_wrapdraft_" + dayId));
@@ -1025,7 +1069,7 @@ function buildPanels(){
     panel.className = "day-panel" + (i===0?" active":"");
     panel.id = day.id;
 
-    if(day.activityPanel){ panel.innerHTML = buildActivityHTML(); container.appendChild(panel); return; }
+    if(day.activityPanel){ panel.innerHTML = buildActivityHTML(); container.appendChild(panel); restoreActivityDraft(); return; }
     if(day.statsPanel){ panel.innerHTML = buildStatsHTML(); container.appendChild(panel); return; }
     if(day.macrosPanel){ panel.innerHTML = buildMacrosHTML(); container.appendChild(panel); return; }
     if(day.recoveryPanel){ panel.innerHTML = buildRecoveryHTML(); container.appendChild(panel); return; }
@@ -1146,16 +1190,16 @@ function buildActivityHTML(){
         return "<button class='cardio-pill' onclick='toggleCardioPill(this,\"activity-type\",\"" + t + "\")'>" + t + "</button>";
       }).join("")
     + "</div>"
-    + "<input class='stat-input' type='text' placeholder='or type here...' id='activity-type' style='width:100%;text-align:left;margin-bottom:14px;'>"
+    + "<input class='stat-input' type='text' placeholder='or type here...' id='activity-type' style='width:100%;text-align:left;margin-bottom:14px;' oninput='saveActivityDraft()'>"
     + "<div class='section-label'>Stats</div>"
     + "<div class='stats-grid'>"
-    + "<div class='stat-col'><div class='stat-col-label'>Duration</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 45' id='activity-dur'></div>"
-    + "<div class='stat-col'><div class='stat-col-label'>Calories</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 320' id='activity-cal'></div>"
-    + "<div class='stat-col'><div class='stat-col-label'>Avg HR</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 138' id='activity-hr'></div>"
+    + "<div class='stat-col'><div class='stat-col-label'>Duration</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 45' id='activity-dur' oninput='saveActivityDraft()'></div>"
+    + "<div class='stat-col'><div class='stat-col-label'>Calories</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 320' id='activity-cal' oninput='saveActivityDraft()'></div>"
+    + "<div class='stat-col'><div class='stat-col-label'>Avg HR</div><input class='stat-input' type='text' inputmode='decimal' placeholder='e.g. 138' id='activity-hr' oninput='saveActivityDraft()'></div>"
     + "</div>"
     + "<div class='notes-block' style='margin-top:10px;'><div class='notes-label'>Notes</div>"
-    + "<textarea class='notes-textarea' id='activity-notes' placeholder='Distance, route, how it felt...'></textarea></div>"
-    + "<div class='stat-col' style='margin-top:10px;'><div class='stat-col-label'>Date</div><input class='stat-input' type='date' id='activity-date'></div>"
+    + "<textarea class='notes-textarea' id='activity-notes' placeholder='Distance, route, how it felt...' oninput='saveActivityDraft()'></textarea></div>"
+    + "<div class='stat-col' style='margin-top:10px;'><div class='stat-col-label'>Date</div><input class='stat-input' type='date' id='activity-date' onchange='saveActivityDraft()'></div>"
     + "<button class='stats-save-btn' style='margin-top:12px;' onclick='saveActivity()'>Log Activity</button>"
     + "<div class='section-label' style='margin-top:20px;'>Recent Activities</div>"
     + "<div id='activity-history'></div>";
@@ -2711,6 +2755,7 @@ async function saveActivity(){
   if(calEl) calEl.value = "";
   if(hrEl) hrEl.value = "";
   if(notesEl) notesEl.value = "";
+  clearActivityDraft();
   document.querySelectorAll(".cardio-pill").forEach(function(p){ p.classList.remove("active"); });
   loadActivityHistory();
 
@@ -3312,6 +3357,8 @@ function toggleCardioPill(btn, inputId, value){
   // Auto-save if this is a finisher cardio input (not the activity panel)
   if(inputId && inputId.indexOf("cardio-d") === 0){
     saveCardioPersist(inputId.replace("cardio-",""));
+  } else if(inputId === "activity-type"){
+    saveActivityDraft();
   }
 }
 

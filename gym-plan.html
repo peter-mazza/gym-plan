@@ -333,7 +333,9 @@ var SCHEDULE_WEEKS = [
   { start:20, end:20,  phase:'accumulation'     },  // sick week (Aug 27-28) — excluded from the count, see banner
   { start:21, end:24,  phase:'accumulation', phaseWeekStart:17, phaseWeekTotal:8 },  // phase weeks 5-8 (count resumes from wk18, 8-week accumulation)
   { start:25, end:25,  phase:'deload'           },
-  { start:26, end:999, phase:'intensification'  }
+  { start:26, end:31,  phase:'intensification'  },  // 6 weeks (Oct 5 – Nov 15), matching the wk8-13 block
+  { start:32, end:32,  phase:'deload'           },  // Nov 16-22
+  { start:33, end:999, phase:'accumulation'     }   // Nov 23 onward — open-ended; extend/close off same as this block was
 ];
 
 // Dates that override normal training with rest (YYYY-MM-DD)
@@ -451,7 +453,7 @@ function getProgramState(date){
 
   var displayPhaseKey = WEEK_PHASE_OVERRIDES[mondayKey] || phaseKey;
   var repScheme;
-  if(displayPhaseKey === 'deload')               repScheme = '2 \xd7 10-12 compounds \xb7 3 \xd7 10-12 isolation & core \xb7 reduce load ~40–50%';
+  if(displayPhaseKey === 'deload')               repScheme = '2 \xd7 10-12 compounds \xb7 3 \xd7 10-12 isolation & core \xb7 reduce load ~30–40%';
   else if(displayPhaseKey === 'intensification') repScheme = '4-5 \xd7 5-6 compounds \xb7 3 \xd7 8-10 accessories \xb7 rest 2-3 min between sets';
   else                                           repScheme = '3 \xd7 10-12 compounds \xb7 3 \xd7 12-15 isolation';
 
@@ -1390,7 +1392,7 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell, switchesToB
   if(!history || history.length === 0) return null;
 
   // ── Fix: exclude deload sessions from non-deload baselines ──
-  // Deload weights (~55% of max) skew accumulation and intensification suggestions
+  // Deload weights (~65% of max) skew accumulation and intensification suggestions
   // if they fall within the last 3 sessions.
   var recent;
   if(phase !== 'deload'){
@@ -1480,9 +1482,10 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell, switchesToB
     suggested = Math.round(suggested / roundTo) * roundTo;
     pct = Math.round((suggested / oneRM) * 100);
   } else if(phase === 'deload'){
-    // ~55% of recent working max — reduces load by ~45%, middle of the 40-50% guidance range
-    suggested = Math.round((avgMax * 0.55) / roundTo) * roundTo;
-    pct = 55;
+    // ~65% of recent working max — reduces load by ~35%, a milder deload than the
+    // original 40-50% guidance range while still qualifying as one
+    suggested = Math.round((avgMax * 0.65) / roundTo) * roundTo;
+    pct = 65;
     oneRM = null;
   } else {
     // Accumulation: if recent history is from intensification, apply reverse Epley
@@ -1851,7 +1854,7 @@ function buildCard(container, ex, dayId, data, phase){
       } else if(_displayPhase === 'intensification' && !suggestion.oneRM){
         formulaText = "fixed rep range \u00b7 matches accumulation weight \u00b7 recent max: " + suggestion.lastMax + " lbs";
       } else if(_displayPhase === 'deload'){
-        formulaText = "~55% of recent working max (~" + suggestion.avgMax + " lbs avg) \u00b7 reduce 40\u201350%";
+        formulaText = "~" + suggestion.pct + "% of recent working max (~" + suggestion.avgMax + " lbs avg) \u00b7 reduce ~" + (100 - suggestion.pct) + "%";
       } else if(_displayPhase === 'accumulation' && suggestion.floored){
         var _dbNote3 = ex.switchesToBarbell ? ' per DB' : ' lbs';
         formulaText = "Floored to accum. phase 1 peak: " + suggestion.prevAccumPeak + _dbNote3 + " \xb7 reverse Epley was lower";
@@ -3398,7 +3401,7 @@ function updateDeloadBanner(panelId, state){
   if(!state.isDeload) return;
   var banner = document.createElement('div');
   banner.className = 'deload-banner';
-  banner.textContent = '\uD83D\uDD04 DELOAD WEEK \u2014 Compounds: 2 sets \xb7 Isolation & Core: 3 sets \xb7 Reduce load ~40\u201350%';
+  banner.textContent = '\uD83D\uDD04 DELOAD WEEK \u2014 Compounds: 2 sets \xb7 Isolation & Core: 3 sets \xb7 Reduce load ~30\u201340%';
   el.appendChild(banner);
 }
 

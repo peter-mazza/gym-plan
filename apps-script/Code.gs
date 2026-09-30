@@ -3,29 +3,39 @@ function doGet(e) {
   var type = e.parameter.type;
 
   if (type === 'exercise') {
-    var sheet = ss.getSheetByName('Exercises') || ss.insertSheet('Exercises');
-    var data = sheet.getDataRange().getValues();
-    var targetDate = String(e.parameter.date || '').trim();
-    var targetExercise = String(e.parameter.exercise || '').trim();
-    for (var i = 1; i < data.length; i++) {
-      var rowDate = fmt(data[i][0]).trim();
-      var rowExercise = String(data[i][2]).trim();
-      if (rowDate === targetDate && rowExercise === targetExercise) {
-        var row = i + 1;
-        sheet.getRange(row, 2).setValue(e.parameter.day || '');
-        sheet.getRange(row, 4).setValue(e.parameter.set1 || '');
-        sheet.getRange(row, 5).setValue(e.parameter.set2 || '');
-        sheet.getRange(row, 6).setValue(e.parameter.set3 || '');
-        sheet.getRange(row, 7).setValue(e.parameter.set4 || '');
-        sheet.getRange(row, 8).setValue(e.parameter.set5 || '');
-        return respondJson({ ok: true, updated: row });
+    // Two near-simultaneous requests for the same (date, exercise) — a mobile network
+    // layer retrying a GET it thinks stalled, or any other client-side duplicate — could
+    // both scan the sheet, both find no existing row yet, and both append. Lock the
+    // scan-then-write section so the second request always sees the first one's row.
+    var lock = LockService.getScriptLock();
+    lock.waitLock(15000);
+    try {
+      var sheet = ss.getSheetByName('Exercises') || ss.insertSheet('Exercises');
+      var data = sheet.getDataRange().getValues();
+      var targetDate = String(e.parameter.date || '').trim();
+      var targetExercise = String(e.parameter.exercise || '').trim();
+      for (var i = 1; i < data.length; i++) {
+        var rowDate = fmt(data[i][0]).trim();
+        var rowExercise = String(data[i][2]).trim();
+        if (rowDate === targetDate && rowExercise === targetExercise) {
+          var row = i + 1;
+          sheet.getRange(row, 2).setValue(e.parameter.day || '');
+          sheet.getRange(row, 4).setValue(e.parameter.set1 || '');
+          sheet.getRange(row, 5).setValue(e.parameter.set2 || '');
+          sheet.getRange(row, 6).setValue(e.parameter.set3 || '');
+          sheet.getRange(row, 7).setValue(e.parameter.set4 || '');
+          sheet.getRange(row, 8).setValue(e.parameter.set5 || '');
+          return respondJson({ ok: true, updated: row });
+        }
       }
+      // No existing row for this (date, exercise) — append as new
+      sheet.appendRow([e.parameter.date, e.parameter.day, e.parameter.exercise,
+                       e.parameter.set1, e.parameter.set2, e.parameter.set3,
+                       e.parameter.set4 || '', e.parameter.set5 || '']);
+      return respondJson({ ok: true, appended: true });
+    } finally {
+      lock.releaseLock();
     }
-    // No existing row for this (date, exercise) — append as new
-    sheet.appendRow([e.parameter.date, e.parameter.day, e.parameter.exercise,
-                     e.parameter.set1, e.parameter.set2, e.parameter.set3,
-                     e.parameter.set4 || '', e.parameter.set5 || '']);
-    return respondJson({ ok: true, appended: true });
   }
 
   if (type === 'workout') {
@@ -38,31 +48,38 @@ function doGet(e) {
   }
 
   if (type === 'edit_workout') {
-    var sheet = ss.getSheetByName('Workouts');
-    if (!sheet) return respondJson({ ok: false, error: 'No Workouts sheet' });
-    var data = sheet.getDataRange().getValues();
-    var origDate = String(e.parameter.originalDate || e.parameter.date || '').trim();
-    var origDay  = String(e.parameter.day || '').trim();
-    for (var i = 1; i < data.length; i++) {
-      var rowDate = fmt(data[i][0]).trim();
-      var rowDay  = String(data[i][1]).trim();
-      if (rowDate === origDate && rowDay === origDay) {
-        var row = i + 1;
-        sheet.getRange(row, 3).setValue(e.parameter.cardio       || '');
-        sheet.getRange(row, 4).setValue(e.parameter.duration     || '');
-        sheet.getRange(row, 5).setValue(e.parameter.calories     || '');
-        sheet.getRange(row, 6).setValue(e.parameter.heartRate    || '');
-        sheet.getRange(row, 7).setValue(e.parameter.notes        || '');
-        sheet.getRange(row, 8).setValue(e.parameter.cardioMinutes || '');
-        return respondJson({ ok: true, updated: row });
+    // Same scan-then-write race as 'exercise' above — lock it for the same reason.
+    var lock2 = LockService.getScriptLock();
+    lock2.waitLock(15000);
+    try {
+      var sheet = ss.getSheetByName('Workouts');
+      if (!sheet) return respondJson({ ok: false, error: 'No Workouts sheet' });
+      var data = sheet.getDataRange().getValues();
+      var origDate = String(e.parameter.originalDate || e.parameter.date || '').trim();
+      var origDay  = String(e.parameter.day || '').trim();
+      for (var i = 1; i < data.length; i++) {
+        var rowDate = fmt(data[i][0]).trim();
+        var rowDay  = String(data[i][1]).trim();
+        if (rowDate === origDate && rowDay === origDay) {
+          var row = i + 1;
+          sheet.getRange(row, 3).setValue(e.parameter.cardio       || '');
+          sheet.getRange(row, 4).setValue(e.parameter.duration     || '');
+          sheet.getRange(row, 5).setValue(e.parameter.calories     || '');
+          sheet.getRange(row, 6).setValue(e.parameter.heartRate    || '');
+          sheet.getRange(row, 7).setValue(e.parameter.notes        || '');
+          sheet.getRange(row, 8).setValue(e.parameter.cardioMinutes || '');
+          return respondJson({ ok: true, updated: row });
+        }
       }
+      // Row not found — append as new instead of failing silently
+      sheet.appendRow([e.parameter.date, e.parameter.day, e.parameter.cardio,
+                       e.parameter.duration, e.parameter.calories,
+                       e.parameter.heartRate, e.parameter.notes,
+                       e.parameter.cardioMinutes || '']);
+      return respondJson({ ok: true, appended: true });
+    } finally {
+      lock2.releaseLock();
     }
-    // Row not found — append as new instead of failing silently
-    sheet.appendRow([e.parameter.date, e.parameter.day, e.parameter.cardio,
-                     e.parameter.duration, e.parameter.calories,
-                     e.parameter.heartRate, e.parameter.notes,
-                     e.parameter.cardioMinutes || '']);
-    return respondJson({ ok: true, appended: true });
   }
 
   if (type === 'history') {

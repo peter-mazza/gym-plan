@@ -2496,9 +2496,9 @@ function restoreWarmupStates(){
   });
 }
 
-function getExName(exId){
+function getExName(exId, forDate){
   var found = exId;
-  var _exState = getProgramState(new Date());
+  var _exState = getProgramState(forDate || new Date());
   Object.keys(EXERCISES).forEach(function(d){
     Object.keys(EXERCISES[d]).forEach(function(s){
       EXERCISES[d][s].forEach(function(ex){ if(ex.id === exId) found = getExerciseName(ex, _exState.phase, _exState.weekInPhase); });
@@ -2598,7 +2598,7 @@ async function saveWeight(exId, dayId, displayExId, movementName){
       prBadge.textContent = 'PR';
       var metaEl = card.querySelector('.exercise-meta');
       if(metaEl) metaEl.appendChild(prBadge);
-      showToast('New PR — ' + getExName(displayExId));
+      showToast('New PR — ' + getExName(displayExId, now));
     } else if(!_prMap[exId]){
       _prMap[exId] = newMax;
     }
@@ -2621,7 +2621,7 @@ async function saveWeight(exId, dayId, displayExId, movementName){
   }, 400);
 
   // Post to Sheets with pending queue for reliability
-  var exName = getExName(displayExId);
+  var exName = getExName(displayExId, now);
   var params = "type=exercise&date=" + encodeURIComponent(dateStr) + "&day=" + encodeURIComponent(dayTitle) + "&exercise=" + encodeURIComponent(exName) + "&set1=" + encodeURIComponent(s1) + "&set2=" + encodeURIComponent(s2) + "&set3=" + encodeURIComponent(s3) + "&set4=" + encodeURIComponent(s4) + "&set5=" + encodeURIComponent(s5);
   queuePending(params);
   updatePendingIndicator();

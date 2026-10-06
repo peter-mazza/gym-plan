@@ -67,6 +67,13 @@ function doGet(e) {
           sheet.getRange(row, 6).setValue(e.parameter.heartRate    || '');
           sheet.getRange(row, 7).setValue(e.parameter.notes        || '');
           sheet.getRange(row, 8).setValue(e.parameter.cardioMinutes || '');
+          // Column 9: training phase (accumulation/intensification/deload) this workout
+          // happened under, computed client-side at save time (the client already has the
+          // single source of truth — SCHEDULE_WEEKS — so this avoids duplicating that
+          // schedule logic here). Only set it when the client actually sent one, so an old
+          // client build (or a request missing the param for any reason) doesn't blank out
+          // a phase a previous save already recorded for this row.
+          if (e.parameter.phase) sheet.getRange(row, 9).setValue(e.parameter.phase);
           return respondJson({ ok: true, updated: row });
         }
       }
@@ -74,10 +81,37 @@ function doGet(e) {
       sheet.appendRow([e.parameter.date, e.parameter.day, e.parameter.cardio,
                        e.parameter.duration, e.parameter.calories,
                        e.parameter.heartRate, e.parameter.notes,
-                       e.parameter.cardioMinutes || '']);
+                       e.parameter.cardioMinutes || '', e.parameter.phase || '']);
       return respondJson({ ok: true, appended: true });
     } finally {
       lock2.releaseLock();
+    }
+  }
+
+  if (type === 'set_phase') {
+    // One-off backfill endpoint: sets ONLY column 9 (phase) on an existing row, matched by
+    // (date, day), without touching cardio/duration/calories/etc — unlike edit_workout above,
+    // which would blank those out if called without them. Used once to backfill historical
+    // rows that predate the Phase column; not part of the normal save flow.
+    var lock3 = LockService.getScriptLock();
+    lock3.waitLock(15000);
+    try {
+      var sheet = ss.getSheetByName('Workouts');
+      if (!sheet) return respondJson({ ok: false, error: 'No Workouts sheet' });
+      var data = sheet.getDataRange().getValues();
+      var targetDate = String(e.parameter.date || '').trim();
+      var targetDay  = String(e.parameter.day || '').trim();
+      for (var i = 1; i < data.length; i++) {
+        var rowDate = fmt(data[i][0]).trim();
+        var rowDay  = String(data[i][1]).trim();
+        if (rowDate === targetDate && rowDay === targetDay) {
+          sheet.getRange(i + 1, 9).setValue(e.parameter.phase || '');
+          return respondJson({ ok: true, updated: i + 1 });
+        }
+      }
+      return respondJson({ ok: false, error: 'No matching row' });
+    } finally {
+      lock3.releaseLock();
     }
   }
 
@@ -120,7 +154,7 @@ function doGet(e) {
     return respondJson({
       date: fmt(last[0]), day: last[1], cardio: last[2],
       duration: last[3], calories: last[4], heartRate: last[5],
-      notes: last[6], cardioMinutes: last[7] || ''
+      notes: last[6], cardioMinutes: last[7] || '', phase: last[8] || ''
     });
   }
 
@@ -130,7 +164,8 @@ function doGet(e) {
     var rows = sheet.getDataRange().getValues().slice(1);
     return respondJson({ rows: rows.map(function(r){
       return { date: fmt(r[0]), day: r[1], cardio: r[2], duration: r[3],
-               calories: r[4], heartRate: r[5], notes: r[6], cardioMinutes: r[7] || '' };
+               calories: r[4], heartRate: r[5], notes: r[6], cardioMinutes: r[7] || '',
+               phase: r[8] || '' };
     })});
   }
 

@@ -2678,6 +2678,12 @@ async function saveWorkout(dayId){
   var dateStr = now.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
   var dayTitle = "";
   DAYS.forEach(function(d){ if(d.id === dayId) dayTitle = d.title; });
+  // What phase this workout actually happened under — displayPhase covers the rare
+  // week-override case (e.g. a back-off week shown as accumulation even though the
+  // underlying schedule says otherwise); that's what the day's rep scheme/labels actually
+  // followed, so it's the more meaningful tag for a log entry than the raw schedule phase.
+  var _wkState = getProgramState(now);
+  var workoutPhase = _wkState.displayPhase || _wkState.phase;
 
   // Detect if editing an existing entry (current week cache or archived past date)
   var existingSaved = null;
@@ -2692,6 +2698,7 @@ async function saveWorkout(dayId){
       + "&date=" + encodeURIComponent(dateStr)
       + "&originalDate=" + encodeURIComponent(dateStr)
       + "&day=" + encodeURIComponent(dayTitle)
+      + "&phase=" + encodeURIComponent(workoutPhase)
       + "&cardio=" + encodeURIComponent(cardio)
       + "&cardioMinutes=" + encodeURIComponent(cardioMinutes)
       + "&duration=" + encodeURIComponent(dur)
@@ -2784,7 +2791,9 @@ async function saveActivity(){
   loadActivityHistory();
 
   try{
-    var params = "type=workout&date=" + encodeURIComponent(dateStr) + "&day=" + encodeURIComponent(dayLabel) + "&cardio=" + encodeURIComponent(actType) + "&duration=" + encodeURIComponent(dur) + "&calories=" + encodeURIComponent(cal) + "&heartRate=" + encodeURIComponent(hr) + "&notes=" + encodeURIComponent(notes);
+    var _actPhaseState = getProgramState(_actDate);
+    var activityPhase = _actPhaseState.displayPhase || _actPhaseState.phase;
+    var params = "type=workout&date=" + encodeURIComponent(dateStr) + "&day=" + encodeURIComponent(dayLabel) + "&phase=" + encodeURIComponent(activityPhase) + "&cardio=" + encodeURIComponent(actType) + "&duration=" + encodeURIComponent(dur) + "&calories=" + encodeURIComponent(cal) + "&heartRate=" + encodeURIComponent(hr) + "&notes=" + encodeURIComponent(notes);
     await fetch(SHEETS_URL + "?" + params, {method:"GET", mode:"no-cors"});
     showToast("Activity logged!");
   }catch(e){ showToast("Saved locally", "var(--accent2)"); }

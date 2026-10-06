@@ -1589,7 +1589,28 @@ function buildCard(container, ex, dayId, data, phase){
   var weekInPhase = _dayState.weekInPhase;
   var histId = ex.id;
   var histAccumulationOnly = false;
-  if(_displayPhase === 'intensification' && ex.weightHistoryByIntensificationWeek){
+  // Week 1 of intensification: before falling back to an accumulation-based proxy (or
+  // redirecting to the other day's id — a fallback that only ever made sense on the
+  // program's very first intensification cycle, when no real history existed anywhere),
+  // check whether this exercise's OWN history already has a genuine prior-cycle session
+  // of the exact movement it's showing this week (e.g. "Barbell Bench Press" with real
+  // logged sets from last time through intensification). That's strictly more specific,
+  // more relevant data than either fallback, so it wins outright when it exists.
+  var _week1OwnMovementMatch = null;
+  if(_displayPhase === 'intensification' && weekInPhase === 1 &&
+     (ex.id === 'd1_incline_db_press' || ex.id === 'd4_db_bench')){
+    var _w1MovementKey = getExerciseName(ex, _displayPhase, weekInPhase);
+    var _w1OwnRaw = (data.history && data.history[ex.id]) || [];
+    var _w1Matched = _w1OwnRaw.filter(function(e){
+      if(!e.date) return false;
+      var _d = new Date(e.date); if(isNaN(_d.getTime())) return false;
+      var _s = getProgramState(_d);
+      if(_s.phase !== 'intensification') return false;
+      return getExerciseName(ex, 'intensification', _s.weekInPhase) === _w1MovementKey;
+    });
+    if(_w1Matched.length) _week1OwnMovementMatch = _w1Matched;
+  }
+  if(!_week1OwnMovementMatch && _displayPhase === 'intensification' && ex.weightHistoryByIntensificationWeek){
     var _whKeys = Object.keys(ex.weightHistoryByIntensificationWeek).map(Number).sort(function(a,b){return b-a;});
     for(var _whi=0; _whi<_whKeys.length; _whi++){ if(weekInPhase===_whKeys[_whi]){ histId=ex.weightHistoryByIntensificationWeek[_whKeys[_whi]]; break; } }
     // Week 1: the redirected exercise's intensification entries belong to a different
@@ -1597,7 +1618,7 @@ function buildCard(container, ex, dayId, data, phase){
     // Use accumulation data only until we have matching barbell history in week 2+.
     if(weekInPhase === 1) histAccumulationOnly = true;
   }
-  var history = (data.history && data.history[histId]) || [];
+  var history = _week1OwnMovementMatch || (data.history && data.history[histId]) || [];
   if(histAccumulationOnly){
     history = history.filter(function(e){
       if(!e.date) return false;

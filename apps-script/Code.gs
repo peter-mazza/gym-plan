@@ -38,22 +38,21 @@ function doGet(e) {
     }
   }
 
-  if (type === 'workout') {
-    var sheet = ss.getSheetByName('Workouts') || ss.insertSheet('Workouts');
-    sheet.appendRow([e.parameter.date, e.parameter.day, e.parameter.cardio,
-                     e.parameter.duration, e.parameter.calories,
-                     e.parameter.heartRate, e.parameter.notes,
-                     e.parameter.cardioMinutes || '']);
-    return respond('OK');
-  }
-
-  if (type === 'edit_workout') {
-    // Same scan-then-write race as 'exercise' above — lock it for the same reason.
+  // 'workout' (first save of the day) and 'edit_workout' (client thinks it's updating an
+  // existing record) used to be two different code paths — 'workout' was a blind append
+  // with NO duplicate protection at all, not even the lock 'exercise' got above. That's a
+  // real gap: the client's isEdit flag is a local-cache heuristic (checks
+  // pgymplan_lastwrap_<dayId>/wrapHistory in *this browser's* localStorage), so a cleared
+  // cache, a different device, or simply two near-simultaneous requests for the same first
+  // save can all send type=workout while a row for that date already exists (or is about
+  // to), and blind-append had nothing to stop it from duplicating either way. Both types
+  // now share the same scan-then-write-under-lock upsert — the client-side isEdit distinction
+  // is cosmetic (it only changes the toast text) and no longer load-bearing for correctness.
+  if (type === 'workout' || type === 'edit_workout') {
     var lock2 = LockService.getScriptLock();
     lock2.waitLock(15000);
     try {
-      var sheet = ss.getSheetByName('Workouts');
-      if (!sheet) return respondJson({ ok: false, error: 'No Workouts sheet' });
+      var sheet = ss.getSheetByName('Workouts') || ss.insertSheet('Workouts');
       var data = sheet.getDataRange().getValues();
       var origDate = String(e.parameter.originalDate || e.parameter.date || '').trim();
       var origDay  = String(e.parameter.day || '').trim();
@@ -71,7 +70,7 @@ function doGet(e) {
           return respondJson({ ok: true, updated: row });
         }
       }
-      // Row not found — append as new instead of failing silently
+      // No existing row for this (date, day) — append as new
       sheet.appendRow([e.parameter.date, e.parameter.day, e.parameter.cardio,
                        e.parameter.duration, e.parameter.calories,
                        e.parameter.heartRate, e.parameter.notes,

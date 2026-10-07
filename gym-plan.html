@@ -1653,6 +1653,20 @@ function buildCard(container, ex, dayId, data, phase){
       return false;
     };
     _lastEntryHistory = history.filter(function(e){ return _filterEntry(e, ex); });
+  } else if(ex.switchesToBarbell && histId === ex.id){
+    // Other switchesToBarbell exercises (e.g. d3_db_rdl) have no day-swap scheme — just a
+    // straight DB<->barbell unit change by phase (nameByPhase). Without this, the "last
+    // time" placeholder shows whatever's chronologically most recent regardless of phase,
+    // e.g. a dumbbell accumulation weight (per-hand, small number) as the placeholder for
+    // a barbell intensification lift (total weight, much larger) — a nonsensical number
+    // for the unit you're about to lift in. Match the current phase first; fall back to
+    // unfiltered history if there's no same-phase entry yet (first time through).
+    var _phaseMatched = history.filter(function(e){
+      if(!e.date) return false;
+      var _d = new Date(e.date); if(isNaN(_d.getTime())) return false;
+      return getProgramState(_d).phase === _displayPhase;
+    });
+    if(_phaseMatched.length) _lastEntryHistory = _phaseMatched;
   }
   var lastEntry = _lastEntryHistory.length ? _lastEntryHistory[_lastEntryHistory.length-1] : null;
   // Don't show accumulation dumbbell weights as placeholder boxes in intensification

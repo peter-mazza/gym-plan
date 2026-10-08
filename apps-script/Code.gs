@@ -2,6 +2,38 @@ function doGet(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var type = e.parameter.type;
 
+  if (type === 'day_for_date') {
+    // Read-only lookup for the auto-log Shortcut: "what day label applies to this date?"
+    // Deliberately does NOT reimplement the schedule logic (SCHEDULE_WEEKS/WEEK_DOW_OVERRIDES
+    // live client-side in gym-plan.html only, on purpose — keeping a second copy here would
+    // drift out of sync, which is exactly the failure mode this is trying to avoid). Instead,
+    // this looks at what was ACTUALLY logged for this date — which reflects Peter's real-time
+    // choice even when he changes the plan on the fly without a code update. Checks Exercises
+    // first (most reliable: he logs sets into a specific day's panel during the workout,
+    // before this ever gets called), then Workouts as a secondary source. Returns day:'' if
+    // nothing's logged yet for this date — caller should fall back to a plain weekday guess.
+    var targetDate = String(e.parameter.date || '').trim();
+    var exSheet = ss.getSheetByName('Exercises');
+    if (exSheet) {
+      var exRows = exSheet.getDataRange().getValues();
+      for (var ei = exRows.length - 1; ei >= 1; ei--) {
+        if (fmt(exRows[ei][0]).trim() === targetDate) {
+          return respondJson({ day: exRows[ei][1], source: 'exercises' });
+        }
+      }
+    }
+    var woSheet = ss.getSheetByName('Workouts');
+    if (woSheet) {
+      var woRows = woSheet.getDataRange().getValues();
+      for (var wi = woRows.length - 1; wi >= 1; wi--) {
+        if (fmt(woRows[wi][0]).trim() === targetDate) {
+          return respondJson({ day: woRows[wi][1], source: 'workouts' });
+        }
+      }
+    }
+    return respondJson({ day: '', source: 'none' });
+  }
+
   if (type === 'exercise') {
     // Two near-simultaneous requests for the same (date, exercise) — a mobile network
     // layer retrying a GET it thinks stalled, or any other client-side duplicate — could

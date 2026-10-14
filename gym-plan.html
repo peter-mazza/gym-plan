@@ -333,9 +333,11 @@ var SCHEDULE_WEEKS = [
   { start:20, end:20,  phase:'accumulation'     },  // sick week (Aug 27-28) — excluded from the count, see banner
   { start:21, end:24,  phase:'accumulation', phaseWeekStart:17, phaseWeekTotal:8 },  // phase weeks 5-8 (count resumes from wk18, 8-week accumulation)
   { start:25, end:25,  phase:'deload'           },
-  { start:26, end:31,  phase:'intensification'  },  // 6 weeks (Oct 5 – Nov 15), matching the wk8-13 block
-  { start:32, end:32,  phase:'deload'           },  // Nov 16-22
-  { start:33, end:999, phase:'accumulation'     }   // Nov 23 onward — open-ended; extend/close off same as this block was
+  { start:26, end:26,  phase:'intensification', phaseWeekTotal:6 },  // phase week 1 (Oct 5-11)
+  { start:27, end:27,  phase:'accumulation'     },  // sick/back-off week (Oct 12-18) — excluded from the intensification count, see banner
+  { start:28, end:32,  phase:'intensification', phaseWeekStart:27, phaseWeekTotal:6 },  // phase weeks 2-6 (Oct 19 – Nov 22)
+  { start:33, end:33,  phase:'deload'           },  // Nov 23-29
+  { start:34, end:999, phase:'accumulation'     }   // Nov 30 onward — open-ended; extend/close off same as this block was
 ];
 
 // Dates that override normal training with rest (YYYY-MM-DD)
@@ -355,6 +357,8 @@ var EXCEPTION_DATES = {
   '2026-08-27': { rest:true, note:'Sick day — cold. Upper skipped.' },
   '2026-08-28': { rest:true, note:'Sick day — cold. Arms (optional) skipped.' },
   '2026-09-07': { rest:true, note:'Labor Day — gym closed. Push moves to Tuesday.' },
+  '2026-10-12': { rest:true, note:'Sick day. Push moves to Wednesday.' },
+  '2026-10-13': { rest:true, note:'Sick day. Pull moves to Thursday.' },
   '2026-05-13': { rest:true, note:'Sick day — cold' },
   '2026-05-14': { rest:true, note:'Sick day — cold' },
   '2026-05-15': { rest:true, note:'Sick day — cold' },
@@ -376,7 +380,8 @@ var WEEK_BANNERS = {
   '2026-08-10': 'Note: Fri Aug 14 is a rest day this week \u2014 no Arms session.',
   '2026-08-17': 'Mon Aug 17 off \u2014 Push starts Tue. Completed Push Tue + Pull Wed, then sick \u2014 Legs Thu and Upper Fri missed. Short week excluded from the accumulation count.',
   '2026-08-24': 'Mon\u2013Wed completed, then sick Thu/Fri \u2014 cold. Upper and Arms missed. Short week excluded from the accumulation count (same as Aug 17). Deload now starts Sep 28, intensification resumes Oct 5.',
-  '2026-09-07': 'Mon Sep 7 off \u2014 Labor Day. Push moves to Tuesday \u00b7 Pull Wednesday \u00b7 Legs Thursday \u00b7 Upper Friday \u00b7 Arms skipped. Still a full 4-day week \u2014 counts normally toward accumulation.'
+  '2026-09-07': 'Mon Sep 7 off \u2014 Labor Day. Push moves to Tuesday \u00b7 Pull Wednesday \u00b7 Legs Thursday \u00b7 Upper Friday \u00b7 Arms skipped. Still a full 4-day week \u2014 counts normally toward accumulation.',
+  '2026-10-12': 'Back-off week \u2014 sick Mon/Tue. Push Wed \xb7 Pull Thu \xb7 Legs Fri \xb7 Upper + Arms skipped. Accumulation loads and dumbbell versions this week (3 \xd7 10-12 compounds, 3 \xd7 12-15 isolation): go 10\u201315% under the suggested weights and stop 2\u20133 reps short of failure. Week excluded from the intensification count \u2014 heavy work resumes Oct 19 (week 2 of 6), deload now Nov 23.'
 };
 
 // Maps JS day-of-week (1=Mon...5=Fri) to workout panel ID
@@ -396,7 +401,8 @@ var WEEK_DOW_OVERRIDES = {
   '2026-06-15': { 3:'activity' },     // Thu: Active recovery yoga (lower back week)
   '2026-06-29': { 1:'d1', 2:'d2', 4:'d3' },  // Mon unavailable + sick Thu: Push→Tue, Pull→Wed, Legs→Fri; Upper+Arms skipped
   '2026-08-17': { 1:'d1', 2:'d2', 3:'d3', 4:'d4' },  // Mon off: Push→Tue, Pull→Wed, Legs→Thu, Upper→Fri; Arms skipped
-  '2026-09-07': { 1:'d1', 2:'d2', 3:'d3', 4:'d4' }   // Mon off (Labor Day): Push→Tue, Pull→Wed, Legs→Thu, Upper→Fri; Arms skipped
+  '2026-09-07': { 1:'d1', 2:'d2', 3:'d3', 4:'d4' },  // Mon off (Labor Day): Push→Tue, Pull→Wed, Legs→Thu, Upper→Fri; Arms skipped
+  '2026-10-12': { 2:'d1', 3:'d2', 4:'d3' }            // Sick Mon/Tue: Push→Wed, Pull→Thu, Legs→Fri; Upper+Arms skipped
 };
 
 // ── Schedule logic ────────────────────────────────────────────

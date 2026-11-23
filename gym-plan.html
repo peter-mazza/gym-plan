@@ -928,8 +928,20 @@ function clearStaleChecks(){
 var PENDING_KEY = "pgymplan_pending_v1";
 function loadPending(){ try{ return JSON.parse(localStorage.getItem(PENDING_KEY))||[]; }catch(e){ return []; } }
 function savePending(q){ try{ localStorage.setItem(PENDING_KEY, JSON.stringify(q)); }catch(e){} }
+// Which Sheets row a write targets — mirrors the server's upsert keys
+// (exercise: date+exercise; workout/edit_workout: date+day). A newer save for
+// the same row replaces any older queued one, so a stale retry can never
+// overwrite a later edit.
+function pendingKey(params){
+  var p = new URLSearchParams(params);
+  var t = p.get("type");
+  if(t === "exercise") return "ex|" + p.get("date") + "|" + p.get("exercise");
+  if(t === "workout" || t === "edit_workout") return "wo|" + p.get("date") + "|" + p.get("day");
+  return params;
+}
 function queuePending(params){
-  var q = loadPending();
+  var key = pendingKey(params);
+  var q = loadPending().filter(function(item){ return pendingKey(item.params) !== key; });
   q.push({params:params, ts:Date.now()});
   savePending(q);
 }
@@ -939,22 +951,59 @@ function dequeuePending(params){
 function updatePendingIndicator(){
   var q = loadPending();
   var el = document.getElementById("pending-sync-badge");
-  if(el){ el.style.display = q.length > 0 ? "block" : "none"; el.textContent = q.length + " exercise(s) pending sync"; }
+  if(el){ el.style.display = q.length > 0 ? "block" : "none"; el.textContent = q.length + " save(s) pending sync"; }
 }
-async function flushPending(){
-  var q = loadPending();
-  if(q.length === 0) return;
-  var remaining = [];
-  for(var i=0; i<q.length; i++){
-    try{
-      await fetch(SHEETS_URL + "?" + q[i].params, {method:"GET", mode:"no-cors"});
-    }catch(e){
-      remaining.push(q[i]);
-    }
-  }
-  savePending(remaining);
+// Send one write and confirm the server actually applied it. Writes used to go
+// out as mode:"no-cors", whose opaque response can't be read — a server-side
+// failure (lock timeout, script error, Google 5xx) looked identical to success
+// and was never retried. Apps Script's JSON responses carry CORS headers (the
+// read paths already rely on this), so check for {ok:true} instead.
+async function sendSheetsWrite(params){
+  var resp = await fetch(SHEETS_URL + "?" + params);
+  var json = await resp.json();
+  if(!json || json.ok !== true) throw new Error("Sheets write not confirmed");
+  return json;
+}
+// Queue-first write used by every save path: the entry stays queued until the
+// server confirms it, so a dropped connection or server error gets retried by
+// flushPending() instead of silently losing the data. Safe to retry because
+// every write type is an upsert on the server. Returns true if confirmed now.
+async function sheetsWrite(params){
+  queuePending(params);
   updatePendingIndicator();
+  try{
+    await sendSheetsWrite(params);
+    dequeuePending(params);
+    return true;
+  }catch(e){
+    return false;
+  }finally{
+    updatePendingIndicator();
+  }
 }
+var _flushing = false;
+async function flushPending(){
+  if(_flushing) return;
+  _flushing = true;
+  try{
+    var q = loadPending();
+    for(var i=0; i<q.length; i++){
+      try{
+        await sendSheetsWrite(q[i].params);
+        dequeuePending(q[i].params);
+      }catch(e){}
+    }
+  }finally{
+    _flushing = false;
+    updatePendingIndicator();
+  }
+}
+// Retry when connectivity returns or the app is brought back to the foreground,
+// not just on a full reload — a PWA on iOS can stay open for days.
+window.addEventListener("online", flushPending);
+document.addEventListener("visibilitychange", function(){
+  if(document.visibilityState === "visible") flushPending();
+});
 
 // ── Toast ────────────────────────────────────────────────────
 var _toastTimer;
@@ -2681,16 +2730,8 @@ async function saveWeight(exId, dayId, displayExId, movementName){
   // Post to Sheets with pending queue for reliability
   var exName = getExName(displayExId, now);
   var params = "type=exercise&date=" + encodeURIComponent(dateStr) + "&day=" + encodeURIComponent(dayTitle) + "&exercise=" + encodeURIComponent(exName) + "&set1=" + encodeURIComponent(s1) + "&set2=" + encodeURIComponent(s2) + "&set3=" + encodeURIComponent(s3) + "&set4=" + encodeURIComponent(s4) + "&set5=" + encodeURIComponent(s5);
-  queuePending(params);
-  updatePendingIndicator();
-  try{
-    await fetch(SHEETS_URL + "?" + params, {method:"GET", mode:"no-cors"});
-    dequeuePending(params);
-    showToast("Saved to Sheets");
-  }catch(e){
-    showToast("Queued — will retry on next load", "var(--accent2)");
-  }
-  updatePendingIndicator();
+  if(await sheetsWrite(params)) showToast("Saved to Sheets");
+  else showToast("Not synced yet — saved on phone, will retry", "var(--accent2)");
 }
 
 // ── Save workout ─────────────────────────────────────────────
@@ -2742,7 +2783,9 @@ async function saveWorkout(dayId){
       + "&calories=" + encodeURIComponent(cal)
       + "&heartRate=" + encodeURIComponent(hr)
       + "&notes=" + encodeURIComponent(notes);
-    await fetch(SHEETS_URL + "?" + params, {method:"GET", mode:"no-cors"});
+    // Queued until the server confirms — the local save below happens either
+    // way, so the wrap-up is never lost if the gym's signal drops mid-save.
+    var synced = await sheetsWrite(params);
 
     // Persist to localStorage — fields stay filled
     try{
@@ -2770,7 +2813,8 @@ async function saveWorkout(dayId){
     if(loggedBadge) loggedBadge.style.display = "block";
     var wrapBlock = document.getElementById("wrap-block-" + dayId);
     if(wrapBlock) wrapBlock.classList.add("logged");
-    showToast(isEdit ? "Workout updated in Sheets" : "Workout saved to Sheets");
+    if(synced) showToast(isEdit ? "Workout updated in Sheets" : "Workout saved to Sheets");
+    else showToast("Not synced yet — saved on phone, will retry", "var(--accent2)");
   }catch(e){
     showToast("Failed to save", "var(--accent2)");
   }finally{
@@ -2831,8 +2875,8 @@ async function saveActivity(){
     var _actPhaseState = getProgramState(_actDate);
     var activityPhase = _actPhaseState.displayPhase || _actPhaseState.phase;
     var params = "type=workout&date=" + encodeURIComponent(dateStr) + "&day=" + encodeURIComponent(dayLabel) + "&phase=" + encodeURIComponent(activityPhase) + "&cardio=" + encodeURIComponent(actType) + "&duration=" + encodeURIComponent(dur) + "&calories=" + encodeURIComponent(cal) + "&heartRate=" + encodeURIComponent(hr) + "&notes=" + encodeURIComponent(notes);
-    await fetch(SHEETS_URL + "?" + params, {method:"GET", mode:"no-cors"});
-    showToast("Activity logged!");
+    if(await sheetsWrite(params)) showToast("Activity logged!");
+    else showToast("Not synced yet — saved on phone, will retry", "var(--accent2)");
   }catch(e){ showToast("Saved locally", "var(--accent2)"); }
 }
 

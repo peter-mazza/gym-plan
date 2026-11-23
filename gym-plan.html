@@ -1492,7 +1492,7 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell, switchesToB
   // Dumbbells: 5 lb increments. Everything else (EZ bar, barbell, cable, machine): 10 lb.
   var roundTo = isDumbbell ? 5 : 10;
 
-  var suggested, pct, oneRM, dbDoubled = false;
+  var suggested, pct, oneRM, dbDoubled = false, fromBarbell = false;
 
   if(phase === 'intensification'){
     // Use Epley 1RM from source phase to calibrate to the intensification rep range.
@@ -1507,6 +1507,13 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell, switchesToB
     if(!lastHistEntry) lastHistEntry = history[history.length-1];
     var srcDate = (lastHistEntry && lastHistEntry.date) ? new Date(lastHistEntry.date) : new Date();
     var srcPhase = getProgramState(srcDate).phase;
+    // switchesToBarbell: if the latest sessions were dumbbells (week 1 of a cycle, or a
+    // back-off week inside intensification) but real barbell intensification sets exist,
+    // calibrate from those barbell sets rather than doubling dumbbell weights.
+    if(switchesToBarbell && srcPhase !== 'intensification' && history.some(function(e){
+      var _d = e.date ? new Date(e.date) : null;
+      return _d && !isNaN(_d.getTime()) && getProgramState(_d).phase === 'intensification';
+    })) srcPhase = 'intensification';
 
     // ── Fix: avoid mixing DB per-hand with barbell totals in avgMax ──
     // When the most recent session is already intensification (barbell), accumulation DB
@@ -1554,22 +1561,26 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell, switchesToB
     suggested = Math.round(suggested / roundTo) * roundTo;
     pct = Math.round((suggested / oneRM) * 100);
   } else if(phase === 'deload'){
-    // switchesToBarbell lifts are dumbbells in deload, but the sessions right before a
-    // deload are usually barbell totals from intensification. Base the deload on the last
-    // few dumbbell working sessions (accumulation phase) so it's 65% of a same-unit number.
-    // Halving barbell totals is only a fallback: per-hand DB loads run well under half the
-    // barbell (e.g. DB RDL ~70-75 vs barbell ~195), so ÷2 would barely be a deload.
+    // switchesToBarbell lifts are dumbbells in deload; base them on the barbell weights from
+    // intensification (Peter's call). Rep-adjust the 5-6-rep barbell sets to the 10-12-rep
+    // deload range (reverse Epley, same as the accumulation path), halve per hand, then 65%.
+    // Falls back to recent dumbbell (accumulation) sessions if there's no barbell history yet.
     if(switchesToBarbell){
       var _maxOf = function(e){ var m=0; [e.s1,e.s2,e.s3,e.s4,e.s5].forEach(function(v){ var n=parseFloat(v); if(!isNaN(n)&&n>m) m=n; }); return m; };
       var _phaseOf = function(e){ var _d = e.date ? new Date(e.date) : null; return (_d && !isNaN(_d.getTime())) ? getProgramState(_d).phase : null; };
-      var _dbW = history.filter(function(e){ return _phaseOf(e) === 'accumulation'; }).slice(-3).map(_maxOf);
-      if(!_dbW.filter(function(w){ return w > 0; }).length){
-        _dbW = recent.map(function(e){ return _phaseOf(e) === 'intensification' ? _maxOf(e) / 2 : _maxOf(e); });
-      }
-      _dbW = _dbW.filter(function(w){ return w > 0; });
-      if(_dbW.length > 0){
-        avgMax = _dbW.reduce(function(a,b){ return a+b; },0) / _dbW.length;
-        lastMax = _dbW[_dbW.length-1];
+      var _bbW = history.filter(function(e){ return _phaseOf(e) === 'intensification'; }).slice(-3).map(_maxOf).filter(function(w){ return w > 0; });
+      if(_bbW.length > 0){
+        var _bbSrcReps = exType === 'compound' ? 5.5 : 9;
+        var _perHand = _bbW.map(function(w){ return w * (1 + _bbSrcReps / 30) / (1 + 11 / 30) / 2; });
+        avgMax = _perHand.reduce(function(a,b){ return a+b; },0) / _perHand.length;
+        lastMax = _perHand[_perHand.length-1];
+        fromBarbell = true;
+      } else {
+        var _dbW = history.filter(function(e){ return _phaseOf(e) === 'accumulation'; }).slice(-3).map(_maxOf).filter(function(w){ return w > 0; });
+        if(_dbW.length > 0){
+          avgMax = _dbW.reduce(function(a,b){ return a+b; },0) / _dbW.length;
+          lastMax = _dbW[_dbW.length-1];
+        }
       }
       roundTo = 5;
     }
@@ -1647,7 +1658,7 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell, switchesToB
     }
   }
 
-  return { weight:suggested, lastMax:lastMax, trending:trending, sessions:maxWeights.length, oneRM:oneRM, pct:pct, avgMax:Math.round(avgMax), dbDoubled:dbDoubled, floored:_wasFloored, prevAccumPeak:_prevAccumPeak };
+  return { weight:suggested, lastMax:lastMax, trending:trending, sessions:maxWeights.length, oneRM:oneRM, pct:pct, avgMax:Math.round(avgMax), dbDoubled:dbDoubled, fromBarbell:fromBarbell, floored:_wasFloored, prevAccumPeak:_prevAccumPeak };
 }
 
 // ── Render exercise cards ────────────────────────────────────
@@ -1982,6 +1993,8 @@ function buildCard(container, ex, dayId, data, phase){
         formulaText = "Est. 1RM: ~" + suggestion.oneRM + " lbs via Epley" + dbNote + " \u00b7 " + suggestion.pct + "% for " + tgtRangeStr + " reps";
       } else if(_displayPhase === 'intensification' && !suggestion.oneRM){
         formulaText = "fixed rep range \u00b7 matches accumulation weight \u00b7 recent max: " + suggestion.lastMax + " lbs";
+      } else if(_displayPhase === 'deload' && suggestion.fromBarbell){
+        formulaText = "~" + suggestion.pct + "% of your intensification barbell weight, rep-adjusted to 10–12 and halved per DB (~" + suggestion.avgMax + " lbs/hand)";
       } else if(_displayPhase === 'deload'){
         formulaText = "~" + suggestion.pct + "% of recent working max (~" + suggestion.avgMax + " lbs avg) \u00b7 reduce ~" + (100 - suggestion.pct) + "%";
       } else if(_displayPhase === 'accumulation' && suggestion.floored){
@@ -1996,6 +2009,15 @@ function buildCard(container, ex, dayId, data, phase){
       }
       formulaP.textContent = formulaText;
       detailDiv.appendChild(formulaP);
+      // Barbell unavailable? Same rep range, so the dumbbell sub is just the barbell total
+      // split across two hands.
+      if(_displayPhase === 'intensification' && ex.switchesToBarbell && suggestion.weight){
+        var subP = document.createElement("p");
+        subP.className = "tip-text";
+        subP.style.cssText = "margin-top:2px;font-size:11px;color:var(--muted);";
+        subP.textContent = "Dumbbell sub: ~" + (Math.round((suggestion.weight / 2) / 5) * 5) + " lbs per hand (barbell \xf7 2)";
+        detailDiv.appendChild(subP);
+      }
     } else {
       var tipText2 = getExerciseTip(ex, phase, weekInPhase);
       if(tipText2){

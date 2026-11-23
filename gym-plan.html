@@ -336,8 +336,10 @@ var SCHEDULE_WEEKS = [
   { start:26, end:26,  phase:'intensification', phaseWeekTotal:6 },  // phase week 1 (Oct 5-11)
   { start:27, end:27,  phase:'accumulation'     },  // sick/back-off week (Oct 12-18) — excluded from the intensification count, see banner
   { start:28, end:32,  phase:'intensification', phaseWeekStart:27, phaseWeekTotal:6 },  // phase weeks 2-6 (Oct 19 – Nov 22)
-  { start:33, end:33,  phase:'deload'           },  // Nov 23-29
-  { start:34, end:999, phase:'accumulation'     }   // Nov 30 onward — open-ended; extend/close off same as this block was
+  { start:33, end:33,  phase:'deload'           },  // Nov 23-29 (Thanksgiving — Mon-Wed only)
+  { start:34, end:34,  phase:'accumulation', phaseWeekTotal:null },  // phase week 1 (Nov 30 – Dec 6)
+  { start:35, end:35,  phase:'accumulation', phaseWeekTotal:null },  // work trip (Dec 7-13) — week off, excluded from the accumulation count, see banner
+  { start:36, end:999, phase:'accumulation', phaseWeekStart:35 }   // phase week 2+ (Dec 14 onward) — open-ended; extend/close off same as this block was
 ];
 
 // Dates that override normal training with rest (YYYY-MM-DD)
@@ -365,7 +367,14 @@ var EXCEPTION_DATES = {
   '2026-06-17': { rest:true, note:'Injury rest day — right hip & lower back. Legs + Glutes skipped. Active recovery: massage.' },
   '2026-06-19': { rest:true, note:'Injury rest day — right hip & lower back still limiting. No exercise.' },
   '2026-06-29': { rest:true, note:'Unavailable — Push session moved to Tuesday this week.' },
-  '2026-07-02': { rest:true, note:'Sick day — Legs moved to Friday. Upper and Arms skipped this week.' }
+  '2026-07-02': { rest:true, note:'Sick day — Legs moved to Friday. Upper and Arms skipped this week.' },
+  '2026-11-26': { rest:true, note:'Thanksgiving — no gym. Upper skipped this week.' },
+  '2026-11-27': { rest:true, note:'Day after Thanksgiving — no gym. Arms skipped this week.' },
+  '2026-12-07': { rest:true, note:'Work trip — week off.' },
+  '2026-12-08': { rest:true, note:'Work trip — week off.' },
+  '2026-12-09': { rest:true, note:'Work trip — week off.' },
+  '2026-12-10': { rest:true, note:'Work trip — week off.' },
+  '2026-12-11': { rest:true, note:'Work trip — week off.' }
 };
 
 // Keyed by the Monday of that calendar week (YYYY-MM-DD)
@@ -382,7 +391,11 @@ var WEEK_BANNERS = {
   '2026-08-24': 'Mon\u2013Wed completed, then sick Thu/Fri \u2014 cold. Upper and Arms missed. Short week excluded from the accumulation count (same as Aug 17). Deload now starts Sep 28, intensification resumes Oct 5.',
   '2026-09-07': 'Mon Sep 7 off \u2014 Labor Day. Push moves to Tuesday \u00b7 Pull Wednesday \u00b7 Legs Thursday \u00b7 Upper Friday \u00b7 Arms skipped. Still a full 4-day week \u2014 counts normally toward accumulation.',
   '2026-10-12': 'Back-off week \u2014 sick Mon/Tue. Push Wed \xb7 Pull Thu \xb7 Legs Fri \xb7 Upper + Arms skipped. Accumulation loads and dumbbell versions this week (3 \xd7 10-12 compounds, 3 \xd7 12-15 isolation): go 10\u201315% under the suggested weights and stop 2\u20133 reps short of failure. Week excluded from the intensification count \u2014 heavy work resumes Oct 19 (week 2 of 6), deload now Nov 23.',
-  '2026-10-19': 'Thu: light day \u2014 poor sleep, low readiness. Short cardio + core, nothing heavy; log it under Activity. Upper moves to Friday. Arms skipped this week. Still counts as intensification week 2 of 6.'
+  '2026-10-19': 'Thu: light day \u2014 poor sleep, low readiness. Short cardio + core, nothing heavy; log it under Activity. Upper moves to Friday. Arms skipped this week. Still counts as intensification week 2 of 6.',
+  '2026-11-23': 'Deload week, cut short for Thanksgiving. Push Mon \xb7 Pull Tue \xb7 Legs Wed \xb7 Thu/Fri off \u2014 Upper + Arms skipped. Keep it light: deload loads, nothing to failure. Accumulation starts Nov 30.',
+  '2026-11-30': 'Accumulation begins \u2014 week 1. Next week (Dec 7) is off for the work trip and doesn\u2019t count toward the phase.',
+  '2026-12-07': 'Work trip \u2014 week off, no sessions scheduled. Excluded from the accumulation count; picks back up Dec 14 as week 2.',
+  '2026-12-14': 'Back from the work trip \u2014 accumulation week 2. After a week off, start the first session or two a little under the suggested weights and build back up.'
 };
 
 // Maps JS day-of-week (1=Mon...5=Fri) to workout panel ID
@@ -453,7 +466,9 @@ function getProgramState(date){
     }
   }
   var weekInPhase = weekNum - (phaseBlock.phaseWeekStart || phaseBlock.start) + 1;
-  var phaseLength = phaseBlock.phaseWeekTotal || (phaseBlock.end >= 999 ? null : (phaseBlock.end - phaseBlock.start + 1));
+  // phaseWeekTotal:null marks a short block that's part of an open-ended phase (no "of N")
+  var phaseLength = ('phaseWeekTotal' in phaseBlock) ? phaseBlock.phaseWeekTotal
+                  : (phaseBlock.end >= 999 ? null : (phaseBlock.end - phaseBlock.start + 1));
 
   var monday = getMondayOf(d);
   var mondayKey = toDateKey(monday);

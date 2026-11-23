@@ -1554,6 +1554,25 @@ function computeWeightSuggestion(history, phase, exType, isDumbbell, switchesToB
     suggested = Math.round(suggested / roundTo) * roundTo;
     pct = Math.round((suggested / oneRM) * 100);
   } else if(phase === 'deload'){
+    // switchesToBarbell lifts are dumbbells in deload, but the sessions right before a
+    // deload are usually barbell totals from intensification. Base the deload on the last
+    // few dumbbell working sessions (accumulation phase) so it's 65% of a same-unit number.
+    // Halving barbell totals is only a fallback: per-hand DB loads run well under half the
+    // barbell (e.g. DB RDL ~70-75 vs barbell ~195), so ÷2 would barely be a deload.
+    if(switchesToBarbell){
+      var _maxOf = function(e){ var m=0; [e.s1,e.s2,e.s3,e.s4,e.s5].forEach(function(v){ var n=parseFloat(v); if(!isNaN(n)&&n>m) m=n; }); return m; };
+      var _phaseOf = function(e){ var _d = e.date ? new Date(e.date) : null; return (_d && !isNaN(_d.getTime())) ? getProgramState(_d).phase : null; };
+      var _dbW = history.filter(function(e){ return _phaseOf(e) === 'accumulation'; }).slice(-3).map(_maxOf);
+      if(!_dbW.filter(function(w){ return w > 0; }).length){
+        _dbW = recent.map(function(e){ return _phaseOf(e) === 'intensification' ? _maxOf(e) / 2 : _maxOf(e); });
+      }
+      _dbW = _dbW.filter(function(w){ return w > 0; });
+      if(_dbW.length > 0){
+        avgMax = _dbW.reduce(function(a,b){ return a+b; },0) / _dbW.length;
+        lastMax = _dbW[_dbW.length-1];
+      }
+      roundTo = 5;
+    }
     // ~65% of recent working max — reduces load by ~35%, a milder deload than the
     // original 40-50% guidance range while still qualifying as one
     suggested = Math.round((avgMax * 0.65) / roundTo) * roundTo;
@@ -1920,7 +1939,10 @@ function buildCard(container, ex, dayId, data, phase){
     var suggPhase = (ex.fixedSets && _displayPhase === 'intensification') ? 'accumulation' : _displayPhase;
     // Phase-override back-off weeks: scope the suggestion to entries from the display phase
     // so accumulation rep-range weights (not heavy intensification weights) are used as the base.
-    var _suggHistory = _lastEntryHistory;
+    // Deload: suggest from the full history, not _lastEntryHistory — for switchesToBarbell
+    // lifts that's filtered to same-phase (i.e. past deload) entries for the placeholder,
+    // which would make the suggestion 65% of a previous deload.
+    var _suggHistory = (_displayPhase === 'deload') ? history : _lastEntryHistory;
     if(_displayPhase !== phase){
       var _phFiltered = history.filter(function(e){
         if(!e.date) return false;
